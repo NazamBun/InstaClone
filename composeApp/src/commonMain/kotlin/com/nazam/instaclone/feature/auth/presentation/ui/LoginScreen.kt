@@ -6,18 +6,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.nazam.instaclone.feature.auth.presentation.viewmodel.LoginViewModel
+import com.nazam.instaclone.feature.auth.presentation.viewmodel.SignupViewModel
 
 @Composable
-fun LoginScreen() {
+fun SignupScreen(
+    onNavigateToLogin: () -> Unit
+) {
 
-    val viewModel = remember { LoginViewModel() }
+    val viewModel = remember { SignupViewModel() }
     val ui = viewModel.uiState.collectAsState()
 
     Column(
@@ -34,17 +34,35 @@ fun LoginScreen() {
         TextField(
             value = ui.value.password,
             onValueChange = { viewModel.onPasswordChanged(it) },
-            modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp),
             placeholder = { Text("Mot de passe") }
         )
 
+        TextField(
+            value = ui.value.displayName,
+            onValueChange = { viewModel.onDisplayNameChanged(it) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp),
+            placeholder = { Text("Nom d'utilisateur") }
+        )
+
         Button(
-            onClick = { viewModel.login() },
+            onClick = { viewModel.signup() },
             modifier = Modifier
                 .padding(top = 24.dp)
                 .fillMaxWidth()
         ) {
-            Text("Connexion")
+            Text("Créer un compte")
+        }
+
+        Button(
+            onClick = onNavigateToLogin,
+            modifier = Modifier.padding(top = 8.dp)
+        ) {
+            Text("Déjà un compte ? Se connecter")
         }
 
         if (ui.value.errorMessage != null) {
@@ -55,9 +73,9 @@ fun LoginScreen() {
             )
         }
 
-        if (ui.value.isLoggedIn) {
+        if (ui.value.isSignedUp) {
             Text(
-                text = "🎉 Connecté !",
+                text = "🎉 Compte créé ! Vérifie ton email.",
                 color = Color.Green,
                 modifier = Modifier.padding(top = 16.dp)
             )
