@@ -10,15 +10,17 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
-class LoginViewModel(
-    private val loginUseCase: LoginUseCase,
-    private val getCurrentUserUseCase: GetCurrentUserUseCase
-) {
+class LoginViewModel : KoinComponent {
 
-    // on fera plus tard une vraie ViewModel KMP, pour l'instant simple
-    private val viewModelJob = Job()
-    private val scope = CoroutineScope(Dispatchers.Default + viewModelJob)
+    // ⭐ Injection clean avec Koin-core
+    private val loginUseCase: LoginUseCase by inject()
+    private val getCurrentUserUseCase: GetCurrentUserUseCase by inject()
+
+    private val job = Job()
+    private val scope = CoroutineScope(Dispatchers.Default + job)
 
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState
@@ -32,15 +34,19 @@ class LoginViewModel(
     }
 
     fun login() {
-        val currentState = _uiState.value
-        if (currentState.email.isBlank() || currentState.password.isBlank()) {
+        val email = _uiState.value.email
+        val password = _uiState.value.password
+
+        if (email.isBlank() || password.isBlank()) {
             _uiState.update { it.copy(errorMessage = "Email et mot de passe requis") }
             return
         }
 
         scope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            val result = loginUseCase.execute(currentState.email, currentState.password)
+            _uiState.update { it.copy(isLoading = true) }
+
+            val result = loginUseCase.execute(email, password)
+
             result
                 .onSuccess {
                     _uiState.update { it.copy(isLoading = false, isLoggedIn = true) }
@@ -49,7 +55,7 @@ class LoginViewModel(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            errorMessage = error.message ?: "Erreur de connexion"
+                            errorMessage = error.message ?: "Erreur inconnue"
                         )
                     }
                 }
@@ -65,7 +71,7 @@ class LoginViewModel(
         }
     }
 
-    fun clear() {
-        viewModelJob.cancel()
+    fun onClear() {
+        job.cancel()
     }
 }

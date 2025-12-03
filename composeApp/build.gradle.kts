@@ -44,6 +44,9 @@ kotlin {
             implementation("io.github.jan-tennert.supabase:postgrest-kt:${libs.versions.supabase.get()}")
             implementation("io.github.jan-tennert.supabase:storage-kt:${libs.versions.supabase.get()}")
 
+
+            implementation(libs.koin.core)
+
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
