@@ -7,6 +7,9 @@ import com.nazam.instaclone.feature.auth.domain.usecase.GetCurrentUserUseCase
 import com.nazam.instaclone.feature.auth.domain.usecase.LoginUseCase
 import com.nazam.instaclone.feature.auth.domain.usecase.LogoutUseCase
 import com.nazam.instaclone.feature.auth.domain.usecase.SignupUseCase
+import com.nazam.instaclone.feature.home.domain.usecase.GetFeedUseCase
+import com.nazam.instaclone.feature.home.domain.usecase.VoteLeftUseCase
+import com.nazam.instaclone.feature.home.domain.usecase.VoteRightUseCase
 import org.koin.dsl.module
 
 val appModule = module {
@@ -22,4 +25,7 @@ val appModule = module {
     factory { SignupUseCase(get()) }
     factory { LogoutUseCase(get()) }
     factory { GetCurrentUserUseCase(get()) }
+    factory { GetFeedUseCase(get()) }
+    factory { VoteLeftUseCase(get()) }
+    factory { VoteRightUseCase(get()) }
 }
