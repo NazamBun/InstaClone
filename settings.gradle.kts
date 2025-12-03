@@ -17,6 +17,7 @@ pluginManagement {
 
 dependencyResolutionManagement {
     repositories {
+        // Pour Android (filtré sur les libs Google)
         google {
             mavenContent {
                 includeGroupAndSubgroups("androidx")
@@ -24,7 +25,12 @@ dependencyResolutionManagement {
                 includeGroupAndSubgroups("com.google")
             }
         }
+
+        // ⭐ Pour TOUTES les libs multiplateformes (dont Supabase)
         mavenCentral()
+
+        // ⭐ Optionnel mais utile pour certaines libs KMP
+        maven("https://jitpack.io")
     }
 }
 

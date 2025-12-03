@@ -39,6 +39,11 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
+
+            implementation("io.github.jan-tennert.supabase:auth-kt:${libs.versions.supabase.get()}")
+            implementation("io.github.jan-tennert.supabase:postgrest-kt:${libs.versions.supabase.get()}")
+            implementation("io.github.jan-tennert.supabase:storage-kt:${libs.versions.supabase.get()}")
+
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
