@@ -15,7 +15,9 @@ import androidx.compose.ui.unit.dp
 import com.nazam.instaclone.feature.auth.presentation.viewmodel.SignupViewModel
 
 @Composable
-fun SignupScreen() {
+fun SignupScreen(
+    onNavigateToLogin: () -> Unit
+) {
 
     val viewModel = remember { SignupViewModel() }
     val ui = viewModel.uiState.collectAsState()
@@ -56,6 +58,16 @@ fun SignupScreen() {
                 .fillMaxWidth()
         ) {
             Text("Créer un compte")
+        }
+
+        // 🔹 Bouton pour retourner vers l'écran de connexion
+        Button(
+            onClick = onNavigateToLogin,
+            modifier = Modifier
+                .padding(top = 8.dp)
+                .fillMaxWidth()
+        ) {
+            Text("Déjà un compte ? Se connecter")
         }
 
         if (ui.value.errorMessage != null) {
