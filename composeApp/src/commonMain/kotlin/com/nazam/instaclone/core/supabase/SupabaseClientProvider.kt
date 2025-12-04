@@ -1,7 +1,7 @@
 package com.nazam.instaclone.core.supabase
 
-import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.auth.Auth
+import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.storage.Storage
 
@@ -13,9 +13,9 @@ object SupabaseClientProvider {
             supabaseUrl = SupabaseConfig.SUPABASE_URL,
             supabaseKey = SupabaseConfig.SUPABASE_ANON_KEY
         ) {
-            install(Auth)
-            install(Postgrest)
-            install(Storage)
+            install(Auth.Companion)
+            install(Postgrest.Companion)
+            install(Storage.Companion)
         }
     }
 }

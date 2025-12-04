@@ -6,18 +6,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.nazam.instaclone.feature.auth.presentation.viewmodel.SignupViewModel
+import com.nazam.instaclone.feature.auth.presentation.viewmodel.LoginViewModel
 
 @Composable
-fun SignupScreen(
-    onNavigateToLogin: () -> Unit
+fun LoginScreen(
+    onNavigateToSignup: () -> Unit,
+    onNavigateToHome: () -> Unit
 ) {
 
-    val viewModel = remember { SignupViewModel() }
+    val viewModel = remember { LoginViewModel() }
     val ui = viewModel.uiState.collectAsState()
 
     Column(
@@ -40,29 +43,20 @@ fun SignupScreen(
             placeholder = { Text("Mot de passe") }
         )
 
-        TextField(
-            value = ui.value.displayName,
-            onValueChange = { viewModel.onDisplayNameChanged(it) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 16.dp),
-            placeholder = { Text("Nom d'utilisateur") }
-        )
-
         Button(
-            onClick = { viewModel.signup() },
+            onClick = { viewModel.login() },
             modifier = Modifier
                 .padding(top = 24.dp)
                 .fillMaxWidth()
         ) {
-            Text("Créer un compte")
+            Text("Connexion")
         }
 
         Button(
-            onClick = onNavigateToLogin,
+            onClick = onNavigateToSignup,
             modifier = Modifier.padding(top = 8.dp)
         ) {
-            Text("Déjà un compte ? Se connecter")
+            Text("Créer un compte")
         }
 
         if (ui.value.errorMessage != null) {
@@ -73,12 +67,9 @@ fun SignupScreen(
             )
         }
 
-        if (ui.value.isSignedUp) {
-            Text(
-                text = "🎉 Compte créé ! Vérifie ton email.",
-                color = Color.Green,
-                modifier = Modifier.padding(top = 16.dp)
-            )
+        if (ui.value.isLoggedIn) {
+            // dès que le login réussit, on navigue vers Home
+            onNavigateToHome()
         }
     }
 }
