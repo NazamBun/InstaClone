@@ -34,6 +34,13 @@ kotlin {
     }
 
     sourceSets {
+        androidMain.dependencies {
+            implementation(compose.preview)
+            implementation(libs.androidx.activity.compose)
+
+            // ✅ MOTEUR RÉSEAU POUR COIL (ANDROID)
+            implementation("io.coil-kt.coil3:coil-network-okhttp:3.3.0")
+        }
 
         // ⭐ commun (Android + iOS)
         val commonMain by getting {
@@ -62,6 +69,9 @@ kotlin {
                 // Kamel
                 implementation(libs.kamel.image)
                 implementation(libs.kamel.image.default)
+
+                // Coil
+                implementation(libs.coil.compose)
 
             }
         }
