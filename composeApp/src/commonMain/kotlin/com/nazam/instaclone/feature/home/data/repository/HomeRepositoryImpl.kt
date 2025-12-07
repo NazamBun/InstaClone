@@ -14,16 +14,8 @@ class HomeRepositoryImpl(
     private val client: SupabaseClient = SupabaseClientProvider.client
 ) : HomeRepository {
 
-    // ⚠️ ta table s'appelle "posts"
+    // ⚠️ le vrai nom de ta table Supabase
     private val TABLE = "posts"
-
-    // ✅ Un seul Json réutilisé (bonne pratique)
-    private val json = Json {
-        ignoreUnknownKeys = true // on ignore les colonnes en plus dans la réponse Supabase
-    }
-
-    // ✅ Serializer réutilisé pour List<PostDto>
-    private val postListSerializer = ListSerializer(PostDto.serializer())
 
     // Petit cache en mémoire pour gérer les votes localement
     private val cache = mutableListOf<VsPost>()
@@ -35,16 +27,18 @@ class HomeRepositoryImpl(
                 .postgrest[TABLE]
                 .select()
 
-            // 2) JSON -> List<PostDto> (on réutilise json + serializer)
-            val dtoList: List<PostDto> = json.decodeFromString(
-                deserializer = postListSerializer,
+            // 2) JSON -> List<PostDto>
+            val dtoList: List<PostDto> = Json {
+                ignoreUnknownKeys = true // on ignore les colonnes en plus
+            }.decodeFromString(
+                deserializer = ListSerializer(PostDto.serializer()),
                 string = result.data
             )
 
             // 3) DTO -> VsPost
             val posts = dtoList.map { it.toDomain() }
 
-            // 4) Mise à jour du cache
+            // 4) on met à jour le cache
             cache.clear()
             cache.addAll(posts)
 
@@ -54,6 +48,7 @@ class HomeRepositoryImpl(
     // 🔹 Vote gauche : on modifie seulement le cache (pas encore Supabase)
     override suspend fun voteLeft(postId: String): Result<VsPost> =
         runCatching {
+            // Si le cache est vide, on recharge une fois
             if (cache.isEmpty()) {
                 getFeed().getOrThrow()
             }
