@@ -17,6 +17,7 @@ koin = "3.5.6"
 ktor = "3.3.1"
 serialization = "1.7.3"
 kamel = "1.0.8"
+coil = "3.3.0"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -40,6 +41,8 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 
 kamel-image = { module = "media.kamel:kamel-image", version.ref = "kamel" }
 kamel-image-default = { module = "media.kamel:kamel-image-default", version.ref = "kamel" }
+
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 
 
 [plugins]

@@ -1,64 +1,61 @@
 package com.nazam.instaclone.feature.home.presentation.ui
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import com.nazam.instaclone.feature.home.domain.model.VsPost
-import com.nazam.instaclone.feature.home.presentation.model.HomeUiState
 import com.nazam.instaclone.feature.home.presentation.viewmodel.HomeViewModel
+import com.nazam.instaclone.feature.home.presentation.model.HomeUiState
 
 @Composable
 fun HomeScreen() {
 
     val viewModel = remember { HomeViewModel() }
-    val uiState = viewModel.uiState.collectAsState()
+    val ui = viewModel.uiState.collectAsState()
 
     Box(modifier = Modifier.fillMaxSize()) {
 
         when {
-            uiState.value.isLoading -> {
+            ui.value.isLoading -> {
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
 
-            uiState.value.errorMessage != null -> {
+            ui.value.errorMessage != null -> {
                 Text(
-                    text = uiState.value.errorMessage!!,
+                    text = ui.value.errorMessage!!,
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
 
             else -> {
-                // Petit debug : afficher combien de posts on a
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp)
+                androidx.compose.foundation.lazy.LazyColumn(
+                    modifier = Modifier.fillMaxSize()
                 ) {
-                    Text(text = "Posts : ${uiState.value.posts.size}")
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        items(uiState.value.posts) { post ->
-                            VsPostItem(
-                                post = post,
-                                onVoteLeft = { viewModel.voteLeft(post.id) },
-                                onVoteRight = { viewModel.voteRight(post.id) }
-                            )
-                        }
+                    items(ui.value.posts.size) { index ->
+                        val post = ui.value.posts[index]
+                        VsPostItem(
+                            post = post,
+                            onVoteLeft = { viewModel.voteLeft(post.id) },
+                            onVoteRight = { viewModel.voteRight(post.id) }
+                        )
                     }
                 }
             }
@@ -72,60 +69,87 @@ fun VsPostItem(
     onVoteLeft: () -> Unit,
     onVoteRight: () -> Unit
 ) {
-    Column(
+    Card(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 12.dp)
+            .padding(16.dp)
+            .fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        shape = RoundedCornerShape(24.dp)
     ) {
-        // Auteur
-        Text(text = post.authorName)
-
-        // Question
-        Text(
-            text = post.question,
-            modifier = Modifier.padding(top = 8.dp)
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Ligne des deux choix
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp)
         ) {
-            // Bouton gauche
-            Column(
+
+            // 👤 Ligne auteur
+            Text(
+                text = "${post.authorName} • ${post.category}",
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                 modifier = Modifier
-                    .weight(1f)
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
+            )
+
+            // 🖼️ Les deux images côte à côte
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(280.dp)
             ) {
-                Button(
-                    onClick = onVoteLeft,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(text = post.leftLabel)
-                }
-                Text(
-                    text = "Votes gauche : ${post.leftVotesCount}",
-                    modifier = Modifier.padding(top = 4.dp)
+                // Image gauche
+                AsyncImage(
+                    model = post.leftImageUrl,
+                    contentDescription = post.leftLabel,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .clickable { onVoteLeft() }
+                )
+
+                // Image droite
+                AsyncImage(
+                    model = post.rightImageUrl,
+                    contentDescription = post.rightLabel,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .clickable { onVoteRight() }
                 )
             }
 
-            // Bouton droite
-            Column(
+            // ❓ Question
+            Text(
+                text = post.question,
+                style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier
-                    .weight(1f)
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
+            )
+
+            // 📊 Résumé votes
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Button(
-                    onClick = onVoteRight,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(text = post.rightLabel)
-                }
                 Text(
-                    text = "Votes droite : ${post.rightVotesCount}",
-                    modifier = Modifier.padding(top = 4.dp)
+                    text = "${post.leftLabel} (${post.leftVotesCount})",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    text = "${post.rightLabel} (${post.rightVotesCount})",
+                    style = MaterialTheme.typography.bodyMedium
                 )
             }
+
+            Text(
+                text = "${post.totalVotesCount} votes au total",
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier
+                    .padding(horizontal = 16.dp, vertical = 4.dp)
+            )
         }
     }
 }
