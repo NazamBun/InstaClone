@@ -22,10 +22,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.nazam.instaclone.feature.home.domain.model.VsPost
 import com.nazam.instaclone.feature.home.presentation.viewmodel.HomeViewModel
+import io.kamel.image.KamelImage
+import io.kamel.image.asyncPainterResource
 
 @Composable
 fun HomeScreen() {
@@ -93,7 +96,7 @@ fun VsPostItem(
                 .padding(16.dp)
         ) {
 
-            // 🔸 Ligne auteur + catégorie
+            // 🔸 Auteur + catégorie
             Text(
                 text = post.authorName,
                 style = MaterialTheme.typography.titleMedium
@@ -106,7 +109,7 @@ fun VsPostItem(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // 🔸 Question au centre
+            // 🔸 Question
             Text(
                 text = post.question,
                 style = MaterialTheme.typography.titleSmall,
@@ -116,12 +119,12 @@ fun VsPostItem(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 🔸 Zone VS (2 colonnes)
+            // 🔸 Zone VS avec vraies images
             Row(
                 modifier = Modifier.fillMaxWidth()
             ) {
 
-                // Colonne gauche
+                // Image gauche
                 Column(
                     modifier = Modifier
                         .weight(1f)
@@ -130,23 +133,38 @@ fun VsPostItem(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(140.dp)
+                            .height(200.dp)
                             .clip(MaterialTheme.shapes.medium)
-                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
-                        contentAlignment = Alignment.Center
                     ) {
-                        Text(text = post.leftLabel)
+                        KamelImage(
+                            resource = asyncPainterResource(post.leftImageUrl),
+                            contentDescription = post.leftLabel,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize(),
+                            onFailure = {
+                                // fallback simple
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(
+                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(text = post.leftLabel)
+                                }
+                            }
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
-
                     Text(
-                        text = "${post.leftVotesCount} votes",
+                        text = "${post.leftLabel} • ${post.leftVotesCount} votes",
                         style = MaterialTheme.typography.labelMedium
                     )
                 }
 
-                // Colonne droite
+                // Image droite
                 Column(
                     modifier = Modifier
                         .weight(1f)
@@ -155,18 +173,32 @@ fun VsPostItem(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(140.dp)
+                            .height(200.dp)
                             .clip(MaterialTheme.shapes.medium)
-                            .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f)),
-                        contentAlignment = Alignment.Center
                     ) {
-                        Text(text = post.rightLabel)
+                        KamelImage(
+                            resource = asyncPainterResource(post.rightImageUrl),
+                            contentDescription = post.rightLabel,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize(),
+                            onFailure = {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(
+                                            MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f)
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(text = post.rightLabel)
+                                }
+                            }
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
-
                     Text(
-                        text = "${post.rightVotesCount} votes",
+                        text = "${post.rightLabel} • ${post.rightVotesCount} votes",
                         style = MaterialTheme.typography.labelMedium
                     )
                 }
@@ -174,7 +206,6 @@ fun VsPostItem(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // 🔸 Total des votes
             Text(
                 text = "Total : ${post.totalVotesCount} votes",
                 style = MaterialTheme.typography.labelSmall
