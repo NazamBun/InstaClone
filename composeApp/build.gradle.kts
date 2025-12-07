@@ -59,6 +59,10 @@ kotlin {
                 implementation(libs.koin.core)
                 implementation(libs.kotlinx.serialization.json)
 
+                // Kamel
+                implementation(libs.kamel.image)
+                implementation(libs.kamel.image.default)
+
             }
         }
 
