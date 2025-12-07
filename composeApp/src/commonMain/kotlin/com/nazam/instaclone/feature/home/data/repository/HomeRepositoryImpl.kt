@@ -11,39 +11,89 @@ import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 
 class HomeRepositoryImpl(
-    // On utilise le client Supabase partagé
     private val client: SupabaseClient = SupabaseClientProvider.client
 ) : HomeRepository {
 
-    // ⚠️ Mets ici EXACTEMENT le nom de ta table Supabase
-    // Exemple : "vs_posts" si ta table s'appelle comme ça
+    // ⚠️ ta table s'appelle "posts"
     private val TABLE = "posts"
+
+    // ✅ Un seul Json réutilisé (bonne pratique)
+    private val json = Json {
+        ignoreUnknownKeys = true // on ignore les colonnes en plus dans la réponse Supabase
+    }
+
+    // ✅ Serializer réutilisé pour List<PostDto>
+    private val postListSerializer = ListSerializer(PostDto.serializer())
+
+    // Petit cache en mémoire pour gérer les votes localement
+    private val cache = mutableListOf<VsPost>()
 
     override suspend fun getFeed(): Result<List<VsPost>> =
         runCatching {
-            // 1️⃣ Appel Supabase : SELECT * FROM vs_posts
+            // 1) Appel Supabase : SELECT * FROM posts
             val result: PostgrestResult = client
                 .postgrest[TABLE]
                 .select()
 
-            // 2️⃣ On décode le JSON en List<PostDto>
-            val dtoList: List<PostDto> = Json {
-                ignoreUnknownKeys = true // si Supabase renvoie des colonnes en plus, on s'en fiche
-            }.decodeFromString(
-                deserializer = ListSerializer(PostDto.serializer()),
+            // 2) JSON -> List<PostDto> (on réutilise json + serializer)
+            val dtoList: List<PostDto> = json.decodeFromString(
+                deserializer = postListSerializer,
                 string = result.data
             )
 
-            // 3️⃣ On convertit vers ton modèle de domaine VsPost
-            dtoList.map { it.toDomain() }
+            // 3) DTO -> VsPost
+            val posts = dtoList.map { it.toDomain() }
+
+            // 4) Mise à jour du cache
+            cache.clear()
+            cache.addAll(posts)
+
+            posts
         }
 
-    // On branchera les vrais votes plus tard
+    // 🔹 Vote gauche : on modifie seulement le cache (pas encore Supabase)
     override suspend fun voteLeft(postId: String): Result<VsPost> =
-        Result.failure(UnsupportedOperationException("Vote gauche pas encore implémenté"))
+        runCatching {
+            if (cache.isEmpty()) {
+                getFeed().getOrThrow()
+            }
 
+            val index = cache.indexOfFirst { it.id == postId }
+            if (index == -1) throw IllegalArgumentException("Post introuvable")
+
+            val current = cache[index]
+            val updated = current.copy(
+                leftVotesCount = current.leftVotesCount + 1,
+                totalVotesCount = current.totalVotesCount + 1,
+                isVotedLeft = true,
+                isVotedRight = false
+            )
+
+            cache[index] = updated
+            updated
+        }
+
+    // 🔹 Vote droite : pareil, en mémoire
     override suspend fun voteRight(postId: String): Result<VsPost> =
-        Result.failure(UnsupportedOperationException("Vote droite pas encore implémenté"))
+        runCatching {
+            if (cache.isEmpty()) {
+                getFeed().getOrThrow()
+            }
+
+            val index = cache.indexOfFirst { it.id == postId }
+            if (index == -1) throw IllegalArgumentException("Post introuvable")
+
+            val current = cache[index]
+            val updated = current.copy(
+                rightVotesCount = current.rightVotesCount + 1,
+                totalVotesCount = current.totalVotesCount + 1,
+                isVotedLeft = false,
+                isVotedRight = true
+            )
+
+            cache[index] = updated
+            updated
+        }
 }
 
 // 🧠 Mapper DTO -> Domaine
@@ -53,7 +103,7 @@ private fun PostDto.toDomain(): VsPost =
         authorName = author_name ?: "Anonyme",
         authorAvatarUrl = author_avatar,
         category = category ?: "",
-        createdAt = 0L, // on ne l'affiche pas encore
+        createdAt = 0L, // pas utilisé pour l’instant
         question = question ?: "",
         leftImageUrl = left_image ?: "",
         rightImageUrl = right_image ?: "",
