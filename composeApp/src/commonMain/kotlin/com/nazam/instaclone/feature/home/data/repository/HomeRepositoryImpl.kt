@@ -36,7 +36,7 @@ class HomeRepositoryImpl(
     // ----------------------------------------------------
     override suspend fun getFeed(): Result<List<VsPost>> =
         runCatching {
-            // 1️⃣ On récupère tous les posts
+            // 1️⃣ récupérer tous les posts
             val postsResult: PostgrestResult = client
                 .postgrest[POSTS_TABLE]
                 .select()
@@ -48,7 +48,7 @@ class HomeRepositoryImpl(
 
             val basePosts: List<VsPost> = postDtos.map { PostMapper.toDomain(it) }
 
-            // 2️⃣ On regarde si un user est connecté
+            // 2️⃣ vérifier si un user est connecté
             val user = client.auth.currentUserOrNull()
             if (user == null) {
                 cache.clear()
@@ -56,7 +56,7 @@ class HomeRepositoryImpl(
                 return@runCatching basePosts
             }
 
-            // 3️⃣ On essaie de charger les votes de l’utilisateur
+            // 3️⃣ charger les votes de l’utilisateur
             val postsWithUserVote: List<VsPost> = try {
                 val votesResult: PostgrestResult = client
                     .postgrest[VOTES_TABLE]
@@ -67,6 +67,7 @@ class HomeRepositoryImpl(
                     string = votesResult.data
                 )
 
+                // votes du user courant par postId
                 val votesByPostId: Map<String, VoteRowDto> = voteDtos
                     .filter { it.userId == user.id }
                     .associateBy { it.postId }
@@ -103,13 +104,13 @@ class HomeRepositoryImpl(
         category: String
     ): Result<VsPost> =
         runCatching {
-            // 👤 il faut être connecté pour créer un post
+            // 👤 il faut être connecté
             val user = client.auth.currentUserOrNull()
                 ?: throw IllegalStateException("Utilisateur non connecté")
 
             val authorName = user.email ?: "Inconnu"
 
-            // 1️⃣ envoyer les données minimales à Supabase
+            // 1️⃣ envoyer les données à Supabase
             val result: PostgrestResult = client
                 .postgrest[POSTS_TABLE]
                 .insert(
@@ -124,7 +125,7 @@ class HomeRepositoryImpl(
                         authorAvatar = null
                     )
                 ) {
-                    // on demande à Supabase de renvoyer la ligne créée
+                    // demander à Supabase de renvoyer la ligne créée
                     select()
                 }
 
@@ -139,7 +140,7 @@ class HomeRepositoryImpl(
             // 3️⃣ mapper vers VsPost
             val vsPost = PostMapper.toDomain(dto)
 
-            // 4️⃣ ajouter en haut du cache (nouveau post en premier)
+            // 4️⃣ ajouter en haut du cache
             cache.add(0, vsPost)
 
             vsPost
@@ -162,6 +163,11 @@ class HomeRepositoryImpl(
         newChoice: VoteChoice
     ): Result<VsPost> =
         runCatching {
+            // 🧱 1) vérifier que l'utilisateur est connecté
+            val user = client.auth.currentUserOrNull()
+                ?: throw IllegalStateException("AUTH_REQUIRED")
+
+            // 🧱 2) charger le cache si vide
             if (cache.isEmpty()) {
                 getFeed().getOrThrow()
             }
@@ -183,7 +189,7 @@ class HomeRepositoryImpl(
                 newChoice = newChoice
             )
 
-            // 1️⃣ cache
+            // 1️⃣ mettre à jour le cache
             cache[index] = updated
 
             // 2️⃣ sync des compteurs dans `posts`
@@ -210,7 +216,7 @@ class HomeRepositoryImpl(
         var right = current.rightVotesCount
         var total = current.totalVotesCount
 
-        // on enlève l’ancien vote
+        // enlever l’ancien vote
         when (previous) {
             VoteChoice.LEFT -> {
                 left = (left - 1).coerceAtLeast(0)
@@ -223,7 +229,7 @@ class HomeRepositoryImpl(
             VoteChoice.NONE -> Unit
         }
 
-        // on ajoute le nouveau
+        // ajouter le nouveau
         when (newChoice) {
             VoteChoice.LEFT -> {
                 left += 1

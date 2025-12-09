@@ -41,7 +41,8 @@ class HomeViewModel : KoinComponent {
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            posts = posts
+                            posts = posts,
+                            errorMessage = null
                         )
                     }
                 }
@@ -59,30 +60,61 @@ class HomeViewModel : KoinComponent {
     fun voteLeft(postId: String) {
         scope.launch {
             val result = voteLeftUseCase.execute(postId)
-            result.onSuccess { updated ->
-                _uiState.update {
-                    it.copy(
-                        posts = it.posts.map { post ->
-                            if (post.id == updated.id) updated else post
-                        }
-                    )
+
+            result
+                .onSuccess { updated ->
+                    _uiState.update { state ->
+                        state.copy(
+                            posts = state.posts.map { post ->
+                                if (post.id == updated.id) updated else post
+                            },
+                            // on enlève un éventuel message d’erreur
+                            errorMessage = null
+                        )
+                    }
                 }
-            }
+                .onFailure { error ->
+                    val message =
+                        if (error is IllegalStateException && error.message == "AUTH_REQUIRED") {
+                            "Tu dois être connecté pour voter."
+                        } else {
+                            "Impossible de voter pour le moment."
+                        }
+
+                    _uiState.update { state ->
+                        state.copy(errorMessage = message)
+                    }
+                }
         }
     }
 
     fun voteRight(postId: String) {
         scope.launch {
             val result = voteRightUseCase.execute(postId)
-            result.onSuccess { updated ->
-                _uiState.update {
-                    it.copy(
-                        posts = it.posts.map { post ->
-                            if (post.id == updated.id) updated else post
-                        }
-                    )
+
+            result
+                .onSuccess { updated ->
+                    _uiState.update { state ->
+                        state.copy(
+                            posts = state.posts.map { post ->
+                                if (post.id == updated.id) updated else post
+                            },
+                            errorMessage = null
+                        )
+                    }
                 }
-            }
+                .onFailure { error ->
+                    val message =
+                        if (error is IllegalStateException && error.message == "AUTH_REQUIRED") {
+                            "Tu dois être connecté pour voter."
+                        } else {
+                            "Impossible de voter pour le moment."
+                        }
+
+                    _uiState.update { state ->
+                        state.copy(errorMessage = message)
+                    }
+                }
         }
     }
 
