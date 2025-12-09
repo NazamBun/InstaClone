@@ -9,4 +9,13 @@ interface HomeRepository {
     suspend fun voteLeft(postId: String): Result<VsPost>
 
     suspend fun voteRight(postId: String): Result<VsPost>
+
+    suspend fun createPost(
+        question: String,
+        leftImageUrl: String,
+        rightImageUrl: String,
+        leftLabel: String,
+        rightLabel: String,
+        category: String
+    ): Result<VsPost>
 }

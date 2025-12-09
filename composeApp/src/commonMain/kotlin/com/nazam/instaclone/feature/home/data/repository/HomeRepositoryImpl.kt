@@ -51,7 +51,6 @@ class HomeRepositoryImpl(
             // 2️⃣ On regarde si un user est connecté
             val user = client.auth.currentUserOrNull()
             if (user == null) {
-                // Pas connecté → pas de vote utilisateur à appliquer
                 cache.clear()
                 cache.addAll(basePosts)
                 return@runCatching basePosts
@@ -68,31 +67,24 @@ class HomeRepositoryImpl(
                     string = votesResult.data
                 )
 
-                // On garde uniquement les votes du user courant
                 val votesByPostId: Map<String, VoteRowDto> = voteDtos
                     .filter { it.userId == user.id }
                     .associateBy { it.postId }
 
-                // On "fusionne" posts + info de vote
                 basePosts.map { post ->
                     val voteRow = votesByPostId[post.id]
-                    if (voteRow == null) {
-                        post // pas de vote pour ce post
-                    } else {
-                        val userVote = when (voteRow.choice) {
-                            "left" -> VoteChoice.LEFT
-                            "right" -> VoteChoice.RIGHT
-                            else -> VoteChoice.NONE
-                        }
-                        post.copy(userVote = userVote)
+                    val userVote = when (voteRow?.choice) {
+                        "left" -> VoteChoice.LEFT
+                        "right" -> VoteChoice.RIGHT
+                        else -> VoteChoice.NONE
                     }
+                    post.copy(userVote = userVote)
                 }
             } catch (e: Exception) {
                 println("🔴 Erreur Supabase chargement votes : ${e.message}")
                 basePosts
             }
 
-            // 4️⃣ On met à jour le cache
             cache.clear()
             cache.addAll(postsWithUserVote)
 
@@ -100,19 +92,70 @@ class HomeRepositoryImpl(
         }
 
     // ----------------------------------------------------
-    // 2) Vote gauche
+    // 2) Créer un nouveau post
+    // ----------------------------------------------------
+    override suspend fun createPost(
+        question: String,
+        leftImageUrl: String,
+        rightImageUrl: String,
+        leftLabel: String,
+        rightLabel: String,
+        category: String
+    ): Result<VsPost> =
+        runCatching {
+            // 👤 il faut être connecté pour créer un post
+            val user = client.auth.currentUserOrNull()
+                ?: throw IllegalStateException("Utilisateur non connecté")
+
+            val authorName = user.email ?: "Inconnu"
+
+            // 1️⃣ envoyer les données minimales à Supabase
+            val result: PostgrestResult = client
+                .postgrest[POSTS_TABLE]
+                .insert(
+                    CreatePostDto(
+                        question = question,
+                        category = category,
+                        leftImageUrl = leftImageUrl,
+                        rightImageUrl = rightImageUrl,
+                        leftLabel = leftLabel,
+                        rightLabel = rightLabel,
+                        authorName = authorName,
+                        authorAvatar = null
+                    )
+                ) {
+                    // on demande à Supabase de renvoyer la ligne créée
+                    select()
+                }
+
+            // 2️⃣ décoder la réponse en PostDto
+            val dtoList: List<PostDto> = json.decodeFromString(
+                deserializer = ListSerializer(PostDto.serializer()),
+                string = result.data
+            )
+            val dto = dtoList.firstOrNull()
+                ?: error("Post non retourné par Supabase")
+
+            // 3️⃣ mapper vers VsPost
+            val vsPost = PostMapper.toDomain(dto)
+
+            // 4️⃣ ajouter en haut du cache (nouveau post en premier)
+            cache.add(0, vsPost)
+
+            vsPost
+        }
+
+    // ----------------------------------------------------
+    // 3) Vote gauche / droite
     // ----------------------------------------------------
     override suspend fun voteLeft(postId: String): Result<VsPost> =
         vote(postId = postId, newChoice = VoteChoice.LEFT)
 
-    // ----------------------------------------------------
-    // 3) Vote droite
-    // ----------------------------------------------------
     override suspend fun voteRight(postId: String): Result<VsPost> =
         vote(postId = postId, newChoice = VoteChoice.RIGHT)
 
     // ----------------------------------------------------
-    // 4) Logique de vote commune
+    // 4) Logique commune de vote
     // ----------------------------------------------------
     private suspend fun vote(
         postId: String,
@@ -129,12 +172,11 @@ class HomeRepositoryImpl(
             val current = cache[index]
             val previous = current.userVote
 
-            // 🔒 si on clique plusieurs fois sur la même photo → on ne change rien
+            // si on reclique sur le même choix → rien ne change
             if (previous == newChoice) {
                 return@runCatching current
             }
 
-            // 🧮 applique la logique (incrémente / décrémente proprement)
             val updated = applyVoteLogic(
                 current = current,
                 previous = previous,
@@ -144,10 +186,10 @@ class HomeRepositoryImpl(
             // 1️⃣ cache
             cache[index] = updated
 
-            // 2️⃣ update des compteurs dans `posts`
+            // 2️⃣ sync des compteurs dans `posts`
             syncPostCountersOnSupabase(updated)
 
-            // 3️⃣ enregistrement du vote user dans `votes`
+            // 3️⃣ enregistrer le vote dans `votes`
             persistUserVoteOnSupabase(
                 postId = postId,
                 choice = newChoice
@@ -157,7 +199,7 @@ class HomeRepositoryImpl(
         }
 
     // ----------------------------------------------------
-    // 5) Ajuster les compteurs en fonction du vote
+    // 5) Ajuster les compteurs en fonction de l’ancien/nouveau vote
     // ----------------------------------------------------
     private fun applyVoteLogic(
         current: VsPost,
@@ -168,7 +210,7 @@ class HomeRepositoryImpl(
         var right = current.rightVotesCount
         var total = current.totalVotesCount
 
-        // 🔻 retirer l’ancien vote si besoin
+        // on enlève l’ancien vote
         when (previous) {
             VoteChoice.LEFT -> {
                 left = (left - 1).coerceAtLeast(0)
@@ -181,7 +223,7 @@ class HomeRepositoryImpl(
             VoteChoice.NONE -> Unit
         }
 
-        // 🔺 ajouter le nouveau vote
+        // on ajoute le nouveau
         when (newChoice) {
             VoteChoice.LEFT -> {
                 left += 1
@@ -271,4 +313,20 @@ private data class VoteRowDto(
     @SerialName("post_id") val postId: String,
     @SerialName("user_id") val userId: String,
     val choice: String
+)
+
+/**
+ * Payload minimal pour créer un post.
+ * La DB met `left_votes` / `right_votes` à 0 par défaut.
+ */
+@Serializable
+private data class CreatePostDto(
+    val question: String,
+    val category: String,
+    @SerialName("left_image") val leftImageUrl: String,
+    @SerialName("right_image") val rightImageUrl: String,
+    @SerialName("left_label") val leftLabel: String,
+    @SerialName("right_label") val rightLabel: String,
+    @SerialName("author_name") val authorName: String,
+    @SerialName("author_avatar") val authorAvatar: String? = null
 )
