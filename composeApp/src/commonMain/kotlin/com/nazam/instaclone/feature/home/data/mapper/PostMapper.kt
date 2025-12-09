@@ -1,6 +1,7 @@
 package com.nazam.instaclone.feature.home.data.mapper
 
 import com.nazam.instaclone.feature.home.data.dto.PostDto
+import com.nazam.instaclone.feature.home.domain.model.VoteChoice
 import com.nazam.instaclone.feature.home.domain.model.VsPost
 
 object PostMapper {
@@ -13,8 +14,7 @@ object PostMapper {
             authorName = dto.author_name ?: "Inconnu",
             authorAvatarUrl = dto.author_avatar,
             category = dto.category ?: "",
-            // On simplifie pour l'instant : on ne parse pas la date
-            createdAt = 0L,
+            createdAt = 0L,                     // on simplifie pour l’instant
             question = dto.question ?: "",
             leftImageUrl = dto.left_image ?: "",
             rightImageUrl = dto.right_image ?: "",
@@ -23,8 +23,8 @@ object PostMapper {
             leftVotesCount = dto.left_votes,
             rightVotesCount = dto.right_votes,
             totalVotesCount = totalVotes,
-            isVotedLeft = false,   // on gèrera plus tard avec voted_left_ids
-            isVotedRight = false
+            // ✅ nouveau champ : le vote de l’utilisateur
+            userVote = VoteChoice.NONE          // par défaut : aucun vote
         )
     }
 }
