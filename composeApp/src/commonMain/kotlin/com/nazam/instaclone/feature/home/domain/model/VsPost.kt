@@ -1,27 +1,32 @@
 package com.nazam.instaclone.feature.home.domain.model
 
-// ✅ Type clair pour le vote de l'utilisateur
-enum class VoteChoice {
-    LEFT,
-    RIGHT,
-    NONE
-}
-
+/**
+ * Modèle de domaine utilisé par l’UI.
+ * Indépendant de Supabase, Room, Retrofit, etc.
+ */
 data class VsPost(
     val id: String,
+
+    // Auteur
     val authorName: String,
     val authorAvatarUrl: String?,
+
+    // Contenu
     val category: String,
     val createdAt: Long,
     val question: String,
+
+    // Images VS
     val leftImageUrl: String,
     val rightImageUrl: String,
     val leftLabel: String,
     val rightLabel: String,
+
+    // Votes globaux
     val leftVotesCount: Int,
     val rightVotesCount: Int,
     val totalVotesCount: Int,
 
-    // ✅ 1 seule source de vérité pour le vote user
+    // ✅ Vote de l’utilisateur courant
     val userVote: VoteChoice = VoteChoice.NONE
 )
