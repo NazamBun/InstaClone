@@ -9,6 +9,7 @@ import com.nazam.instaclone.feature.auth.domain.usecase.LogoutUseCase
 import com.nazam.instaclone.feature.auth.domain.usecase.SignupUseCase
 import com.nazam.instaclone.feature.home.data.repository.HomeRepositoryImpl
 import com.nazam.instaclone.feature.home.domain.repository.HomeRepository
+import com.nazam.instaclone.feature.home.domain.usecase.CreatePostUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.GetFeedUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.VoteLeftUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.VoteRightUseCase
@@ -16,19 +17,34 @@ import org.koin.dsl.module
 
 val appModule = module {
 
-    // ⭐ Supabase client (partagé partout dans l’app)
+    // ----------------------------------------------------
+    // ⭐ 1) SUPABASE CLIENT (singleton global)
+    // ----------------------------------------------------
     single { SupabaseClientProvider.client }
 
-    // ⭐ Auth (login / signup / logout / user courant)
+
+    // ----------------------------------------------------
+    // ⭐ 2) AUTHENTICATION
+    // ----------------------------------------------------
     single<AuthRepository> { AuthRepositoryImpl(get()) }
+
     factory { LoginUseCase(get()) }
     factory { SignupUseCase(get()) }
     factory { LogoutUseCase(get()) }
     factory { GetCurrentUserUseCase(get()) }
 
-    // ⭐ Home / Feed VS (connecté à Supabase pour charger les posts)
+
+    // ----------------------------------------------------
+    // ⭐ 3) HOME / FEED VS (posts + votes + création)
+    // ----------------------------------------------------
     single<HomeRepository> { HomeRepositoryImpl(get()) }
+
+    // Use cases existants
     factory { GetFeedUseCase(get()) }
     factory { VoteLeftUseCase(get()) }
     factory { VoteRightUseCase(get()) }
+    factory { CreatePostUseCase(get()) }
+
+    // Nouveau use case pour créer un post VS
+    factory { CreatePostUseCase(get()) }
 }

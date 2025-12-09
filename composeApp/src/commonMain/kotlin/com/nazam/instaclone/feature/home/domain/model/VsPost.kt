@@ -30,12 +30,3 @@ data class VsPost(
     // ✅ Vote de l’utilisateur courant
     val userVote: VoteChoice = VoteChoice.NONE
 )
-
-/**
- * Représente le vote de l’utilisateur sur un post.
- */
-enum class VoteChoice {
-    LEFT,
-    RIGHT,
-    NONE
-}
