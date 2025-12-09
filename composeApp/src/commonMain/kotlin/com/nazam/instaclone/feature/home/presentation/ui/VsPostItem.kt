@@ -1,6 +1,7 @@
 package com.nazam.instaclone.feature.home.presentation.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -9,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -19,24 +21,53 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.nazam.instaclone.feature.home.domain.model.VsPost
+import com.nazam.instaclone.feature.home.domain.model.VoteChoice
 
 @Composable
 fun VsPostItem(
     post: VsPost,
     onVoteLeft: () -> Unit,
     onVoteRight: () -> Unit,
+    resultsAlpha: Float,
     modifier: Modifier = Modifier
 ) {
+    // --- Effets visuels selon le vote ---
+    val leftAlpha =
+        if (post.userVote == VoteChoice.RIGHT) 0.3f else 1f
+
+    val rightAlpha =
+        if (post.userVote == VoteChoice.LEFT) 0.3f else 1f
+
+    val leftBorderModifier =
+        if (post.userVote == VoteChoice.LEFT) {
+            Modifier.border(
+                width = 3.dp,
+                color = Color(0xFFFF4EB8),
+                shape = RoundedCornerShape(0.dp)
+            )
+        } else {
+            Modifier
+        }
+
+    val rightBorderModifier =
+        if (post.userVote == VoteChoice.RIGHT) {
+            Modifier.border(
+                width = 3.dp,
+                color = Color(0xFFFF4EB8),
+                shape = RoundedCornerShape(0.dp)
+            )
+        } else {
+            Modifier
+        }
+
     Box(
         modifier = modifier.fillMaxSize()
     ) {
-
-        // 🔥 LES 2 IMAGES PRENNENT TOUT L'ÉCRAN
+        // 🔥 Les 2 images prennent tout l'écran
         Row(
             modifier = Modifier.fillMaxSize()
         ) {
-
-            // IMAGE GAUCHE + clic = vote gauche
+            // Image gauche
             AsyncImage(
                 model = post.leftImageUrl,
                 contentDescription = post.leftLabel,
@@ -44,10 +75,12 @@ fun VsPostItem(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight()
+                    .alpha(leftAlpha)
+                    .then(leftBorderModifier)
                     .clickable { onVoteLeft() }
             )
 
-            // IMAGE DROITE + clic = vote droite
+            // Image droite
             AsyncImage(
                 model = post.rightImageUrl,
                 contentDescription = post.rightLabel,
@@ -55,11 +88,13 @@ fun VsPostItem(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight()
+                    .alpha(rightAlpha)
+                    .then(rightBorderModifier)
                     .clickable { onVoteRight() }
             )
         }
 
-        // LÉGER DÉGRADÉ EN BAS POUR QUE LE TEXTE RESTE LISIBLE
+        // Léger dégradé global pour le texte
         Box(
             modifier = Modifier
                 .matchParentSize()
@@ -74,7 +109,7 @@ fun VsPostItem(
                 )
         )
 
-        // 🧑 AUTEUR + CATÉGORIE EN HAUT À GAUCHE
+        // Auteur + catégorie en haut à gauche
         Column(
             modifier = Modifier
                 .align(Alignment.TopStart)
@@ -92,7 +127,7 @@ fun VsPostItem(
             )
         }
 
-        // ❓ QUESTION AU CENTRE
+        // Question au centre
         Box(
             modifier = Modifier
                 .align(Alignment.Center)
@@ -109,7 +144,7 @@ fun VsPostItem(
             )
         }
 
-        // ⚪ CERCLE VS
+        // Cercle "VS"
         Box(
             modifier = Modifier
                 .align(Alignment.Center)
@@ -134,12 +169,13 @@ fun VsPostItem(
             )
         }
 
-        // 📊 LABELS + VOTES EN BAS
+        // Labels + votes en bas (avec fondu sur swipe)
         Row(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .padding(20.dp),
+                .padding(20.dp)
+                .alpha(resultsAlpha),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column {
