@@ -20,23 +20,21 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
-import com.nazam.instaclone.feature.home.domain.model.VsPost
 import com.nazam.instaclone.feature.home.domain.model.VoteChoice
+import com.nazam.instaclone.feature.home.domain.model.VsPost
 
 @Composable
 fun VsPostItem(
     post: VsPost,
+    isVoting: Boolean, // 🔒 verrou global pendant la requête
     onVoteLeft: () -> Unit,
     onVoteRight: () -> Unit,
     resultsAlpha: Float,
     modifier: Modifier = Modifier
 ) {
     // --- Effets visuels selon le vote ---
-    val leftAlpha =
-        if (post.userVote == VoteChoice.RIGHT) 0.3f else 1f
-
-    val rightAlpha =
-        if (post.userVote == VoteChoice.LEFT) 0.3f else 1f
+    val leftAlpha = if (post.userVote == VoteChoice.RIGHT) 0.3f else 1f
+    val rightAlpha = if (post.userVote == VoteChoice.LEFT) 0.3f else 1f
 
     val leftBorderModifier =
         if (post.userVote == VoteChoice.LEFT) {
@@ -45,9 +43,7 @@ fun VsPostItem(
                 color = Color(0xFFFF4EB8),
                 shape = RoundedCornerShape(0.dp)
             )
-        } else {
-            Modifier
-        }
+        } else Modifier
 
     val rightBorderModifier =
         if (post.userVote == VoteChoice.RIGHT) {
@@ -56,9 +52,21 @@ fun VsPostItem(
                 color = Color(0xFFFF4EB8),
                 shape = RoundedCornerShape(0.dp)
             )
-        } else {
-            Modifier
-        }
+        } else Modifier
+
+    // --- Pourcentages (barres) ---
+    val total = post.totalVotesCount.coerceAtLeast(1) // évite /0
+    val leftPercent = (post.leftVotesCount * 100f) / total
+    val rightPercent = (post.rightVotesCount * 100f) / total
+    val leftRatio = (leftPercent / 100f).coerceIn(0f, 1f)
+    val rightRatio = (rightPercent / 100f).coerceIn(0f, 1f)
+
+    // 🔒 Blocage clics :
+    // - si vote en cours -> bloqué
+    // - si déjà voté à gauche -> on bloque le clic gauche
+    // - si déjà voté à droite -> on bloque le clic droite
+    val canClickLeft = !isVoting && post.userVote != VoteChoice.LEFT
+    val canClickRight = !isVoting && post.userVote != VoteChoice.RIGHT
 
     Box(
         modifier = modifier.fillMaxSize()
@@ -77,7 +85,7 @@ fun VsPostItem(
                     .fillMaxHeight()
                     .alpha(leftAlpha)
                     .then(leftBorderModifier)
-                    .clickable { onVoteLeft() }
+                    .clickable(enabled = canClickLeft) { onVoteLeft() } // ✅ BLOQUÉ
             )
 
             // Image droite
@@ -90,7 +98,7 @@ fun VsPostItem(
                     .fillMaxHeight()
                     .alpha(rightAlpha)
                     .then(rightBorderModifier)
-                    .clickable { onVoteRight() }
+                    .clickable(enabled = canClickRight) { onVoteRight() } // ✅ BLOQUÉ
             )
         }
 
@@ -169,31 +177,109 @@ fun VsPostItem(
             )
         }
 
-        // Labels + votes en bas (avec fondu sur swipe)
-        Row(
+        // ✅ Zone résultats en bas : chaque moitié a sa barre
+        Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .padding(20.dp)
-                .alpha(resultsAlpha),
-            horizontalArrangement = Arrangement.SpaceBetween
+                .padding(horizontal = 20.dp, vertical = 12.dp)
+                .alpha(resultsAlpha)
         ) {
-            Column {
-                Text(text = post.leftLabel, color = Color.White)
-                Text(
-                    text = "${post.leftVotesCount} votes",
-                    color = Color.White,
-                    fontSize = 12.sp
-                )
-            }
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                // --------- Côté gauche ---------
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(text = post.leftLabel, color = Color.White)
+                    Text(
+                        text = "${post.leftVotesCount} votes",
+                        color = Color.White,
+                        fontSize = 12.sp
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "${leftPercent.toInt()}%",
+                        color = Color.White,
+                        fontSize = 12.sp
+                    )
 
-            Column(horizontalAlignment = Alignment.End) {
-                Text(text = post.rightLabel, color = Color.White)
-                Text(
-                    text = "${post.rightVotesCount} votes",
-                    color = Color.White,
-                    fontSize = 12.sp
-                )
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    // Barre de progression photo gauche (remplissage droite -> gauche)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(6.dp)
+                            .clip(RoundedCornerShape(50))
+                            .background(Color(0x33FFFFFF))
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.CenterEnd)
+                                .fillMaxHeight()
+                                .fillMaxWidth(leftRatio)
+                                .clip(RoundedCornerShape(50))
+                                .background(
+                                    Brush.horizontalGradient(
+                                        listOf(
+                                            Color(0xFF7B61FF),
+                                            Color(0xFFB95CFF)
+                                        )
+                                    )
+                                )
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                // --------- Côté droit ---------
+                Column(
+                    modifier = Modifier.weight(1f),
+                    horizontalAlignment = Alignment.End
+                ) {
+                    Text(text = post.rightLabel, color = Color.White)
+                    Text(
+                        text = "${post.rightVotesCount} votes",
+                        color = Color.White,
+                        fontSize = 12.sp
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "${rightPercent.toInt()}%",
+                        color = Color.White,
+                        fontSize = 12.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    // Barre de progression photo droite (remplissage gauche -> droite)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(6.dp)
+                            .clip(RoundedCornerShape(50))
+                            .background(Color(0x33FFFFFF))
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.CenterStart)
+                                .fillMaxHeight()
+                                .fillMaxWidth(rightRatio)
+                                .clip(RoundedCornerShape(50))
+                                .background(
+                                    Brush.horizontalGradient(
+                                        listOf(
+                                            Color(0xFFFF9F3F),
+                                            Color(0xFFFF4EB8)
+                                        )
+                                    )
+                                )
+                        )
+                    }
+                }
             }
         }
     }
