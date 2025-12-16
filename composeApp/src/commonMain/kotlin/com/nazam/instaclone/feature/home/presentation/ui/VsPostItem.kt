@@ -26,7 +26,7 @@ import com.nazam.instaclone.feature.home.domain.model.VsPost
 @Composable
 fun VsPostItem(
     post: VsPost,
-    isVoting: Boolean, // 🔒 verrou global pendant la requête
+    isVoting: Boolean, // 🔒 verrou UNIQUEMENT pour ce post
     onVoteLeft: () -> Unit,
     onVoteRight: () -> Unit,
     resultsAlpha: Float,
@@ -38,44 +38,28 @@ fun VsPostItem(
 
     val leftBorderModifier =
         if (post.userVote == VoteChoice.LEFT) {
-            Modifier.border(
-                width = 3.dp,
-                color = Color(0xFFFF4EB8),
-                shape = RoundedCornerShape(0.dp)
-            )
+            Modifier.border(3.dp, Color(0xFFFF4EB8), RoundedCornerShape(0.dp))
         } else Modifier
 
     val rightBorderModifier =
         if (post.userVote == VoteChoice.RIGHT) {
-            Modifier.border(
-                width = 3.dp,
-                color = Color(0xFFFF4EB8),
-                shape = RoundedCornerShape(0.dp)
-            )
+            Modifier.border(3.dp, Color(0xFFFF4EB8), RoundedCornerShape(0.dp))
         } else Modifier
 
-    // --- Pourcentages (barres) ---
-    val total = post.totalVotesCount.coerceAtLeast(1) // évite /0
+    // --- Pourcentages ---
+    val total = post.totalVotesCount.coerceAtLeast(1)
     val leftPercent = (post.leftVotesCount * 100f) / total
     val rightPercent = (post.rightVotesCount * 100f) / total
     val leftRatio = (leftPercent / 100f).coerceIn(0f, 1f)
     val rightRatio = (rightPercent / 100f).coerceIn(0f, 1f)
 
-    // 🔒 Blocage clics :
-    // - si vote en cours -> bloqué
-    // - si déjà voté à gauche -> on bloque le clic gauche
-    // - si déjà voté à droite -> on bloque le clic droite
-    val canClickLeft = !isVoting && post.userVote != VoteChoice.LEFT
-    val canClickRight = !isVoting && post.userVote != VoteChoice.RIGHT
+    // 🔒 blocage des clics si vote en cours sur ce post
+    val canClick = !isVoting
 
-    Box(
-        modifier = modifier.fillMaxSize()
-    ) {
-        // 🔥 Les 2 images prennent tout l'écran
-        Row(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            // Image gauche
+    Box(modifier = modifier.fillMaxSize()) {
+
+        Row(modifier = Modifier.fillMaxSize()) {
+
             AsyncImage(
                 model = post.leftImageUrl,
                 contentDescription = post.leftLabel,
@@ -85,10 +69,9 @@ fun VsPostItem(
                     .fillMaxHeight()
                     .alpha(leftAlpha)
                     .then(leftBorderModifier)
-                    .clickable(enabled = canClickLeft) { onVoteLeft() } // ✅ BLOQUÉ
+                    .clickable(enabled = canClick) { onVoteLeft() }
             )
 
-            // Image droite
             AsyncImage(
                 model = post.rightImageUrl,
                 contentDescription = post.rightLabel,
@@ -98,44 +81,29 @@ fun VsPostItem(
                     .fillMaxHeight()
                     .alpha(rightAlpha)
                     .then(rightBorderModifier)
-                    .clickable(enabled = canClickRight) { onVoteRight() } // ✅ BLOQUÉ
+                    .clickable(enabled = canClick) { onVoteRight() }
             )
         }
 
-        // Léger dégradé global pour le texte
         Box(
             modifier = Modifier
                 .matchParentSize()
                 .background(
                     Brush.verticalGradient(
-                        colors = listOf(
-                            Color.Transparent,
-                            Color.Transparent,
-                            Color(0xAA000000)
-                        )
+                        colors = listOf(Color.Transparent, Color.Transparent, Color(0xAA000000))
                     )
                 )
         )
 
-        // Auteur + catégorie en haut à gauche
         Column(
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .padding(16.dp)
         ) {
-            Text(
-                text = post.authorName,
-                color = Color.White,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = post.category,
-                color = Color.White,
-                fontSize = 12.sp
-            )
+            Text(text = post.authorName, color = Color.White, fontWeight = FontWeight.Bold)
+            Text(text = post.category, color = Color.White, fontSize = 12.sp)
         }
 
-        // Question au centre
         Box(
             modifier = Modifier
                 .align(Alignment.Center)
@@ -152,7 +120,6 @@ fun VsPostItem(
             )
         }
 
-        // Cercle "VS"
         Box(
             modifier = Modifier
                 .align(Alignment.Center)
@@ -160,24 +127,14 @@ fun VsPostItem(
                 .size(64.dp)
                 .clip(CircleShape)
                 .background(
-                    Brush.linearGradient(
-                        listOf(
-                            Color(0xFFFF4EB8),
-                            Color(0xFFFF9F3F)
-                        )
-                    )
+                    Brush.linearGradient(listOf(Color(0xFFFF4EB8), Color(0xFFFF9F3F)))
                 ),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = "VS",
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                fontSize = 20.sp
-            )
+            Text(text = "VS", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
         }
 
-        // ✅ Zone résultats en bas : chaque moitié a sa barre
+        // ✅ Résultats bas
         Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -185,29 +142,15 @@ fun VsPostItem(
                 .padding(horizontal = 20.dp, vertical = 12.dp)
                 .alpha(resultsAlpha)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                // --------- Côté gauche ---------
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(text = post.leftLabel, color = Color.White)
-                    Text(
-                        text = "${post.leftVotesCount} votes",
-                        color = Color.White,
-                        fontSize = 12.sp
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "${leftPercent.toInt()}%",
-                        color = Color.White,
-                        fontSize = 12.sp
-                    )
+            Row(modifier = Modifier.fillMaxWidth()) {
 
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(text = post.leftLabel, color = Color.White)
+                    Text(text = "${post.leftVotesCount} votes", color = Color.White, fontSize = 12.sp)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(text = "${leftPercent.toInt()}%", color = Color.White, fontSize = 12.sp)
                     Spacer(modifier = Modifier.height(6.dp))
 
-                    // Barre de progression photo gauche (remplissage droite -> gauche)
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -223,10 +166,7 @@ fun VsPostItem(
                                 .clip(RoundedCornerShape(50))
                                 .background(
                                     Brush.horizontalGradient(
-                                        listOf(
-                                            Color(0xFF7B61FF),
-                                            Color(0xFFB95CFF)
-                                        )
+                                        listOf(Color(0xFF7B61FF), Color(0xFFB95CFF))
                                     )
                                 )
                         )
@@ -235,27 +175,13 @@ fun VsPostItem(
 
                 Spacer(modifier = Modifier.width(12.dp))
 
-                // --------- Côté droit ---------
-                Column(
-                    modifier = Modifier.weight(1f),
-                    horizontalAlignment = Alignment.End
-                ) {
+                Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.End) {
                     Text(text = post.rightLabel, color = Color.White)
-                    Text(
-                        text = "${post.rightVotesCount} votes",
-                        color = Color.White,
-                        fontSize = 12.sp
-                    )
+                    Text(text = "${post.rightVotesCount} votes", color = Color.White, fontSize = 12.sp)
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "${rightPercent.toInt()}%",
-                        color = Color.White,
-                        fontSize = 12.sp
-                    )
-
+                    Text(text = "${rightPercent.toInt()}%", color = Color.White, fontSize = 12.sp)
                     Spacer(modifier = Modifier.height(6.dp))
 
-                    // Barre de progression photo droite (remplissage gauche -> droite)
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -271,10 +197,7 @@ fun VsPostItem(
                                 .clip(RoundedCornerShape(50))
                                 .background(
                                     Brush.horizontalGradient(
-                                        listOf(
-                                            Color(0xFFFF9F3F),
-                                            Color(0xFFFF4EB8)
-                                        )
+                                        listOf(Color(0xFFFF9F3F), Color(0xFFFF4EB8))
                                     )
                                 )
                         )

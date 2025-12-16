@@ -58,10 +58,11 @@ class HomeViewModel : KoinComponent {
     }
 
     fun voteLeft(postId: String) {
-        if (_uiState.value.isVoting) return // 🔒 anti-spam
+        // 🔒 si CE post est déjà en train de voter -> stop
+        if (_uiState.value.votingPostId == postId) return
 
         scope.launch {
-            _uiState.update { it.copy(isVoting = true) }
+            _uiState.update { it.copy(votingPostId = postId) }
 
             val result = voteLeftUseCase.execute(postId)
 
@@ -69,7 +70,7 @@ class HomeViewModel : KoinComponent {
                 .onSuccess { updated ->
                     _uiState.update { state ->
                         state.copy(
-                            isVoting = false,
+                            votingPostId = null,
                             posts = state.posts.map { post ->
                                 if (post.id == updated.id) updated else post
                             },
@@ -78,10 +79,17 @@ class HomeViewModel : KoinComponent {
                     }
                 }
                 .onFailure { error ->
-                    _uiState.update {
-                        it.copy(
-                            isVoting = false,
-                            errorMessage = "Impossible de voter"
+                    val message =
+                        if (error is IllegalStateException && error.message == "AUTH_REQUIRED") {
+                            "Tu dois être connecté pour voter."
+                        } else {
+                            "Impossible de voter pour le moment."
+                        }
+
+                    _uiState.update { state ->
+                        state.copy(
+                            votingPostId = null,
+                            errorMessage = message
                         )
                     }
                 }
@@ -89,10 +97,11 @@ class HomeViewModel : KoinComponent {
     }
 
     fun voteRight(postId: String) {
-        if (_uiState.value.isVoting) return // 🔒 anti-spam
+        // 🔒 si CE post est déjà en train de voter -> stop
+        if (_uiState.value.votingPostId == postId) return
 
         scope.launch {
-            _uiState.update { it.copy(isVoting = true) }
+            _uiState.update { it.copy(votingPostId = postId) }
 
             val result = voteRightUseCase.execute(postId)
 
@@ -100,7 +109,7 @@ class HomeViewModel : KoinComponent {
                 .onSuccess { updated ->
                     _uiState.update { state ->
                         state.copy(
-                            isVoting = false,
+                            votingPostId = null,
                             posts = state.posts.map { post ->
                                 if (post.id == updated.id) updated else post
                             },
@@ -108,11 +117,18 @@ class HomeViewModel : KoinComponent {
                         )
                     }
                 }
-                .onFailure {
-                    _uiState.update {
-                        it.copy(
-                            isVoting = false,
-                            errorMessage = "Impossible de voter"
+                .onFailure { error ->
+                    val message =
+                        if (error is IllegalStateException && error.message == "AUTH_REQUIRED") {
+                            "Tu dois être connecté pour voter."
+                        } else {
+                            "Impossible de voter pour le moment."
+                        }
+
+                    _uiState.update { state ->
+                        state.copy(
+                            votingPostId = null,
+                            errorMessage = message
                         )
                     }
                 }

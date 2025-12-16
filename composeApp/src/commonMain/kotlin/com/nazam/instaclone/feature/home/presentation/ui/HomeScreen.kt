@@ -29,6 +29,7 @@ import kotlin.math.abs
 fun HomeScreen(
     onNavigateToCreatePost: () -> Unit
 ) {
+
     val viewModel = remember { HomeViewModel() }
     val ui = viewModel.uiState.collectAsState()
 
@@ -41,6 +42,7 @@ fun HomeScreen(
             .fillMaxSize()
             .background(Color(0xFF050509))
     ) {
+
         when {
             ui.value.isLoading -> {
                 CircularProgressIndicator(
@@ -81,9 +83,12 @@ fun HomeScreen(
 
                     val resultsAlpha = (1f - pageOffset * 1.5f).coerceIn(0f, 1f)
 
+                    // 🔒 vrai verrou : uniquement si ce post est en cours de vote
+                    val isVotingThisPost = ui.value.votingPostId == post.id
+
                     VsPostItem(
                         post = post,
-                        isVoting = ui.value.isVoting, // ✅ on passe le verrou
+                        isVoting = isVotingThisPost,
                         onVoteLeft = { viewModel.voteLeft(post.id) },
                         onVoteRight = { viewModel.voteRight(post.id) },
                         resultsAlpha = resultsAlpha,
