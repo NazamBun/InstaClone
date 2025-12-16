@@ -29,8 +29,7 @@ import kotlin.math.abs
 fun HomeScreen(
     onNavigateToCreatePost: () -> Unit
 ) {
-
-    val viewModel = remember { HomeViewModel() } // tu pourras passer par Koin plus tard
+    val viewModel = remember { HomeViewModel() }
     val ui = viewModel.uiState.collectAsState()
 
     val pagerState = rememberPagerState(
@@ -42,7 +41,6 @@ fun HomeScreen(
             .fillMaxSize()
             .background(Color(0xFF050509))
     ) {
-
         when {
             ui.value.isLoading -> {
                 CircularProgressIndicator(
@@ -72,21 +70,20 @@ fun HomeScreen(
                     state = pagerState,
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(bottom = 80.dp) // place pour la bottom bar
+                        .padding(bottom = 80.dp)
                 ) { pageIndex ->
 
                     val post = ui.value.posts[pageIndex]
 
                     val rawOffset =
                         (pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction
-
                     val pageOffset = abs(rawOffset)
 
-                    val resultsAlpha = (1f - pageOffset * 1.5f)
-                        .coerceIn(0f, 1f)
+                    val resultsAlpha = (1f - pageOffset * 1.5f).coerceIn(0f, 1f)
 
                     VsPostItem(
                         post = post,
+                        isVoting = ui.value.isVoting, // ✅ on passe le verrou
                         onVoteLeft = { viewModel.voteLeft(post.id) },
                         onVoteRight = { viewModel.voteRight(post.id) },
                         resultsAlpha = resultsAlpha,
@@ -98,16 +95,11 @@ fun HomeScreen(
 
         HomeBottomBar(
             onCreatePostClick = onNavigateToCreatePost,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
+            modifier = Modifier.align(Alignment.BottomCenter)
         )
     }
 }
 
-/**
- * Bottom bar très simple.
- * On a ajouté un item “Créer” cliquable.
- */
 @Composable
 fun HomeBottomBar(
     onCreatePostClick: () -> Unit,
@@ -120,7 +112,6 @@ fun HomeBottomBar(
             .padding(horizontal = 24.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Accueil (sélectionné)
         Text(
             text = "Accueil",
             color = Color.White,
@@ -129,7 +120,6 @@ fun HomeBottomBar(
             modifier = Modifier.weight(1f)
         )
 
-        // Créer → ouvre l’écran CreatePost
         Text(
             text = "Créer",
             color = Color(0xFFFF4EB8),
@@ -138,7 +128,6 @@ fun HomeBottomBar(
             modifier = Modifier
                 .weight(1f)
                 .padding(horizontal = 8.dp)
-                .background(Color.Transparent) // juste pour garder simple
                 .clickable { onCreatePostClick() }
         )
 
