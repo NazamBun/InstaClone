@@ -4,9 +4,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -19,9 +21,15 @@ fun LoginScreen(
     onNavigateToSignup: () -> Unit,
     onNavigateToHome: () -> Unit
 ) {
-
     val viewModel = remember { LoginViewModel() }
     val ui = viewModel.uiState.collectAsState()
+
+    // ✅ Navigation propre (1 seule fois)
+    LaunchedEffect(ui.value.isLoggedIn) {
+        if (ui.value.isLoggedIn) {
+            onNavigateToHome()
+        }
+    }
 
     Column(
         modifier = Modifier.padding(24.dp)
@@ -47,9 +55,14 @@ fun LoginScreen(
             onClick = { viewModel.login() },
             modifier = Modifier
                 .padding(top = 24.dp)
-                .fillMaxWidth()
+                .fillMaxWidth(),
+            enabled = !ui.value.isLoading
         ) {
-            Text("Connexion")
+            if (ui.value.isLoading) {
+                CircularProgressIndicator(color = Color.White)
+            } else {
+                Text("Connexion")
+            }
         }
 
         Button(
@@ -65,11 +78,6 @@ fun LoginScreen(
                 color = Color.Red,
                 modifier = Modifier.padding(top = 16.dp)
             )
-        }
-
-        if (ui.value.isLoggedIn) {
-            // dès que le login réussit, on navigue vers Home
-            onNavigateToHome()
         }
     }
 }

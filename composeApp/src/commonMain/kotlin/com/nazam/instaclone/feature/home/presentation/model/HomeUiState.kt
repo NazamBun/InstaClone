@@ -19,5 +19,6 @@ data class HomeUiState(
     val shouldOpenLogin: Boolean = false,
 
     // ✅ Navigation (signal)
-    val shouldNavigateToLogin: Boolean = false
+    val shouldNavigateToLogin: Boolean = false,
+    val shouldNavigateToCreatePost: Boolean = false
 )
