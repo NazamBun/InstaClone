@@ -17,34 +17,20 @@ import org.koin.dsl.module
 
 val appModule = module {
 
-    // ----------------------------------------------------
-    // ⭐ 1) SUPABASE CLIENT (singleton global)
-    // ----------------------------------------------------
+    // ⭐ Supabase client
     single { SupabaseClientProvider.client }
 
-
-    // ----------------------------------------------------
-    // ⭐ 2) AUTHENTICATION
-    // ----------------------------------------------------
+    // ⭐ Auth
     single<AuthRepository> { AuthRepositoryImpl(get()) }
-
     factory { LoginUseCase(get()) }
     factory { SignupUseCase(get()) }
     factory { LogoutUseCase(get()) }
     factory { GetCurrentUserUseCase(get()) }
 
-
-    // ----------------------------------------------------
-    // ⭐ 3) HOME / FEED VS (posts + votes + création)
-    // ----------------------------------------------------
+    // ⭐ Home
     single<HomeRepository> { HomeRepositoryImpl(get()) }
-
-    // Use cases existants
     factory { GetFeedUseCase(get()) }
     factory { VoteLeftUseCase(get()) }
     factory { VoteRightUseCase(get()) }
-    factory { CreatePostUseCase(get()) }
-
-    // Nouveau use case pour créer un post VS
     factory { CreatePostUseCase(get()) }
 }

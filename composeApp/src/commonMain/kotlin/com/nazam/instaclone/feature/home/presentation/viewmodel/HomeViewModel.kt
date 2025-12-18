@@ -1,5 +1,6 @@
 package com.nazam.instaclone.feature.home.presentation.viewmodel
 
+import com.nazam.instaclone.feature.auth.domain.usecase.LogoutUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.GetFeedUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.VoteLeftUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.VoteRightUseCase
@@ -19,6 +20,7 @@ class HomeViewModel : KoinComponent {
     private val getFeedUseCase: GetFeedUseCase by inject()
     private val voteLeftUseCase: VoteLeftUseCase by inject()
     private val voteRightUseCase: VoteRightUseCase by inject()
+    private val logoutUseCase: LogoutUseCase by inject()
 
     private val job = Job()
     private val scope = CoroutineScope(Dispatchers.Default + job)
@@ -32,33 +34,23 @@ class HomeViewModel : KoinComponent {
 
     fun loadFeed() {
         scope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            _uiState.update { it.copy(isLoading = true) }
 
             val result = getFeedUseCase.execute()
 
             result
                 .onSuccess { posts ->
                     _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            posts = posts,
-                            errorMessage = null
-                        )
+                        it.copy(isLoading = false, posts = posts)
                     }
                 }
-                .onFailure { error ->
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            errorMessage = error.message ?: "Erreur de chargement"
-                        )
-                    }
+                .onFailure {
+                    _uiState.update { it.copy(isLoading = false) }
                 }
         }
     }
 
     fun voteLeft(postId: String) {
-        // 🔒 si CE post est déjà en train de voter -> stop
         if (_uiState.value.votingPostId == postId) return
 
         scope.launch {
@@ -73,31 +65,17 @@ class HomeViewModel : KoinComponent {
                             votingPostId = null,
                             posts = state.posts.map { post ->
                                 if (post.id == updated.id) updated else post
-                            },
-                            errorMessage = null
+                            }
                         )
                     }
                 }
                 .onFailure { error ->
-                    val message =
-                        if (error is IllegalStateException && error.message == "AUTH_REQUIRED") {
-                            "Tu dois être connecté pour voter."
-                        } else {
-                            "Impossible de voter pour le moment."
-                        }
-
-                    _uiState.update { state ->
-                        state.copy(
-                            votingPostId = null,
-                            errorMessage = message
-                        )
-                    }
+                    handleVoteError(error)
                 }
         }
     }
 
     fun voteRight(postId: String) {
-        // 🔒 si CE post est déjà en train de voter -> stop
         if (_uiState.value.votingPostId == postId) return
 
         scope.launch {
@@ -112,26 +90,75 @@ class HomeViewModel : KoinComponent {
                             votingPostId = null,
                             posts = state.posts.map { post ->
                                 if (post.id == updated.id) updated else post
-                            },
-                            errorMessage = null
+                            }
                         )
                     }
                 }
                 .onFailure { error ->
-                    val message =
-                        if (error is IllegalStateException && error.message == "AUTH_REQUIRED") {
-                            "Tu dois être connecté pour voter."
-                        } else {
-                            "Impossible de voter pour le moment."
-                        }
+                    handleVoteError(error)
+                }
+        }
+    }
 
-                    _uiState.update { state ->
-                        state.copy(
-                            votingPostId = null,
-                            errorMessage = message
+    private fun handleVoteError(error: Throwable) {
+        if (error is IllegalStateException && error.message == "AUTH_REQUIRED") {
+            _uiState.update {
+                it.copy(
+                    votingPostId = null,
+                    snackbarMessage = "Tu dois être connecté pour voter",
+                    snackbarActionLabel = "Se connecter",
+                    shouldOpenLogin = true
+                )
+            }
+        } else {
+            _uiState.update {
+                it.copy(
+                    votingPostId = null,
+                    snackbarMessage = "Impossible de voter",
+                    snackbarActionLabel = null,
+                    shouldOpenLogin = false
+                )
+            }
+        }
+    }
+
+    fun logout() {
+        scope.launch {
+            _uiState.update { it.copy(votingPostId = null) }
+
+            val result = logoutUseCase.execute()
+
+            result
+                .onSuccess {
+                    _uiState.update {
+                        it.copy(
+                            snackbarMessage = "Déconnecté",
+                            snackbarActionLabel = null,
+                            shouldOpenLogin = false
+                        )
+                    }
+                    // Recharge le feed pour remettre les votes user à NONE
+                    loadFeed()
+                }
+                .onFailure {
+                    _uiState.update {
+                        it.copy(
+                            snackbarMessage = "Erreur de déconnexion",
+                            snackbarActionLabel = null,
+                            shouldOpenLogin = false
                         )
                     }
                 }
+        }
+    }
+
+    fun consumeSnackbar() {
+        _uiState.update {
+            it.copy(
+                snackbarMessage = null,
+                snackbarActionLabel = null,
+                shouldOpenLogin = false
+            )
         }
     }
 
