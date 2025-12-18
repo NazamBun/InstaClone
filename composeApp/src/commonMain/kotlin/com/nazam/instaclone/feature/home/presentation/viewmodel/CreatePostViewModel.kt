@@ -55,9 +55,7 @@ class CreatePostViewModel : KoinComponent {
             || state.leftImageUrl.isBlank()
             || state.rightImageUrl.isBlank()
         ) {
-            _uiState.update {
-                it.copy(errorMessage = "Tous les champs principaux sont obligatoires.")
-            }
+            _uiState.update { it.copy(errorMessage = "Tous les champs principaux sont obligatoires.") }
             return
         }
 
@@ -75,14 +73,27 @@ class CreatePostViewModel : KoinComponent {
 
             result
                 .onSuccess {
-                    _uiState.update { it.copy(isLoading = false, isPostCreated = true) }
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            isPostCreated = true,
+                            errorMessage = null
+                        )
+                    }
                 }
                 .onFailure { error ->
+                    val msg =
+                        if (error is IllegalStateException && error.message == "AUTH_REQUIRED") {
+                            "Tu dois être connecté pour créer un post"
+                        } else {
+                            error.message ?: "Erreur lors de la création du post."
+                        }
+
                     _uiState.update {
                         it.copy(
                             isLoading = false,
                             isPostCreated = false,
-                            errorMessage = error.message ?: "Erreur lors de la création du post."
+                            errorMessage = msg
                         )
                     }
                 }
