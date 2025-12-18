@@ -16,7 +16,9 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun HomeBottomBar(
+    isLoggedIn: Boolean,
     onCreatePostClick: () -> Unit,
+    onLoginClick: () -> Unit,
     onLogoutClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -45,14 +47,26 @@ fun HomeBottomBar(
                 .clickable { onCreatePostClick() }
         )
 
-        Text(
-            text = "Déco",
-            color = Color(0xFFBBBBBB),
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .weight(1f)
-                .clickable { onLogoutClick() }
-        )
+        if (isLoggedIn) {
+            Text(
+                text = "Déco",
+                color = Color(0xFFBBBBBB),
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable { onLogoutClick() }
+            )
+        } else {
+            Text(
+                text = "Se connecter",
+                color = Color(0xFFBBBBBB),
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable { onLoginClick() }
+            )
+        }
     }
 }
