@@ -18,7 +18,6 @@ import com.nazam.instaclone.feature.home.presentation.ui.HomeScreen
 import com.nazam.instaclone.feature.home.presentation.viewmodel.CreatePostViewModel
 import org.koin.core.context.startKoin
 
-// Démarre Koin une fois pour tout le monde (repositories, use cases, etc.)
 fun initKoin() {
     startKoin {
         modules(appModule)
@@ -28,26 +27,26 @@ fun initKoin() {
 @Composable
 fun App() {
 
-    // on démarre Koin (simple pour l’instant)
     initKoin()
 
-    var currentScreen by remember { mutableStateOf(Screen.Login) }
+    // ✅ On démarre sur le FEED (Home) pour tout le monde
+    var currentScreen by remember { mutableStateOf(Screen.Home) }
 
-    // 🔹 On crée le ViewModel de création de post une seule fois
     val createPostViewModel = remember {
-        // Ici on construit la chaîne "propre" à la main.
-        // Plus tard on pourra aussi injecter ce ViewModel avec Koin si on veut.
-
         val client = SupabaseClientProvider.client
         val homeRepository = HomeRepositoryImpl(client)
         val createPostUseCase = CreatePostUseCase(homeRepository)
-
         CreatePostViewModel(createPostUseCase)
     }
 
     MaterialTheme {
-
         when (currentScreen) {
+
+            Screen.Home -> HomeScreen(
+                onNavigateToCreatePost = { currentScreen = Screen.CreatePost },
+                onNavigateToLogin = { currentScreen = Screen.Login } // ✅ nouveau
+            )
+
             Screen.Login -> LoginScreen(
                 onNavigateToSignup = { currentScreen = Screen.Signup },
                 onNavigateToHome = { currentScreen = Screen.Home }
@@ -55,10 +54,6 @@ fun App() {
 
             Screen.Signup -> SignupScreen(
                 onNavigateToLogin = { currentScreen = Screen.Login }
-            )
-
-            Screen.Home -> HomeScreen(
-                onNavigateToCreatePost = { currentScreen = Screen.CreatePost }
             )
 
             Screen.CreatePost -> CreatePostRoute(

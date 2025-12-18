@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -32,7 +33,6 @@ fun VsPostItem(
     resultsAlpha: Float,
     modifier: Modifier = Modifier
 ) {
-    // --- Effets visuels selon le vote ---
     val leftAlpha = if (post.userVote == VoteChoice.RIGHT) 0.3f else 1f
     val rightAlpha = if (post.userVote == VoteChoice.LEFT) 0.3f else 1f
 
@@ -46,18 +46,17 @@ fun VsPostItem(
             Modifier.border(3.dp, Color(0xFFFF4EB8), RoundedCornerShape(0.dp))
         } else Modifier
 
-    // --- Pourcentages ---
     val total = post.totalVotesCount.coerceAtLeast(1)
     val leftPercent = (post.leftVotesCount * 100f) / total
     val rightPercent = (post.rightVotesCount * 100f) / total
     val leftRatio = (leftPercent / 100f).coerceIn(0f, 1f)
     val rightRatio = (rightPercent / 100f).coerceIn(0f, 1f)
 
-    // 🔒 blocage des clics si vote en cours sur ce post
     val canClick = !isVoting
 
     Box(modifier = modifier.fillMaxSize()) {
 
+        // ----- IMAGES -----
         Row(modifier = Modifier.fillMaxSize()) {
 
             AsyncImage(
@@ -85,6 +84,19 @@ fun VsPostItem(
             )
         }
 
+        // ✅ LOADER OVERLAY (SUR CE POST)
+        if (isVoting) {
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .background(Color(0x66000000)), // voile noir transparent
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = Color(0xFFFF4EB8))
+            }
+        }
+
+        // ----- GRADIENT -----
         Box(
             modifier = Modifier
                 .matchParentSize()
@@ -95,6 +107,7 @@ fun VsPostItem(
                 )
         )
 
+        // ----- HEADER -----
         Column(
             modifier = Modifier
                 .align(Alignment.TopStart)
@@ -104,6 +117,7 @@ fun VsPostItem(
             Text(text = post.category, color = Color.White, fontSize = 12.sp)
         }
 
+        // ----- QUESTION -----
         Box(
             modifier = Modifier
                 .align(Alignment.Center)
@@ -120,6 +134,7 @@ fun VsPostItem(
             )
         }
 
+        // ----- VS -----
         Box(
             modifier = Modifier
                 .align(Alignment.Center)
@@ -134,7 +149,7 @@ fun VsPostItem(
             Text(text = "VS", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
         }
 
-        // ✅ Résultats bas
+        // ----- RESULTS -----
         Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
