@@ -1,5 +1,6 @@
 package com.nazam.instaclone.feature.home.presentation.viewmodel
 
+import com.nazam.instaclone.feature.auth.domain.usecase.GetCurrentUserUseCase
 import com.nazam.instaclone.feature.auth.domain.usecase.LogoutUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.GetFeedUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.VoteLeftUseCase
@@ -20,6 +21,8 @@ class HomeViewModel : KoinComponent {
     private val getFeedUseCase: GetFeedUseCase by inject()
     private val voteLeftUseCase: VoteLeftUseCase by inject()
     private val voteRightUseCase: VoteRightUseCase by inject()
+
+    private val getCurrentUserUseCase: GetCurrentUserUseCase by inject()
     private val logoutUseCase: LogoutUseCase by inject()
 
     private val job = Job()
@@ -29,7 +32,15 @@ class HomeViewModel : KoinComponent {
     val uiState: StateFlow<HomeUiState> = _uiState
 
     init {
+        refreshSession()
         loadFeed()
+    }
+
+    private fun refreshSession() {
+        scope.launch {
+            val user = getCurrentUserUseCase.execute()
+            _uiState.update { it.copy(isLoggedIn = user != null) }
+        }
     }
 
     fun loadFeed() {
@@ -40,12 +51,15 @@ class HomeViewModel : KoinComponent {
 
             result
                 .onSuccess { posts ->
-                    _uiState.update {
-                        it.copy(isLoading = false, posts = posts)
-                    }
+                    _uiState.update { it.copy(isLoading = false, posts = posts) }
                 }
                 .onFailure {
-                    _uiState.update { it.copy(isLoading = false) }
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            snackbarMessage = "Erreur de chargement"
+                        )
+                    }
                 }
         }
     }
@@ -124,20 +138,19 @@ class HomeViewModel : KoinComponent {
 
     fun logout() {
         scope.launch {
-            _uiState.update { it.copy(votingPostId = null) }
-
             val result = logoutUseCase.execute()
 
             result
                 .onSuccess {
                     _uiState.update {
                         it.copy(
+                            isLoggedIn = false,
                             snackbarMessage = "Déconnecté",
                             snackbarActionLabel = null,
-                            shouldOpenLogin = false
+                            shouldOpenLogin = false,
+                            shouldNavigateToLogin = true
                         )
                     }
-                    // Recharge le feed pour remettre les votes user à NONE
                     loadFeed()
                 }
                 .onFailure {
@@ -160,6 +173,10 @@ class HomeViewModel : KoinComponent {
                 shouldOpenLogin = false
             )
         }
+    }
+
+    fun consumeNavigateToLogin() {
+        _uiState.update { it.copy(shouldNavigateToLogin = false) }
     }
 
     fun clear() {

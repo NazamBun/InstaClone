@@ -5,6 +5,9 @@ import com.nazam.instaclone.feature.home.domain.model.VsPost
 data class HomeUiState(
     val isLoading: Boolean = false,
 
+    // ✅ Session
+    val isLoggedIn: Boolean = false,
+
     // 🔒 id du post en cours de vote
     val votingPostId: String? = null,
 
@@ -13,5 +16,8 @@ data class HomeUiState(
     // 🔔 Snackbar
     val snackbarMessage: String? = null,
     val snackbarActionLabel: String? = null,
-    val shouldOpenLogin: Boolean = false
+    val shouldOpenLogin: Boolean = false,
+
+    // ✅ Navigation (signal)
+    val shouldNavigateToLogin: Boolean = false
 )
