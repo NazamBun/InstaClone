@@ -17,25 +17,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.nazam.instaclone.feature.home.presentation.viewmodel.CreatePostViewModel
 
-// ---------------------------------------------------------
-// 1) Route simple : on reçoit un ViewModel tout prêt
-// ---------------------------------------------------------
-@Composable
-fun CreatePostRoute(
-    viewModel: CreatePostViewModel,
-    onBack: () -> Unit,
-    onPostCreated: () -> Unit
-) {
-    CreatePostScreen(
-        viewModel = viewModel,
-        onBack = onBack,
-        onPostCreated = onPostCreated
-    )
-}
-
-// ---------------------------------------------------------
-// 2) Écran UI pur
-// ---------------------------------------------------------
 @Composable
 fun CreatePostScreen(
     viewModel: CreatePostViewModel,
@@ -45,7 +26,6 @@ fun CreatePostScreen(
 ) {
     val ui by viewModel.uiState.collectAsState()
 
-    // Quand le post est créé → on remonte vers App()
     LaunchedEffect(ui.isPostCreated) {
         if (ui.isPostCreated) {
             viewModel.consumePostCreatedFlag()
@@ -64,7 +44,6 @@ fun CreatePostScreen(
                 .align(Alignment.TopCenter),
             verticalArrangement = Arrangement.Top
         ) {
-            // ---- Titre ----
             Text(
                 text = "Créer un nouveau VS",
                 style = MaterialTheme.typography.titleLarge,
@@ -73,7 +52,6 @@ fun CreatePostScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // ---- Question ----
             OutlinedTextField(
                 value = ui.question,
                 onValueChange = viewModel::onQuestionChange,
@@ -83,7 +61,6 @@ fun CreatePostScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // ---- Labels ----
             OutlinedTextField(
                 value = ui.leftLabel,
                 onValueChange = viewModel::onLeftLabelChange,
@@ -102,7 +79,6 @@ fun CreatePostScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // ---- URLs d’images ----
             OutlinedTextField(
                 value = ui.leftImageUrl,
                 onValueChange = viewModel::onLeftImageUrlChange,
@@ -121,7 +97,6 @@ fun CreatePostScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // ---- Catégorie ----
             OutlinedTextField(
                 value = ui.category,
                 onValueChange = viewModel::onCategoryChange,
@@ -131,7 +106,6 @@ fun CreatePostScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // ---- Message d’erreur ----
             if (ui.errorMessage != null) {
                 Text(
                     text = ui.errorMessage ?: "",
@@ -143,7 +117,6 @@ fun CreatePostScreen(
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
-            // ---- Bouton publier ----
             Button(
                 onClick = { viewModel.submitPost() },
                 enabled = !ui.isLoading,
@@ -154,7 +127,6 @@ fun CreatePostScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // ---- Bouton retour ----
             Button(
                 onClick = onBack,
                 enabled = !ui.isLoading,
@@ -164,7 +136,6 @@ fun CreatePostScreen(
             }
         }
 
-        // Loader centré
         if (ui.isLoading) {
             CircularProgressIndicator(
                 modifier = Modifier.align(Alignment.Center)
