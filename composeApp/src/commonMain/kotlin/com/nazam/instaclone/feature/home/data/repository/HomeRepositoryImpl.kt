@@ -106,7 +106,7 @@ class HomeRepositoryImpl(
         runCatching {
             // 👤 il faut être connecté
             val user = client.auth.currentUserOrNull()
-                ?: throw IllegalStateException("Utilisateur non connecté")
+                ?: throw IllegalStateException("AUTH_REQUIRED")
 
             val authorName = user.email ?: "Inconnu"
 

@@ -36,7 +36,7 @@ class HomeViewModel : KoinComponent {
         loadFeed()
     }
 
-    private fun refreshSession() {
+    fun refreshSession() {
         scope.launch {
             val user = getCurrentUserUseCase.execute()
             _uiState.update { it.copy(isLoggedIn = user != null) }
@@ -57,32 +57,11 @@ class HomeViewModel : KoinComponent {
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            snackbarMessage = "Erreur de chargement",
-                            snackbarActionLabel = null,
-                            shouldOpenLogin = false
+                            snackbarMessage = "Erreur de chargement"
                         )
                     }
                 }
         }
-    }
-
-    // ✅ Étape 2 : clic sur "Créer"
-    fun onCreatePostClicked() {
-        if (_uiState.value.isLoggedIn) {
-            _uiState.update { it.copy(shouldNavigateToCreatePost = true) }
-        } else {
-            _uiState.update {
-                it.copy(
-                    snackbarMessage = "Tu dois être connecté pour créer un post",
-                    snackbarActionLabel = "Se connecter",
-                    shouldOpenLogin = true
-                )
-            }
-        }
-    }
-
-    fun consumeNavigateToCreatePost() {
-        _uiState.update { it.copy(shouldNavigateToCreatePost = false) }
     }
 
     fun voteLeft(postId: String) {
@@ -105,7 +84,8 @@ class HomeViewModel : KoinComponent {
                     }
                 }
                 .onFailure { error ->
-                    handleVoteError(error)
+                    _uiState.update { it.copy(votingPostId = null) }
+                    handleAuthOrGenericError(error)
                 }
         }
     }
@@ -130,30 +110,22 @@ class HomeViewModel : KoinComponent {
                     }
                 }
                 .onFailure { error ->
-                    handleVoteError(error)
+                    _uiState.update { it.copy(votingPostId = null) }
+                    handleAuthOrGenericError(error)
                 }
         }
     }
 
-    private fun handleVoteError(error: Throwable) {
-        if (error is IllegalStateException && error.message == "AUTH_REQUIRED") {
-            _uiState.update {
-                it.copy(
-                    votingPostId = null,
-                    snackbarMessage = "Tu dois être connecté pour voter",
-                    snackbarActionLabel = "Se connecter",
-                    shouldOpenLogin = true
-                )
-            }
-        } else {
-            _uiState.update {
-                it.copy(
-                    votingPostId = null,
-                    snackbarMessage = "Impossible de voter",
-                    snackbarActionLabel = null,
-                    shouldOpenLogin = false
-                )
-            }
+    // ✅ Quand on clique "Créer" (UI)
+    fun onCreatePostClicked() {
+        if (_uiState.value.isLoggedIn) return
+
+        _uiState.update {
+            it.copy(
+                snackbarMessage = "Tu dois être connecté pour créer un post",
+                snackbarActionLabel = "Se connecter",
+                shouldOpenLogin = true
+            )
         }
     }
 
@@ -168,8 +140,7 @@ class HomeViewModel : KoinComponent {
                             isLoggedIn = false,
                             snackbarMessage = "Déconnecté",
                             snackbarActionLabel = null,
-                            shouldOpenLogin = false,
-                            shouldNavigateToLogin = true
+                            shouldOpenLogin = false
                         )
                     }
                     loadFeed()
@@ -186,6 +157,26 @@ class HomeViewModel : KoinComponent {
         }
     }
 
+    private fun handleAuthOrGenericError(error: Throwable) {
+        if (error is IllegalStateException && error.message == "AUTH_REQUIRED") {
+            _uiState.update {
+                it.copy(
+                    snackbarMessage = "Tu dois être connecté pour voter",
+                    snackbarActionLabel = "Se connecter",
+                    shouldOpenLogin = true
+                )
+            }
+        } else {
+            _uiState.update {
+                it.copy(
+                    snackbarMessage = "Impossible de voter",
+                    snackbarActionLabel = null,
+                    shouldOpenLogin = false
+                )
+            }
+        }
+    }
+
     fun consumeSnackbar() {
         _uiState.update {
             it.copy(
@@ -194,10 +185,6 @@ class HomeViewModel : KoinComponent {
                 shouldOpenLogin = false
             )
         }
-    }
-
-    fun consumeNavigateToLogin() {
-        _uiState.update { it.copy(shouldNavigateToLogin = false) }
     }
 
     fun clear() {

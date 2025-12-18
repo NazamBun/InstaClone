@@ -16,9 +16,5 @@ data class HomeUiState(
     // 🔔 Snackbar
     val snackbarMessage: String? = null,
     val snackbarActionLabel: String? = null,
-    val shouldOpenLogin: Boolean = false,
-
-    // ✅ Navigation (signal)
-    val shouldNavigateToLogin: Boolean = false,
-    val shouldNavigateToCreatePost: Boolean = false
+    val shouldOpenLogin: Boolean = false
 )
