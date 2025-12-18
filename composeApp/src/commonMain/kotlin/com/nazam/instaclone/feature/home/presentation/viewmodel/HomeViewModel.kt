@@ -57,11 +57,32 @@ class HomeViewModel : KoinComponent {
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            snackbarMessage = "Erreur de chargement"
+                            snackbarMessage = "Erreur de chargement",
+                            snackbarActionLabel = null,
+                            shouldOpenLogin = false
                         )
                     }
                 }
         }
+    }
+
+    // ✅ Étape 2 : clic sur "Créer"
+    fun onCreatePostClicked() {
+        if (_uiState.value.isLoggedIn) {
+            _uiState.update { it.copy(shouldNavigateToCreatePost = true) }
+        } else {
+            _uiState.update {
+                it.copy(
+                    snackbarMessage = "Tu dois être connecté pour créer un post",
+                    snackbarActionLabel = "Se connecter",
+                    shouldOpenLogin = true
+                )
+            }
+        }
+    }
+
+    fun consumeNavigateToCreatePost() {
+        _uiState.update { it.copy(shouldNavigateToCreatePost = false) }
     }
 
     fun voteLeft(postId: String) {

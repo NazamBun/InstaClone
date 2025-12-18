@@ -34,7 +34,7 @@ fun HomeScreen(
 
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // 🔔 Snackbar (vote -> login)
+    // 🔔 Snackbar (vote/create -> login)
     LaunchedEffect(ui.value.snackbarMessage) {
         val message = ui.value.snackbarMessage ?: return@LaunchedEffect
 
@@ -58,6 +58,14 @@ fun HomeScreen(
         }
     }
 
+    // ✅ Création -> navigation CreatePost
+    LaunchedEffect(ui.value.shouldNavigateToCreatePost) {
+        if (ui.value.shouldNavigateToCreatePost) {
+            onNavigateToCreatePost()
+            viewModel.consumeNavigateToCreatePost()
+        }
+    }
+
     val pagerState = rememberPagerState(
         pageCount = { ui.value.posts.size }
     )
@@ -67,7 +75,7 @@ fun HomeScreen(
         bottomBar = {
             HomeBottomBar(
                 isLoggedIn = ui.value.isLoggedIn,
-                onCreatePostClick = onNavigateToCreatePost,
+                onCreatePostClick = { viewModel.onCreatePostClicked() }, // ✅ IMPORTANT
                 onLoginClick = onNavigateToLogin,
                 onLogoutClick = { viewModel.logout() }
             )
