@@ -56,10 +56,10 @@ class HomeViewModel : KoinComponent {
                 .onFailure {
                     _uiState.update {
                         it.copy(
-                            isLoading = false,
-                            snackbarMessage = "Erreur de chargement"
+                            isLoading = false
                         )
                     }
+                    showInfoDialog("Erreur de chargement")
                 }
         }
     }
@@ -119,14 +119,7 @@ class HomeViewModel : KoinComponent {
     // ✅ Quand on clique "Créer" (UI)
     fun onCreatePostClicked() {
         if (_uiState.value.isLoggedIn) return
-
-        _uiState.update {
-            it.copy(
-                snackbarMessage = "Tu dois être connecté pour créer un post",
-                snackbarActionLabel = "Se connecter",
-                shouldOpenLogin = true
-            )
-        }
+        showLoginDialog("Tu dois être connecté pour créer un post")
     }
 
     fun logout() {
@@ -135,54 +128,54 @@ class HomeViewModel : KoinComponent {
 
             result
                 .onSuccess {
-                    _uiState.update {
-                        it.copy(
-                            isLoggedIn = false,
-                            snackbarMessage = "Déconnecté",
-                            snackbarActionLabel = null,
-                            shouldOpenLogin = false
-                        )
-                    }
+                    _uiState.update { it.copy(isLoggedIn = false) }
+                    showInfoDialog("Déconnecté")
                     loadFeed()
                 }
                 .onFailure {
-                    _uiState.update {
-                        it.copy(
-                            snackbarMessage = "Erreur de déconnexion",
-                            snackbarActionLabel = null,
-                            shouldOpenLogin = false
-                        )
-                    }
+                    showInfoDialog("Erreur de déconnexion")
                 }
         }
     }
 
     private fun handleAuthOrGenericError(error: Throwable) {
         if (error is IllegalStateException && error.message == "AUTH_REQUIRED") {
-            _uiState.update {
-                it.copy(
-                    snackbarMessage = "Tu dois être connecté pour voter",
-                    snackbarActionLabel = "Se connecter",
-                    shouldOpenLogin = true
-                )
-            }
+            showLoginDialog("Tu dois être connecté pour voter")
         } else {
-            _uiState.update {
-                it.copy(
-                    snackbarMessage = "Impossible de voter",
-                    snackbarActionLabel = null,
-                    shouldOpenLogin = false
-                )
-            }
+            showInfoDialog("Impossible de voter")
         }
     }
 
-    fun consumeSnackbar() {
+    // ----------------------------
+    // ✅ Dialog helpers
+    // ----------------------------
+
+    private fun showLoginDialog(message: String) {
         _uiState.update {
             it.copy(
-                snackbarMessage = null,
-                snackbarActionLabel = null,
-                shouldOpenLogin = false
+                dialogMessage = message,
+                dialogConfirmLabel = "Se connecter",
+                dialogShouldOpenLogin = true
+            )
+        }
+    }
+
+    private fun showInfoDialog(message: String) {
+        _uiState.update {
+            it.copy(
+                dialogMessage = message,
+                dialogConfirmLabel = null, // juste "OK"
+                dialogShouldOpenLogin = false
+            )
+        }
+    }
+
+    fun consumeDialog() {
+        _uiState.update {
+            it.copy(
+                dialogMessage = null,
+                dialogConfirmLabel = null,
+                dialogShouldOpenLogin = false
             )
         }
     }
