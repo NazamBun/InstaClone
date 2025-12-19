@@ -73,7 +73,8 @@ kotlin {
                 // Coil
                 implementation(libs.coil.compose)
 
-                implementation(compose.foundation)
+                implementation(compose.materialIconsExtended)
+
 
             }
         }

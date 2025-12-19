@@ -12,6 +12,7 @@ pluginManagement {
         }
         mavenCentral()
         gradlePluginPortal()
+        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     }
 }
 
@@ -28,6 +29,7 @@ dependencyResolutionManagement {
 
         // ⭐ Pour TOUTES les libs multiplateformes (dont Supabase)
         mavenCentral()
+        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
 
         // ⭐ Optionnel mais utile pour certaines libs KMP
         maven("https://jitpack.io")
