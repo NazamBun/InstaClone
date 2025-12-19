@@ -26,6 +26,7 @@ fun CreatePostScreen(
 ) {
     val ui by viewModel.uiState.collectAsState()
 
+    // Quand le post est créé → retour Home
     LaunchedEffect(ui.isPostCreated) {
         if (ui.isPostCreated) {
             viewModel.consumePostCreatedFlag()
@@ -41,8 +42,7 @@ fun CreatePostScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .align(Alignment.TopCenter),
-            verticalArrangement = Arrangement.Top
+                .align(Alignment.TopCenter)
         ) {
             Text(
                 text = "Créer un nouveau VS",
@@ -64,7 +64,7 @@ fun CreatePostScreen(
             OutlinedTextField(
                 value = ui.leftLabel,
                 onValueChange = viewModel::onLeftLabelChange,
-                label = { Text("Label gauche (ex: Montagne)") },
+                label = { Text("Label gauche") },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -73,7 +73,7 @@ fun CreatePostScreen(
             OutlinedTextField(
                 value = ui.rightLabel,
                 onValueChange = viewModel::onRightLabelChange,
-                label = { Text("Label droite (ex: Plage)") },
+                label = { Text("Label droite") },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -100,7 +100,7 @@ fun CreatePostScreen(
             OutlinedTextField(
                 value = ui.category,
                 onValueChange = viewModel::onCategoryChange,
-                label = { Text("Catégorie (ex: Voyage)") },
+                label = { Text("Catégorie") },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -108,21 +108,20 @@ fun CreatePostScreen(
 
             if (ui.errorMessage != null) {
                 Text(
-                    text = ui.errorMessage ?: "",
+                    text = ui.errorMessage!!,
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall,
-                    textAlign = TextAlign.Start,
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
             Button(
-                onClick = { viewModel.submitPost() },
+                onClick = viewModel::submitPost,
                 enabled = !ui.isLoading,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(text = "Publier le VS")
+                Text("Publier le VS")
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -132,7 +131,7 @@ fun CreatePostScreen(
                 enabled = !ui.isLoading,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(text = "Annuler")
+                Text("Annuler")
             }
         }
 
