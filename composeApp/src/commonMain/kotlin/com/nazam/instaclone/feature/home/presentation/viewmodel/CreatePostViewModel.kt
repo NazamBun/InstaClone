@@ -49,13 +49,16 @@ class CreatePostViewModel : KoinComponent {
     fun submitPost() {
         val state = _uiState.value
 
-        if (state.question.isBlank()
-            || state.leftLabel.isBlank()
-            || state.rightLabel.isBlank()
-            || state.leftImageUrl.isBlank()
-            || state.rightImageUrl.isBlank()
+        if (
+            state.question.isBlank() ||
+            state.leftLabel.isBlank() ||
+            state.rightLabel.isBlank() ||
+            state.leftImageUrl.isBlank() ||
+            state.rightImageUrl.isBlank()
         ) {
-            _uiState.update { it.copy(errorMessage = "Tous les champs principaux sont obligatoires.") }
+            _uiState.update {
+                it.copy(errorMessage = "Tous les champs principaux sont obligatoires.")
+            }
             return
         }
 

@@ -15,7 +15,6 @@ import com.nazam.instaclone.feature.home.presentation.ui.HomeScreen
 @Composable
 fun App() {
 
-    // ✅ On démarre sur Home pour tout le monde
     var currentScreen by remember { mutableStateOf(Screen.Home) }
 
     MaterialTheme {

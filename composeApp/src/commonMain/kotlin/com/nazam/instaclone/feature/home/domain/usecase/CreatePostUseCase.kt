@@ -6,8 +6,6 @@ import com.nazam.instaclone.feature.home.domain.repository.HomeRepository
 class CreatePostUseCase(
     private val homeRepository: HomeRepository
 ) {
-
-    // une seule fonction, simple
     suspend fun execute(
         question: String,
         leftImageUrl: String,
