@@ -6,7 +6,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ChatBubbleOutline
+import androidx.compose.material.icons.outlined.Send
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -31,7 +37,10 @@ fun VsPostItem(
     onVoteLeft: () -> Unit,
     onVoteRight: () -> Unit,
     resultsAlpha: Float,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onCommentsClick: () -> Unit = {}, // ✅ futur : ouvrir panel commentaires
+    onMessageClick: () -> Unit = {},  // ✅ futur : DM
+    onShareClick: () -> Unit = {}     // ✅ futur : share sheet
 ) {
     val leftAlpha = if (post.userVote == VoteChoice.RIGHT) 0.3f else 1f
     val rightAlpha = if (post.userVote == VoteChoice.LEFT) 0.3f else 1f
@@ -89,7 +98,7 @@ fun VsPostItem(
             Box(
                 modifier = Modifier
                     .matchParentSize()
-                    .background(Color(0x66000000)), // voile noir transparent
+                    .background(Color(0x66000000)),
                 contentAlignment = Alignment.Center
             ) {
                 CircularProgressIndicator(color = Color(0xFFFF4EB8))
@@ -116,6 +125,16 @@ fun VsPostItem(
             Text(text = post.authorName, color = Color.White, fontWeight = FontWeight.Bold)
             Text(text = post.category, color = Color.White, fontSize = 12.sp)
         }
+
+        // ----- ACTIONS (icônes à droite) -----
+        ActionRail(
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .padding(end = 10.dp),
+            onCommentsClick = onCommentsClick,
+            onMessageClick = onMessageClick,
+            onShareClick = onShareClick
+        )
 
         // ----- QUESTION -----
         Box(
@@ -219,6 +238,46 @@ fun VsPostItem(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun ActionRail(
+    modifier: Modifier = Modifier,
+    onCommentsClick: () -> Unit,
+    onMessageClick: () -> Unit,
+    onShareClick: () -> Unit
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(18.dp))
+            .background(Color(0x66000000))
+            .padding(vertical = 8.dp, horizontal = 6.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        IconButton(onClick = onCommentsClick) {
+            Icon(
+                imageVector = Icons.Outlined.ChatBubbleOutline,
+                contentDescription = "Commentaires",
+                tint = Color.White
+            )
+        }
+
+        IconButton(onClick = onMessageClick) {
+            Icon(
+                imageVector = Icons.Outlined.Send,
+                contentDescription = "Message",
+                tint = Color.White
+            )
+        }
+
+        IconButton(onClick = onShareClick) {
+            Icon(
+                imageVector = Icons.Outlined.Share,
+                contentDescription = "Partager",
+                tint = Color.White
+            )
         }
     }
 }
