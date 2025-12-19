@@ -13,8 +13,8 @@ data class HomeUiState(
 
     val posts: List<VsPost> = emptyList(),
 
-    // 🔔 Snackbar
-    val snackbarMessage: String? = null,
-    val snackbarActionLabel: String? = null,
-    val shouldOpenLogin: Boolean = false
+    // ✅ POPUP (Dialog)
+    val dialogMessage: String? = null,
+    val dialogConfirmLabel: String? = null, // ex: "Se connecter"
+    val dialogShouldOpenLogin: Boolean = false
 )

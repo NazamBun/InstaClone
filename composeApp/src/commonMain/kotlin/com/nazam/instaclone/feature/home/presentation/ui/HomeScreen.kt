@@ -7,14 +7,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -32,30 +30,46 @@ fun HomeScreen(
     val viewModel = remember { HomeViewModel() }
     val ui = viewModel.uiState.collectAsState()
 
-    val snackbarHostState = remember { SnackbarHostState() }
-
-    // 🔔 Snackbar + action "Se connecter"
-    LaunchedEffect(ui.value.snackbarMessage) {
-        val message = ui.value.snackbarMessage ?: return@LaunchedEffect
-
-        val result = snackbarHostState.showSnackbar(
-            message = message,
-            actionLabel = ui.value.snackbarActionLabel
-        )
-
-        if (result == SnackbarResult.ActionPerformed && ui.value.shouldOpenLogin) {
-            onNavigateToLogin()
-        }
-
-        viewModel.consumeSnackbar()
-    }
-
     val pagerState = rememberPagerState(
         pageCount = { ui.value.posts.size }
     )
 
+    // ✅ POPUP PRO (Dialog)
+    if (ui.value.dialogMessage != null) {
+        AlertDialog(
+            onDismissRequest = { viewModel.consumeDialog() },
+            title = { Text(text = "Information") },
+            text = { Text(text = ui.value.dialogMessage ?: "") },
+            confirmButton = {
+                val confirmLabel = ui.value.dialogConfirmLabel
+                if (confirmLabel != null) {
+                    TextButton(
+                        onClick = {
+                            val goLogin = ui.value.dialogShouldOpenLogin
+                            viewModel.consumeDialog()
+                            if (goLogin) onNavigateToLogin()
+                        }
+                    ) {
+                        Text(confirmLabel)
+                    }
+                } else {
+                    TextButton(onClick = { viewModel.consumeDialog() }) {
+                        Text("OK")
+                    }
+                }
+            },
+            dismissButton = {
+                // Si on a un bouton "Se connecter", on ajoute "Annuler"
+                if (ui.value.dialogConfirmLabel != null) {
+                    TextButton(onClick = { viewModel.consumeDialog() }) {
+                        Text("Annuler")
+                    }
+                }
+            }
+        )
+    }
+
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
             HomeBottomBar(
                 isLoggedIn = ui.value.isLoggedIn,
@@ -107,7 +121,6 @@ fun HomeScreen(
                         val pageOffset = abs(rawOffset)
 
                         val resultsAlpha = (1f - pageOffset * 1.5f).coerceIn(0f, 1f)
-
                         val isVoting = ui.value.votingPostId == post.id
 
                         VsPostItem(
