@@ -54,11 +54,7 @@ class HomeViewModel : KoinComponent {
                     _uiState.update { it.copy(isLoading = false, posts = posts) }
                 }
                 .onFailure {
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false
-                        )
-                    }
+                    _uiState.update { it.copy(isLoading = false) }
                     showInfoDialog("Erreur de chargement")
                 }
         }
@@ -122,6 +118,26 @@ class HomeViewModel : KoinComponent {
         showLoginDialog("Tu dois être connecté pour créer un post")
     }
 
+    // ✅ Ouvrir commentaires
+    fun openComments(postId: String) {
+        _uiState.update {
+            it.copy(
+                isCommentsSheetVisible = true,
+                selectedPostIdForComments = postId
+            )
+        }
+    }
+
+    // ✅ Fermer commentaires
+    fun closeComments() {
+        _uiState.update {
+            it.copy(
+                isCommentsSheetVisible = false,
+                selectedPostIdForComments = null
+            )
+        }
+    }
+
     fun logout() {
         scope.launch {
             val result = logoutUseCase.execute()
@@ -146,10 +162,6 @@ class HomeViewModel : KoinComponent {
         }
     }
 
-    // ----------------------------
-    // ✅ Dialog helpers
-    // ----------------------------
-
     private fun showLoginDialog(message: String) {
         _uiState.update {
             it.copy(
@@ -164,7 +176,7 @@ class HomeViewModel : KoinComponent {
         _uiState.update {
             it.copy(
                 dialogMessage = message,
-                dialogConfirmLabel = null, // juste "OK"
+                dialogConfirmLabel = null,
                 dialogShouldOpenLogin = false
             )
         }

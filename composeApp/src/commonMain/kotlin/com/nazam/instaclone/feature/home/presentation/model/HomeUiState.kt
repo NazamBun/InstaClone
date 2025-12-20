@@ -15,6 +15,10 @@ data class HomeUiState(
 
     // ✅ POPUP (Dialog)
     val dialogMessage: String? = null,
-    val dialogConfirmLabel: String? = null, // ex: "Se connecter"
-    val dialogShouldOpenLogin: Boolean = false
+    val dialogConfirmLabel: String? = null,
+    val dialogShouldOpenLogin: Boolean = false,
+
+    // ✅ BottomSheet commentaires
+    val isCommentsSheetVisible: Boolean = false,
+    val selectedPostIdForComments: String? = null
 )

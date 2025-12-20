@@ -9,19 +9,22 @@ import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import com.nazam.instaclone.feature.home.presentation.viewmodel.HomeViewModel
 import kotlin.math.abs
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     onNavigateToCreatePost: () -> Unit,
@@ -59,7 +62,6 @@ fun HomeScreen(
                 }
             },
             dismissButton = {
-                // Si on a un bouton "Se connecter", on ajoute "Annuler"
                 if (ui.value.dialogConfirmLabel != null) {
                     TextButton(onClick = { viewModel.consumeDialog() }) {
                         Text("Annuler")
@@ -69,7 +71,28 @@ fun HomeScreen(
         )
     }
 
-    Scaffold(
+    // ✅ BottomSheet commentaires
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
+
+    if (ui.value.isCommentsSheetVisible) {
+        ModalBottomSheet(
+            onDismissRequest = { viewModel.closeComments() },
+            sheetState = sheetState
+        ) {
+            // Pour l’instant : contenu simple, juste pour tester
+            val postId = ui.value.selectedPostIdForComments ?: ""
+            Text(
+                text = "Commentaires du post: $postId",
+                modifier = Modifier.padding(16.dp)
+            )
+            Text(
+                text = "Ici on affichera la liste des commentaires plus tard ✅",
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+        }
+    }
+
+    androidx.compose.material3.Scaffold(
         bottomBar = {
             HomeBottomBar(
                 isLoggedIn = ui.value.isLoggedIn,
@@ -129,7 +152,12 @@ fun HomeScreen(
                             onVoteLeft = { viewModel.voteLeft(post.id) },
                             onVoteRight = { viewModel.voteRight(post.id) },
                             resultsAlpha = resultsAlpha,
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier.fillMaxSize(),
+
+                            // ✅ ICI on branche les icônes
+                            onCommentsClick = { viewModel.openComments(post.id) },
+                            onMessageClick = { /* plus tard */ },
+                            onShareClick = { /* plus tard */ }
                         )
                     }
                 }
