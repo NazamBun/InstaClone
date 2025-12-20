@@ -11,13 +11,13 @@ import com.nazam.instaclone.feature.home.domain.repository.HomeRepository
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.query.Order
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-import io.github.jan.supabase.postgrest.query.Order
 
 class HomeRepositoryImpl(
     private val client: SupabaseClient,
@@ -25,7 +25,9 @@ class HomeRepositoryImpl(
 ) : HomeRepository {
 
     companion object {
-        private const val POSTS_TABLE = "posts"
+        // ✅ maintenant on lit la VIEW (feed pro)
+        private const val POSTS_FEED_VIEW = "posts_feed"
+        private const val POSTS_TABLE = "posts" // utile pour insert
         private const val COMMENTS_TABLE = "comments"
     }
 
@@ -35,10 +37,8 @@ class HomeRepositoryImpl(
 
     override suspend fun getFeed(): Result<List<VsPost>> =
         runCatching {
-            val userId = client.auth.currentUserOrNull()?.id
-
             val response = client
-                .postgrest[POSTS_TABLE]
+                .postgrest[POSTS_FEED_VIEW]
                 .select()
 
             val dtos: List<PostDto> = json.decodeFromString(
@@ -47,10 +47,10 @@ class HomeRepositoryImpl(
             )
 
             dtos.map { dto ->
-                val userVote = when {
-                    userId == null -> VoteChoice.NONE
-                    dto.votedLeftList().contains(userId) -> VoteChoice.LEFT
-                    dto.votedRightList().contains(userId) -> VoteChoice.RIGHT
+                // ✅ on se base sur user_choice (renvoyé par la VIEW)
+                val userVote = when (dto.user_choice) {
+                    "left" -> VoteChoice.LEFT
+                    "right" -> VoteChoice.RIGHT
                     else -> VoteChoice.NONE
                 }
 
@@ -77,22 +77,21 @@ class HomeRepositoryImpl(
                 rightImageUrl = rightImageUrl,
                 leftLabel = leftLabel,
                 rightLabel = rightLabel,
-                authorName = user.email, // simple pour l’instant
+                authorName = user.email,
                 authorAvatar = null
             )
 
             val response = client
                 .postgrest[POSTS_TABLE]
-                .insert(payload) {
-                    select()
-                }
+                .insert(payload) { select() }
 
             val list: List<PostDto> = json.decodeFromString(
                 ListSerializer(PostDto.serializer()),
                 response.data
             )
 
-            PostMapper.toDomain(list.first())
+            // après création, l'utilisateur n'a pas voté
+            PostMapper.toDomain(list.first(), VoteChoice.NONE)
         }
 
     override suspend fun voteLeft(postId: String): Result<VsPost> =
@@ -106,6 +105,7 @@ class HomeRepositoryImpl(
             val user = client.auth.currentUserOrNull()
                 ?: throw IllegalStateException("AUTH_REQUIRED")
 
+            // ✅ RPC vote_post (doit exister côté Supabase)
             val response = client
                 .postgrest.rpc(
                     function = "vote_post",
@@ -121,6 +121,7 @@ class HomeRepositoryImpl(
                 response.data
             )
 
+            // ✅ on force le vote local direct (réactif UI)
             val userVote = when (choice) {
                 "left" -> VoteChoice.LEFT
                 "right" -> VoteChoice.RIGHT
@@ -139,9 +140,7 @@ class HomeRepositoryImpl(
             val response = client
                 .postgrest[COMMENTS_TABLE]
                 .select {
-                    filter {
-                        eq("post_id", postId)
-                    }
+                    filter { eq("post_id", postId) }
                     order(column = "created_at", order = Order.ASCENDING)
                 }
 
@@ -165,15 +164,13 @@ class HomeRepositoryImpl(
                 postId = postId,
                 authorId = user.id,
                 content = content,
-                authorName = user.email, // simple pour l’instant
+                authorName = user.email,
                 authorAvatar = null
             )
 
             val response = client
                 .postgrest[COMMENTS_TABLE]
-                .insert(payload) {
-                    select()
-                }
+                .insert(payload) { select() }
 
             val list: List<CommentDto> = json.decodeFromString(
                 ListSerializer(CommentDto.serializer()),
