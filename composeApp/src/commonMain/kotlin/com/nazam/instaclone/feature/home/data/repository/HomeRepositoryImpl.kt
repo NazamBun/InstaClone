@@ -5,6 +5,7 @@ import com.nazam.instaclone.feature.home.data.dto.PostDto
 import com.nazam.instaclone.feature.home.data.mapper.CommentMapper
 import com.nazam.instaclone.feature.home.data.mapper.PostMapper
 import com.nazam.instaclone.feature.home.domain.model.Comment
+import com.nazam.instaclone.feature.home.domain.model.VoteChoice
 import com.nazam.instaclone.feature.home.domain.model.VsPost
 import com.nazam.instaclone.feature.home.domain.repository.HomeRepository
 import io.github.jan.supabase.SupabaseClient
@@ -34,6 +35,8 @@ class HomeRepositoryImpl(
 
     override suspend fun getFeed(): Result<List<VsPost>> =
         runCatching {
+            val userId = client.auth.currentUserOrNull()?.id
+
             val response = client
                 .postgrest[POSTS_TABLE]
                 .select()
@@ -43,7 +46,16 @@ class HomeRepositoryImpl(
                 response.data
             )
 
-            dtos.map { PostMapper.toDomain(it) }
+            dtos.map { dto ->
+                val userVote = when {
+                    userId == null -> VoteChoice.NONE
+                    dto.votedLeftList().contains(userId) -> VoteChoice.LEFT
+                    dto.votedRightList().contains(userId) -> VoteChoice.RIGHT
+                    else -> VoteChoice.NONE
+                }
+
+                PostMapper.toDomain(dto, userVote)
+            }
         }
 
     override suspend fun createPost(
@@ -109,7 +121,13 @@ class HomeRepositoryImpl(
                 response.data
             )
 
-            PostMapper.toDomain(list.first())
+            val userVote = when (choice) {
+                "left" -> VoteChoice.LEFT
+                "right" -> VoteChoice.RIGHT
+                else -> VoteChoice.NONE
+            }
+
+            PostMapper.toDomain(list.first(), userVote)
         }
 
     // ----------------------------
