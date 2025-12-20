@@ -9,16 +9,25 @@ import com.nazam.instaclone.feature.auth.domain.usecase.LogoutUseCase
 import com.nazam.instaclone.feature.auth.domain.usecase.SignupUseCase
 import com.nazam.instaclone.feature.home.data.repository.HomeRepositoryImpl
 import com.nazam.instaclone.feature.home.domain.repository.HomeRepository
+import com.nazam.instaclone.feature.home.domain.usecase.AddCommentUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.CreatePostUseCase
+import com.nazam.instaclone.feature.home.domain.usecase.GetCommentsUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.GetFeedUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.VoteLeftUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.VoteRightUseCase
 import org.koin.dsl.module
+import kotlinx.serialization.json.Json
 
 val appModule = module {
 
     // ⭐ Supabase client
     single { SupabaseClientProvider.client }
+    // ⭐ Json (pour decode)
+    single {
+        Json {
+            ignoreUnknownKeys = true
+        }
+    }
 
     // ⭐ Auth
     single<AuthRepository> { AuthRepositoryImpl(get()) }
@@ -28,9 +37,12 @@ val appModule = module {
     factory { GetCurrentUserUseCase(get()) }
 
     // ⭐ Home
-    single<HomeRepository> { HomeRepositoryImpl(get()) }
+    single<HomeRepository> { HomeRepositoryImpl(client = get(), json = get()) }
     factory { GetFeedUseCase(get()) }
     factory { VoteLeftUseCase(get()) }
     factory { VoteRightUseCase(get()) }
     factory { CreatePostUseCase(get()) }
+    factory { GetCommentsUseCase(get()) }
+    factory { AddCommentUseCase(get()) }
+    single<HomeRepository> { HomeRepositoryImpl(client = get(), json = get()) }
 }

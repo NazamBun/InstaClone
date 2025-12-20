@@ -1,100 +1,51 @@
 package com.nazam.instaclone.feature.home.data.repository
 
-import com.nazam.instaclone.core.supabase.SupabaseClientProvider
+import com.nazam.instaclone.feature.home.data.dto.CommentDto
 import com.nazam.instaclone.feature.home.data.dto.PostDto
+import com.nazam.instaclone.feature.home.data.mapper.CommentMapper
 import com.nazam.instaclone.feature.home.data.mapper.PostMapper
-import com.nazam.instaclone.feature.home.domain.model.VoteChoice
+import com.nazam.instaclone.feature.home.domain.model.Comment
 import com.nazam.instaclone.feature.home.domain.model.VsPost
 import com.nazam.instaclone.feature.home.domain.repository.HomeRepository
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
-import io.github.jan.supabase.postgrest.result.PostgrestResult
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import io.github.jan.supabase.postgrest.query.Order
 
 class HomeRepositoryImpl(
-    private val client: SupabaseClient = SupabaseClientProvider.client
+    private val client: SupabaseClient,
+    private val json: Json
 ) : HomeRepository {
 
-    // 📦 Noms des tables Supabase
-    private val POSTS_TABLE = "posts"
-    private val VOTES_TABLE = "votes"
-
-    // 🔁 Json réutilisé
-    private val json = Json {
-        ignoreUnknownKeys = true
+    companion object {
+        private const val POSTS_TABLE = "posts"
+        private const val COMMENTS_TABLE = "comments"
     }
 
-    // 🧠 Cache en mémoire pour le feed
-    private val cache = mutableListOf<VsPost>()
+    // ----------------------------
+    // POSTS
+    // ----------------------------
 
-    // ----------------------------------------------------
-    // 1) Charger le feed + votes de l’utilisateur
-    // ----------------------------------------------------
     override suspend fun getFeed(): Result<List<VsPost>> =
         runCatching {
-            // 1️⃣ récupérer tous les posts
-            val postsResult: PostgrestResult = client
+            val response = client
                 .postgrest[POSTS_TABLE]
                 .select()
 
-            val postDtos: List<PostDto> = json.decodeFromString(
-                deserializer = ListSerializer(PostDto.serializer()),
-                string = postsResult.data
+            val dtos: List<PostDto> = json.decodeFromString(
+                ListSerializer(PostDto.serializer()),
+                response.data
             )
 
-            val basePosts: List<VsPost> = postDtos.map { PostMapper.toDomain(it) }
-
-            // 2️⃣ vérifier si un user est connecté
-            val user = client.auth.currentUserOrNull()
-            if (user == null) {
-                cache.clear()
-                cache.addAll(basePosts)
-                return@runCatching basePosts
-            }
-
-            // 3️⃣ charger les votes de l’utilisateur
-            val postsWithUserVote: List<VsPost> = try {
-                val votesResult: PostgrestResult = client
-                    .postgrest[VOTES_TABLE]
-                    .select()
-
-                val voteDtos: List<VoteRowDto> = json.decodeFromString(
-                    deserializer = ListSerializer(VoteRowDto.serializer()),
-                    string = votesResult.data
-                )
-
-                // votes du user courant par postId
-                val votesByPostId: Map<String, VoteRowDto> = voteDtos
-                    .filter { it.userId == user.id }
-                    .associateBy { it.postId }
-
-                basePosts.map { post ->
-                    val voteRow = votesByPostId[post.id]
-                    val userVote = when (voteRow?.choice) {
-                        "left" -> VoteChoice.LEFT
-                        "right" -> VoteChoice.RIGHT
-                        else -> VoteChoice.NONE
-                    }
-                    post.copy(userVote = userVote)
-                }
-            } catch (e: Exception) {
-                println("🔴 Erreur Supabase chargement votes : ${e.message}")
-                basePosts
-            }
-
-            cache.clear()
-            cache.addAll(postsWithUserVote)
-
-            postsWithUserVote
+            dtos.map { PostMapper.toDomain(it) }
         }
 
-    // ----------------------------------------------------
-    // 2) Créer un nouveau post
-    // ----------------------------------------------------
     override suspend fun createPost(
         question: String,
         leftImageUrl: String,
@@ -104,235 +55,138 @@ class HomeRepositoryImpl(
         category: String
     ): Result<VsPost> =
         runCatching {
-            // 👤 il faut être connecté
             val user = client.auth.currentUserOrNull()
                 ?: throw IllegalStateException("AUTH_REQUIRED")
 
-            val authorName = user.email ?: "Inconnu"
+            val payload = CreatePostDto(
+                question = question,
+                category = category,
+                leftImageUrl = leftImageUrl,
+                rightImageUrl = rightImageUrl,
+                leftLabel = leftLabel,
+                rightLabel = rightLabel,
+                authorName = user.email, // simple pour l’instant
+                authorAvatar = null
+            )
 
-            // 1️⃣ envoyer les données à Supabase
-            val result: PostgrestResult = client
+            val response = client
                 .postgrest[POSTS_TABLE]
-                .insert(
-                    CreatePostDto(
-                        question = question,
-                        category = category,
-                        leftImageUrl = leftImageUrl,
-                        rightImageUrl = rightImageUrl,
-                        leftLabel = leftLabel,
-                        rightLabel = rightLabel,
-                        authorName = authorName,
-                        authorAvatar = null
-                    )
-                ) {
-                    // demander à Supabase de renvoyer la ligne créée
+                .insert(payload) {
                     select()
                 }
 
-            // 2️⃣ décoder la réponse en PostDto
-            val dtoList: List<PostDto> = json.decodeFromString(
-                deserializer = ListSerializer(PostDto.serializer()),
-                string = result.data
+            val list: List<PostDto> = json.decodeFromString(
+                ListSerializer(PostDto.serializer()),
+                response.data
             )
-            val dto = dtoList.firstOrNull()
-                ?: error("Post non retourné par Supabase")
 
-            // 3️⃣ mapper vers VsPost
-            val vsPost = PostMapper.toDomain(dto)
-
-            // 4️⃣ ajouter en haut du cache
-            cache.add(0, vsPost)
-
-            vsPost
+            PostMapper.toDomain(list.first())
         }
 
-    // ----------------------------------------------------
-    // 3) Vote gauche / droite
-    // ----------------------------------------------------
     override suspend fun voteLeft(postId: String): Result<VsPost> =
-        vote(postId = postId, newChoice = VoteChoice.LEFT)
+        vote(postId, "LEFT")
 
     override suspend fun voteRight(postId: String): Result<VsPost> =
-        vote(postId = postId, newChoice = VoteChoice.RIGHT)
+        vote(postId, "RIGHT")
 
-    // ----------------------------------------------------
-    // 4) Logique commune de vote
-    // ----------------------------------------------------
-    private suspend fun vote(
-        postId: String,
-        newChoice: VoteChoice
-    ): Result<VsPost> =
+    private suspend fun vote(postId: String, choice: String): Result<VsPost> =
         runCatching {
-            // 🧱 1) vérifier que l'utilisateur est connecté
             val user = client.auth.currentUserOrNull()
                 ?: throw IllegalStateException("AUTH_REQUIRED")
 
-            // 🧱 2) charger le cache si vide
-            if (cache.isEmpty()) {
-                getFeed().getOrThrow()
-            }
+            val response = client
+                .postgrest.rpc(
+                    function = "vote_post",
+                    parameters = buildJsonObject {
+                        put("p_post_id", postId)
+                        put("p_user_id", user.id)
+                        put("p_choice", choice)
+                    }
+                )
 
-            val index = cache.indexOfFirst { it.id == postId }
-            require(index != -1) { "Post introuvable" }
-
-            val current = cache[index]
-            val previous = current.userVote
-
-            // si on reclique sur le même choix → rien ne change
-            if (previous == newChoice) {
-                return@runCatching current
-            }
-
-            val updated = applyVoteLogic(
-                current = current,
-                previous = previous,
-                newChoice = newChoice
+            val list: List<PostDto> = json.decodeFromString(
+                ListSerializer(PostDto.serializer()),
+                response.data
             )
 
-            // 1️⃣ mettre à jour le cache
-            cache[index] = updated
-
-            // 2️⃣ sync des compteurs dans `posts`
-            syncPostCountersOnSupabase(updated)
-
-            // 3️⃣ enregistrer le vote dans `votes`
-            persistUserVoteOnSupabase(
-                postId = postId,
-                choice = newChoice
-            )
-
-            updated
+            PostMapper.toDomain(list.first())
         }
 
-    // ----------------------------------------------------
-    // 5) Ajuster les compteurs en fonction de l’ancien/nouveau vote
-    // ----------------------------------------------------
-    private fun applyVoteLogic(
-        current: VsPost,
-        previous: VoteChoice,
-        newChoice: VoteChoice
-    ): VsPost {
-        var left = current.leftVotesCount
-        var right = current.rightVotesCount
-        var total = current.totalVotesCount
+    // ----------------------------
+    // COMMENTS
+    // ----------------------------
 
-        // enlever l’ancien vote
-        when (previous) {
-            VoteChoice.LEFT -> {
-                left = (left - 1).coerceAtLeast(0)
-                total = (total - 1).coerceAtLeast(0)
-            }
-            VoteChoice.RIGHT -> {
-                right = (right - 1).coerceAtLeast(0)
-                total = (total - 1).coerceAtLeast(0)
-            }
-            VoteChoice.NONE -> Unit
-        }
-
-        // ajouter le nouveau
-        when (newChoice) {
-            VoteChoice.LEFT -> {
-                left += 1
-                total += 1
-            }
-            VoteChoice.RIGHT -> {
-                right += 1
-                total += 1
-            }
-            VoteChoice.NONE -> Unit
-        }
-
-        return current.copy(
-            leftVotesCount = left,
-            rightVotesCount = right,
-            totalVotesCount = total,
-            userVote = newChoice
-        )
-    }
-
-    // ----------------------------------------------------
-    // 6) Sync des compteurs dans `posts`
-    // ----------------------------------------------------
-    private suspend fun syncPostCountersOnSupabase(post: VsPost) {
-        try {
-            client
-                .postgrest[POSTS_TABLE]
-                .upsert(
-                    PostVotesUpdateDto(
-                        id = post.id,
-                        leftVotes = post.leftVotesCount,
-                        rightVotes = post.rightVotesCount
-                    )
-                ) {
-                    onConflict = "id"
+    override suspend fun getComments(postId: String): Result<List<Comment>> =
+        runCatching {
+            val response = client
+                .postgrest[COMMENTS_TABLE]
+                .select {
+                    filter {
+                        eq("post_id", postId)
+                    }
+                    order(column = "created_at", order = Order.ASCENDING)
                 }
-        } catch (e: Exception) {
-            println("🔴 Erreur Supabase syncPostCountersOnSupabase postId=${post.id} : ${e.message}")
-        }
-    }
 
-    // ----------------------------------------------------
-    // 7) Enregistrer le vote user dans `votes`
-    // ----------------------------------------------------
-    private suspend fun persistUserVoteOnSupabase(
+            val dtos: List<CommentDto> = json.decodeFromString(
+                ListSerializer(CommentDto.serializer()),
+                response.data
+            )
+
+            dtos.map { CommentMapper.toDomain(it) }
+        }
+
+    override suspend fun addComment(
         postId: String,
-        choice: VoteChoice
-    ) {
-        try {
+        content: String
+    ): Result<Comment> =
+        runCatching {
             val user = client.auth.currentUserOrNull()
-            val userId = user?.id ?: return
+                ?: throw IllegalStateException("AUTH_REQUIRED")
 
-            client
-                .postgrest[VOTES_TABLE]
-                .upsert(
-                    VoteRowDto(
-                        postId = postId,
-                        userId = userId,
-                        choice = when (choice) {
-                            VoteChoice.LEFT -> "left"
-                            VoteChoice.RIGHT -> "right"
-                            VoteChoice.NONE -> "none"
-                        }
-                    )
-                ) {
-                    onConflict = "post_id,user_id"
+            val payload = CreateCommentDto(
+                postId = postId,
+                authorId = user.id,
+                content = content,
+                authorName = user.email, // simple pour l’instant
+                authorAvatar = null
+            )
+
+            val response = client
+                .postgrest[COMMENTS_TABLE]
+                .insert(payload) {
+                    select()
                 }
-        } catch (e: Exception) {
-            println("🔴 Erreur Supabase persistUserVoteOnSupabase postId=$postId : ${e.message}")
+
+            val list: List<CommentDto> = json.decodeFromString(
+                ListSerializer(CommentDto.serializer()),
+                response.data
+            )
+
+            CommentMapper.toDomain(list.first())
         }
-    }
+
+    // ----------------------------
+    // DTO interne INSERT
+    // ----------------------------
+
+    @Serializable
+    private data class CreatePostDto(
+        val question: String,
+        val category: String,
+        @SerialName("left_image") val leftImageUrl: String,
+        @SerialName("right_image") val rightImageUrl: String,
+        @SerialName("left_label") val leftLabel: String,
+        @SerialName("right_label") val rightLabel: String,
+        @SerialName("author_name") val authorName: String? = null,
+        @SerialName("author_avatar") val authorAvatar: String? = null
+    )
+
+    @Serializable
+    private data class CreateCommentDto(
+        @SerialName("post_id") val postId: String,
+        @SerialName("author_id") val authorId: String,
+        val content: String,
+        @SerialName("author_name") val authorName: String? = null,
+        @SerialName("author_avatar") val authorAvatar: String? = null
+    )
 }
-
-// ----------------------------------------------------
-// 8) DTOs pour les requêtes Supabase
-// ----------------------------------------------------
-
-@Serializable
-private data class PostVotesUpdateDto(
-    val id: String,
-    @SerialName("left_votes") val leftVotes: Int,
-    @SerialName("right_votes") val rightVotes: Int
-)
-
-@Serializable
-private data class VoteRowDto(
-    @SerialName("post_id") val postId: String,
-    @SerialName("user_id") val userId: String,
-    val choice: String
-)
-
-/**
- * Payload minimal pour créer un post.
- * La DB met `left_votes` / `right_votes` à 0 par défaut.
- */
-@Serializable
-private data class CreatePostDto(
-    val question: String,
-    val category: String,
-    @SerialName("left_image") val leftImageUrl: String,
-    @SerialName("right_image") val rightImageUrl: String,
-    @SerialName("left_label") val leftLabel: String,
-    @SerialName("right_label") val rightLabel: String,
-    @SerialName("author_name") val authorName: String,
-    @SerialName("author_avatar") val authorAvatar: String? = null
-)

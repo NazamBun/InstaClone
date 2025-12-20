@@ -74,13 +74,14 @@ fun HomeScreen(
     // ✅ BottomSheet commentaires
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
 
-    if (ui.value.isCommentsSheetVisible) {
+    if (ui.value.isCommentsSheetOpen) {
         ModalBottomSheet(
             onDismissRequest = { viewModel.closeComments() },
             sheetState = sheetState
         ) {
             // Pour l’instant : contenu simple, juste pour tester
-            val postId = ui.value.selectedPostIdForComments ?: ""
+            val postId = ui.value.commentsPostId ?: ""
+
             Text(
                 text = "Commentaires du post: $postId",
                 modifier = Modifier.padding(16.dp)
