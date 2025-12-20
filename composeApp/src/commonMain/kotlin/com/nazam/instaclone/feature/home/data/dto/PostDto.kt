@@ -19,7 +19,8 @@ data class PostDto(
     val left_votes: Int = 0,
     val right_votes: Int = 0,
     val voted_left_ids: JsonElement? = null,
-    val voted_right_ids: JsonElement? = null
+    val voted_right_ids: JsonElement? = null,
+    val user_choice: String? = null
 ) {
 
     fun votedLeftList(): List<String> {
