@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.nazam.instaclone.feature.home.domain.model.VoteChoice
 import com.nazam.instaclone.feature.home.domain.model.VsPost
+import kotlin.math.roundToInt
 
 @Composable
 fun VsPostItem(
@@ -38,9 +39,9 @@ fun VsPostItem(
     onVoteRight: () -> Unit,
     resultsAlpha: Float,
     modifier: Modifier = Modifier,
-    onCommentsClick: () -> Unit = {}, // ✅ futur : ouvrir panel commentaires
-    onMessageClick: () -> Unit = {},  // ✅ futur : DM
-    onShareClick: () -> Unit = {}     // ✅ futur : share sheet
+    onCommentsClick: () -> Unit = {},
+    onMessageClick: () -> Unit = {},
+    onShareClick: () -> Unit = {}
 ) {
     val leftAlpha = if (post.userVote == VoteChoice.RIGHT) 0.3f else 1f
     val rightAlpha = if (post.userVote == VoteChoice.LEFT) 0.3f else 1f
@@ -111,7 +112,11 @@ fun VsPostItem(
                 .matchParentSize()
                 .background(
                     Brush.verticalGradient(
-                        colors = listOf(Color.Transparent, Color.Transparent, Color(0xAA000000))
+                        colors = listOf(
+                            Color.Transparent,
+                            Color.Transparent,
+                            Color(0xAA000000)
+                        )
                     )
                 )
         )
@@ -161,7 +166,9 @@ fun VsPostItem(
                 .size(64.dp)
                 .clip(CircleShape)
                 .background(
-                    Brush.linearGradient(listOf(Color(0xFFFF4EB8), Color(0xFFFF9F3F)))
+                    Brush.linearGradient(
+                        listOf(Color(0xFFFF4EB8), Color(0xFFFF9F3F))
+                    )
                 ),
             contentAlignment = Alignment.Center
         ) {
@@ -178,13 +185,15 @@ fun VsPostItem(
         ) {
             Row(modifier = Modifier.fillMaxWidth()) {
 
+                // ----- LEFT -----
                 Column(modifier = Modifier.weight(1f)) {
                     Text(text = post.leftLabel, color = Color.White)
                     Text(text = "${post.leftVotesCount} votes", color = Color.White, fontSize = 12.sp)
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(text = "${leftPercent.toInt()}%", color = Color.White, fontSize = 12.sp)
+                    Text(text = "${leftPercent.roundToInt()}%", color = Color.White, fontSize = 12.sp)
                     Spacer(modifier = Modifier.height(6.dp))
 
+                    // ✅ BARRE GAUCHE (CORRIGÉE)
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -194,7 +203,6 @@ fun VsPostItem(
                     ) {
                         Box(
                             modifier = Modifier
-                                .align(Alignment.CenterEnd)
                                 .fillMaxHeight()
                                 .fillMaxWidth(leftRatio)
                                 .clip(RoundedCornerShape(50))
@@ -209,13 +217,15 @@ fun VsPostItem(
 
                 Spacer(modifier = Modifier.width(12.dp))
 
+                // ----- RIGHT -----
                 Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.End) {
                     Text(text = post.rightLabel, color = Color.White)
                     Text(text = "${post.rightVotesCount} votes", color = Color.White, fontSize = 12.sp)
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(text = "${rightPercent.toInt()}%", color = Color.White, fontSize = 12.sp)
+                    Text(text = "${rightPercent.roundToInt()}%", color = Color.White, fontSize = 12.sp)
                     Spacer(modifier = Modifier.height(6.dp))
 
+                    // ✅ BARRE DROITE (CORRIGÉE)
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -225,7 +235,6 @@ fun VsPostItem(
                     ) {
                         Box(
                             modifier = Modifier
-                                .align(Alignment.CenterStart)
                                 .fillMaxHeight()
                                 .fillMaxWidth(rightRatio)
                                 .clip(RoundedCornerShape(50))
