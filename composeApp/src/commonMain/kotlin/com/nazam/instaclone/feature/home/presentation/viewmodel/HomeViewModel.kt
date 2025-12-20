@@ -2,6 +2,8 @@ package com.nazam.instaclone.feature.home.presentation.viewmodel
 
 import com.nazam.instaclone.feature.auth.domain.usecase.GetCurrentUserUseCase
 import com.nazam.instaclone.feature.auth.domain.usecase.LogoutUseCase
+import com.nazam.instaclone.feature.home.domain.usecase.AddCommentUseCase
+import com.nazam.instaclone.feature.home.domain.usecase.GetCommentsUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.GetFeedUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.VoteLeftUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.VoteRightUseCase
@@ -21,6 +23,9 @@ class HomeViewModel : KoinComponent {
     private val getFeedUseCase: GetFeedUseCase by inject()
     private val voteLeftUseCase: VoteLeftUseCase by inject()
     private val voteRightUseCase: VoteRightUseCase by inject()
+
+    private val getCommentsUseCase: GetCommentsUseCase by inject()
+    private val addCommentUseCase: AddCommentUseCase by inject()
 
     private val getCurrentUserUseCase: GetCurrentUserUseCase by inject()
     private val logoutUseCase: LogoutUseCase by inject()
@@ -112,31 +117,101 @@ class HomeViewModel : KoinComponent {
         }
     }
 
-    // ✅ Quand on clique "Créer" (UI)
+    // ✅ Quand on clique "Créer"
     fun onCreatePostClicked() {
         if (_uiState.value.isLoggedIn) return
         showLoginDialog("Tu dois être connecté pour créer un post")
     }
 
-    // ✅ Ouvrir commentaires
+    // ----------------------------
+    // ✅ COMMENTS (BottomSheet)
+    // ----------------------------
+
     fun openComments(postId: String) {
         _uiState.update {
             it.copy(
-                isCommentsSheetVisible = true,
-                selectedPostIdForComments = postId
+                isCommentsSheetOpen = true,
+                commentsPostId = postId,
+                isCommentsLoading = true,
+                comments = emptyList(),
+                newCommentText = ""
+            )
+        }
+        loadComments(postId)
+    }
+
+    fun closeComments() {
+        _uiState.update {
+            it.copy(
+                isCommentsSheetOpen = false,
+                commentsPostId = null,
+                isCommentsLoading = false,
+                comments = emptyList(),
+                newCommentText = ""
             )
         }
     }
 
-    // ✅ Fermer commentaires
-    fun closeComments() {
-        _uiState.update {
-            it.copy(
-                isCommentsSheetVisible = false,
-                selectedPostIdForComments = null
-            )
+    private fun loadComments(postId: String) {
+        scope.launch {
+            _uiState.update { it.copy(isCommentsLoading = true) }
+
+            val result = getCommentsUseCase.execute(postId)
+
+            result
+                .onSuccess { list ->
+                    _uiState.update { it.copy(isCommentsLoading = false, comments = list) }
+                }
+                .onFailure {
+                    _uiState.update { it.copy(isCommentsLoading = false) }
+                    showInfoDialog("Impossible de charger les commentaires")
+                }
         }
     }
+
+    fun onNewCommentChange(value: String) {
+        // petit blocage simple 500 chars (comme ta DB)
+        val trimmed = value.take(500)
+        _uiState.update { it.copy(newCommentText = trimmed) }
+    }
+
+    fun submitComment() {
+        val state = _uiState.value
+        val postId = state.commentsPostId ?: return
+
+        if (!state.isLoggedIn) {
+            showLoginDialog("Tu dois être connecté pour commenter")
+            return
+        }
+
+        val content = state.newCommentText.trim()
+        if (content.isBlank()) return
+
+        scope.launch {
+            _uiState.update { it.copy(isCommentsLoading = true) }
+
+            val result = addCommentUseCase.execute(postId = postId, content = content)
+
+            result
+                .onSuccess { created ->
+                    _uiState.update {
+                        it.copy(
+                            isCommentsLoading = false,
+                            comments = it.comments + created,
+                            newCommentText = ""
+                        )
+                    }
+                }
+                .onFailure { error ->
+                    _uiState.update { it.copy(isCommentsLoading = false) }
+                    handleAuthOrGenericError(error)
+                }
+        }
+    }
+
+    // ----------------------------
+    // ✅ LOGOUT + DIALOG
+    // ----------------------------
 
     fun logout() {
         scope.launch {
@@ -156,9 +231,9 @@ class HomeViewModel : KoinComponent {
 
     private fun handleAuthOrGenericError(error: Throwable) {
         if (error is IllegalStateException && error.message == "AUTH_REQUIRED") {
-            showLoginDialog("Tu dois être connecté pour voter")
+            showLoginDialog("Tu dois être connecté")
         } else {
-            showInfoDialog("Impossible de voter")
+            showInfoDialog("Une erreur est arrivée")
         }
     }
 
