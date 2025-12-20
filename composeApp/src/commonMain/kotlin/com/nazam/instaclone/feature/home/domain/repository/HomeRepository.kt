@@ -6,8 +6,6 @@ import com.nazam.instaclone.feature.home.domain.model.VsPost
 interface HomeRepository {
 
     suspend fun getFeed(): Result<List<VsPost>>
-    suspend fun voteLeft(postId: String): Result<VsPost>
-    suspend fun voteRight(postId: String): Result<VsPost>
 
     suspend fun createPost(
         question: String,
@@ -18,7 +16,9 @@ interface HomeRepository {
         category: String
     ): Result<VsPost>
 
-    // ✅ Comments
+    suspend fun voteLeft(postId: String): Result<VsPost>
+    suspend fun voteRight(postId: String): Result<VsPost>
+
     suspend fun getComments(postId: String): Result<List<Comment>>
     suspend fun addComment(postId: String, content: String): Result<Comment>
 }

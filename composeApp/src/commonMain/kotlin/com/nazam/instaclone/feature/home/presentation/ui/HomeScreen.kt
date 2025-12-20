@@ -28,7 +28,8 @@ import kotlin.math.abs
 @Composable
 fun HomeScreen(
     onNavigateToCreatePost: () -> Unit,
-    onNavigateToLogin: () -> Unit
+    onNavigateToLogin: () -> Unit,
+    onNavigateToSignup: () -> Unit
 ) {
     val viewModel = remember { HomeViewModel() }
     val ui = viewModel.uiState.collectAsState()
@@ -37,32 +38,41 @@ fun HomeScreen(
         pageCount = { ui.value.posts.size }
     )
 
-    // ✅ POPUP PRO (Dialog)
+    // ✅ POPUP (Dialog)
     if (ui.value.dialogMessage != null) {
         AlertDialog(
             onDismissRequest = { viewModel.consumeDialog() },
             title = { Text(text = "Information") },
             text = { Text(text = ui.value.dialogMessage ?: "") },
+
+            // bouton principal (Se connecter)
             confirmButton = {
-                val confirmLabel = ui.value.dialogConfirmLabel
-                if (confirmLabel != null) {
+                val label = ui.value.dialogConfirmLabel
+                if (label != null) {
                     TextButton(
                         onClick = {
                             val goLogin = ui.value.dialogShouldOpenLogin
                             viewModel.consumeDialog()
                             if (goLogin) onNavigateToLogin()
                         }
-                    ) {
-                        Text(confirmLabel)
-                    }
+                    ) { Text(label) }
                 } else {
-                    TextButton(onClick = { viewModel.consumeDialog() }) {
-                        Text("OK")
-                    }
+                    TextButton(onClick = { viewModel.consumeDialog() }) { Text("OK") }
                 }
             },
+
+            // bouton secondaire (Créer un compte) + Annuler
             dismissButton = {
-                if (ui.value.dialogConfirmLabel != null) {
+                val second = ui.value.dialogSecondaryLabel
+                if (second != null) {
+                    TextButton(
+                        onClick = {
+                            val goSignup = ui.value.dialogShouldOpenSignup
+                            viewModel.consumeDialog()
+                            if (goSignup) onNavigateToSignup()
+                        }
+                    ) { Text(second) }
+
                     TextButton(onClick = { viewModel.consumeDialog() }) {
                         Text("Annuler")
                     }
@@ -71,23 +81,17 @@ fun HomeScreen(
         )
     }
 
-    // ✅ BottomSheet commentaires
+    // ✅ BottomSheet commentaires (pour l’instant simple)
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
-
     if (ui.value.isCommentsSheetOpen) {
         ModalBottomSheet(
             onDismissRequest = { viewModel.closeComments() },
             sheetState = sheetState
         ) {
-            // Pour l’instant : contenu simple, juste pour tester
             val postId = ui.value.commentsPostId ?: ""
-
+            Text(text = "Commentaires du post: $postId", modifier = Modifier.padding(16.dp))
             Text(
-                text = "Commentaires du post: $postId",
-                modifier = Modifier.padding(16.dp)
-            )
-            Text(
-                text = "Ici on affichera la liste des commentaires plus tard ✅",
+                text = "Ici on affichera la liste des commentaires ✅",
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
             )
         }
@@ -98,11 +102,8 @@ fun HomeScreen(
             HomeBottomBar(
                 isLoggedIn = ui.value.isLoggedIn,
                 onCreatePostClick = {
-                    if (ui.value.isLoggedIn) {
-                        onNavigateToCreatePost()
-                    } else {
-                        viewModel.onCreatePostClicked()
-                    }
+                    if (ui.value.isLoggedIn) onNavigateToCreatePost()
+                    else viewModel.onCreatePostClicked()
                 },
                 onLoginClick = onNavigateToLogin,
                 onLogoutClick = { viewModel.logout() }
@@ -154,8 +155,6 @@ fun HomeScreen(
                             onVoteRight = { viewModel.voteRight(post.id) },
                             resultsAlpha = resultsAlpha,
                             modifier = Modifier.fillMaxSize(),
-
-                            // ✅ ICI on branche les icônes
                             onCommentsClick = { viewModel.openComments(post.id) },
                             onMessageClick = { /* plus tard */ },
                             onShareClick = { /* plus tard */ }
