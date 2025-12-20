@@ -58,14 +58,22 @@ class HomeViewModel : KoinComponent {
                 .onSuccess { posts ->
                     _uiState.update { it.copy(isLoading = false, posts = posts) }
                 }
-                .onFailure {
+                .onFailure { error ->
                     _uiState.update { it.copy(isLoading = false) }
-                    showInfoDialog("Erreur de chargement")
+                    showInfoDialog(error.message ?: "Erreur de chargement")
                 }
         }
     }
 
+    // ----------------------------
+    // ✅ VOTE (bloqué si pas connecté)
+    // ----------------------------
+
     fun voteLeft(postId: String) {
+        if (!_uiState.value.isLoggedIn) {
+            showAuthRequiredDialog("Tu dois être connecté ou créer un compte pour voter.")
+            return
+        }
         if (_uiState.value.votingPostId == postId) return
 
         scope.launch {
@@ -92,6 +100,10 @@ class HomeViewModel : KoinComponent {
     }
 
     fun voteRight(postId: String) {
+        if (!_uiState.value.isLoggedIn) {
+            showAuthRequiredDialog("Tu dois être connecté ou créer un compte pour voter.")
+            return
+        }
         if (_uiState.value.votingPostId == postId) return
 
         scope.launch {
@@ -117,10 +129,9 @@ class HomeViewModel : KoinComponent {
         }
     }
 
-    // ✅ Quand on clique "Créer"
     fun onCreatePostClicked() {
         if (_uiState.value.isLoggedIn) return
-        showLoginDialog("Tu dois être connecté pour créer un post")
+        showAuthRequiredDialog("Tu dois être connecté pour créer un post.")
     }
 
     // ----------------------------
@@ -162,17 +173,15 @@ class HomeViewModel : KoinComponent {
                 .onSuccess { list ->
                     _uiState.update { it.copy(isCommentsLoading = false, comments = list) }
                 }
-                .onFailure {
+                .onFailure { error ->
                     _uiState.update { it.copy(isCommentsLoading = false) }
-                    showInfoDialog("Impossible de charger les commentaires")
+                    showInfoDialog(error.message ?: "Impossible de charger les commentaires")
                 }
         }
     }
 
     fun onNewCommentChange(value: String) {
-        // petit blocage simple 500 chars (comme ta DB)
-        val trimmed = value.take(500)
-        _uiState.update { it.copy(newCommentText = trimmed) }
+        _uiState.update { it.copy(newCommentText = value.take(500)) }
     }
 
     fun submitComment() {
@@ -180,7 +189,7 @@ class HomeViewModel : KoinComponent {
         val postId = state.commentsPostId ?: return
 
         if (!state.isLoggedIn) {
-            showLoginDialog("Tu dois être connecté pour commenter")
+            showAuthRequiredDialog("Tu dois être connecté ou créer un compte pour commenter.")
             return
         }
 
@@ -223,26 +232,28 @@ class HomeViewModel : KoinComponent {
                     showInfoDialog("Déconnecté")
                     loadFeed()
                 }
-                .onFailure {
-                    showInfoDialog("Erreur de déconnexion")
+                .onFailure { error ->
+                    showInfoDialog(error.message ?: "Erreur de déconnexion")
                 }
         }
     }
 
     private fun handleAuthOrGenericError(error: Throwable) {
         if (error is IllegalStateException && error.message == "AUTH_REQUIRED") {
-            showLoginDialog("Tu dois être connecté")
+            showAuthRequiredDialog("Tu dois être connecté ou créer un compte.")
         } else {
-            showInfoDialog("Une erreur est arrivée")
+            showInfoDialog(error.message ?: "Une erreur est arrivée")
         }
     }
 
-    private fun showLoginDialog(message: String) {
+    private fun showAuthRequiredDialog(message: String) {
         _uiState.update {
             it.copy(
                 dialogMessage = message,
                 dialogConfirmLabel = "Se connecter",
-                dialogShouldOpenLogin = true
+                dialogSecondaryLabel = "Créer un compte",
+                dialogShouldOpenLogin = true,
+                dialogShouldOpenSignup = true
             )
         }
     }
@@ -252,7 +263,9 @@ class HomeViewModel : KoinComponent {
             it.copy(
                 dialogMessage = message,
                 dialogConfirmLabel = null,
-                dialogShouldOpenLogin = false
+                dialogSecondaryLabel = null,
+                dialogShouldOpenLogin = false,
+                dialogShouldOpenSignup = false
             )
         }
     }
@@ -262,7 +275,9 @@ class HomeViewModel : KoinComponent {
             it.copy(
                 dialogMessage = null,
                 dialogConfirmLabel = null,
-                dialogShouldOpenLogin = false
+                dialogSecondaryLabel = null,
+                dialogShouldOpenLogin = false,
+                dialogShouldOpenSignup = false
             )
         }
     }

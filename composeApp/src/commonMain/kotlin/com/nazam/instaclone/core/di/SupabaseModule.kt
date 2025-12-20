@@ -15,34 +15,36 @@ import com.nazam.instaclone.feature.home.domain.usecase.GetCommentsUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.GetFeedUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.VoteLeftUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.VoteRightUseCase
-import org.koin.dsl.module
 import kotlinx.serialization.json.Json
+import org.koin.dsl.module
 
 val appModule = module {
 
-    // ⭐ Supabase client
+    // Supabase client
     single { SupabaseClientProvider.client }
-    // ⭐ Json (pour decode)
+
+    // Json
     single {
         Json {
             ignoreUnknownKeys = true
         }
     }
 
-    // ⭐ Auth
+    // Auth
     single<AuthRepository> { AuthRepositoryImpl(get()) }
     factory { LoginUseCase(get()) }
     factory { SignupUseCase(get()) }
     factory { LogoutUseCase(get()) }
     factory { GetCurrentUserUseCase(get()) }
 
-    // ⭐ Home
+    // Home Repository
     single<HomeRepository> { HomeRepositoryImpl(client = get(), json = get()) }
+
+    // Home UseCases
     factory { GetFeedUseCase(get()) }
     factory { VoteLeftUseCase(get()) }
     factory { VoteRightUseCase(get()) }
     factory { CreatePostUseCase(get()) }
     factory { GetCommentsUseCase(get()) }
     factory { AddCommentUseCase(get()) }
-    single<HomeRepository> { HomeRepositoryImpl(client = get(), json = get()) }
 }

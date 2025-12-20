@@ -22,7 +22,8 @@ fun App() {
 
             Screen.Home -> HomeScreen(
                 onNavigateToCreatePost = { currentScreen = Screen.CreatePost },
-                onNavigateToLogin = { currentScreen = Screen.Login }
+                onNavigateToLogin = { currentScreen = Screen.Login },
+                onNavigateToSignup = { currentScreen = Screen.Signup }
             )
 
             Screen.Login -> LoginScreen(

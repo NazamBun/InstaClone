@@ -84,10 +84,10 @@ class HomeRepositoryImpl(
         }
 
     override suspend fun voteLeft(postId: String): Result<VsPost> =
-        vote(postId, "LEFT")
+        vote(postId, "left")
 
     override suspend fun voteRight(postId: String): Result<VsPost> =
-        vote(postId, "RIGHT")
+        vote(postId, "right")
 
     private suspend fun vote(postId: String, choice: String): Result<VsPost> =
         runCatching {
