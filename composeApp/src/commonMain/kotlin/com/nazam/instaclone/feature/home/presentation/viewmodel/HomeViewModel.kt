@@ -47,6 +47,7 @@ class HomeViewModel : KoinComponent {
             _uiState.update {
                 it.copy(
                     isLoggedIn = user != null,
+                    currentUserId = user?.id,
                     currentUserEmail = user?.email,
                     currentUserDisplayName = user?.displayName
                 )
@@ -70,10 +71,6 @@ class HomeViewModel : KoinComponent {
                 }
         }
     }
-
-    // ----------------------------
-    // ✅ VOTE
-    // ----------------------------
 
     fun voteLeft(postId: String) {
         if (!_uiState.value.isLoggedIn) {
@@ -140,10 +137,6 @@ class HomeViewModel : KoinComponent {
         showAuthRequiredDialog("Tu dois être connecté pour créer un post.")
     }
 
-    // ----------------------------
-    // ✅ COMMENTS
-    // ----------------------------
-
     fun openComments(postId: String) {
         _uiState.update {
             it.copy(
@@ -190,7 +183,6 @@ class HomeViewModel : KoinComponent {
         _uiState.update { it.copy(newCommentText = value.take(500)) }
     }
 
-    // ✅ Si pas connecté -> popup, sinon -> envoi
     fun onSendCommentClicked() {
         val state = _uiState.value
         if (!state.isLoggedIn) {
@@ -200,7 +192,6 @@ class HomeViewModel : KoinComponent {
         submitComment()
     }
 
-    // ✅ Si user clique “commenter” alors qu’il n’est pas connecté
     fun onCommentInputRequested() {
         if (!_uiState.value.isLoggedIn) {
             showAuthRequiredDialog("Tu dois te connecter ou créer un compte pour commenter.")
@@ -236,10 +227,6 @@ class HomeViewModel : KoinComponent {
         }
     }
 
-    // ----------------------------
-    // ✅ LOGOUT + DIALOG
-    // ----------------------------
-
     fun logout() {
         scope.launch {
             val result = logoutUseCase.execute()
@@ -249,6 +236,7 @@ class HomeViewModel : KoinComponent {
                     _uiState.update {
                         it.copy(
                             isLoggedIn = false,
+                            currentUserId = null,
                             currentUserEmail = null,
                             currentUserDisplayName = null
                         )
