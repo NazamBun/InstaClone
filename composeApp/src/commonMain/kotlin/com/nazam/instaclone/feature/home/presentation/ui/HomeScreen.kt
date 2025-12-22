@@ -5,14 +5,15 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -49,8 +50,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
 import com.nazam.instaclone.feature.home.domain.model.Comment
 import com.nazam.instaclone.feature.home.presentation.viewmodel.HomeViewModel
 import kotlin.math.abs
@@ -128,7 +132,7 @@ fun HomeScreen(
                         bottomBlockHeightDp = with(density) { size.height.toDp() }
                     }
             ) {
-
+                // ✅ input/lock visible seulement si panel ouvert
                 if (ui.value.isCommentsSheetOpen) {
                     if (ui.value.isLoggedIn) {
                         CommentInputBar(
@@ -160,7 +164,6 @@ fun HomeScreen(
         }
     ) { padding ->
 
-        // ✅ Box plein écran sans padding
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -220,7 +223,7 @@ fun HomeScreen(
                 }
             }
 
-            // ✅ scrim au-dessus de tout
+            // ✅ scrim
             if (ui.value.isCommentsSheetOpen) {
                 Box(
                     modifier = Modifier
@@ -230,7 +233,7 @@ fun HomeScreen(
                 )
             }
 
-            // ✅ panel collé au bloc du bas (0 espace)
+            // ✅ panel collé au bloc du bas
             if (ui.value.isCommentsSheetOpen) {
                 CommentsPanel(
                     bottomOffset = bottomBlockHeightDp,
@@ -249,6 +252,37 @@ private fun getUserLetter(displayName: String?, email: String?): String {
         ?: email?.trim().takeUnless { it.isNullOrBlank() }
         ?: "?"
     return base.take(1).uppercase()
+}
+
+private fun getLetterFromName(name: String?): String {
+    val base = name?.trim().takeUnless { it.isNullOrBlank() } ?: "?"
+    return base.take(1).uppercase()
+}
+
+/**
+ * ✅ KMP friendly: pas de java.time, pas de android.*
+ * "2025-01-14 18:32" -> "14/01/2025 • 18:32"
+ */
+private fun formatCreatedAtHuman(createdAt: String): String {
+    // On accepte plusieurs cas, et si ça ne marche pas => on renvoie la valeur brute.
+    return try {
+        val parts = createdAt.trim().split(" ")
+        if (parts.size < 2) return createdAt
+
+        val datePart = parts[0] // yyyy-MM-dd
+        val timePart = parts[1] // HH:mm
+
+        val d = datePart.split("-")
+        if (d.size != 3) return createdAt
+
+        val yyyy = d[0]
+        val mm = d[1]
+        val dd = d[2]
+
+        "$dd/$mm/$yyyy • $timePart"
+    } catch (_: Throwable) {
+        createdAt
+    }
 }
 
 @Composable
@@ -306,12 +340,17 @@ private fun CommentsPanel(
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     when {
                         isLoading -> CircularProgressIndicator(color = Color(0xFFFF4EB8))
-                        comments.isEmpty() -> Text("Aucun commentaire pour l’instant.", color = Color(0xFFBBBBBB))
+
+                        comments.isEmpty() -> Text(
+                            "Aucun commentaire pour l’instant.",
+                            color = Color(0xFFBBBBBB)
+                        )
+
                         else -> {
                             LazyColumn(
                                 state = listState,
                                 modifier = Modifier.fillMaxSize(),
-                                contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                                contentPadding = PaddingValues(
                                     start = 16.dp,
                                     end = 16.dp,
                                     top = 12.dp,
@@ -319,17 +358,103 @@ private fun CommentsPanel(
                                 )
                             ) {
                                 items(items = comments, key = { it.id }) { c ->
-                                    Text(
-                                        text = "• ${c.content}",
-                                        color = Color.White,
-                                        modifier = Modifier.padding(vertical = 6.dp)
-                                    )
+                                    CommentRow(comment = c)
                                 }
                             }
                         }
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun CommentRow(comment: Comment) {
+    val createdHuman = remember(comment.createdAt) { formatCreatedAtHuman(comment.createdAt) }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        CommentAvatar(
+            url = comment.authorAvatarUrl,
+            letter = getLetterFromName(comment.authorName)
+        )
+
+        Spacer(modifier = Modifier.size(10.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+
+            // ✅ avatar + nom en haut + date petit gris à droite
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = comment.authorName ?: "Utilisateur",
+                    color = Color.White,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+
+                Spacer(modifier = Modifier.size(8.dp))
+
+                Text(
+                    text = createdHuman,
+                    color = Color(0xFF9A9A9A),
+                    fontSize = 12.sp,
+                    maxLines = 1
+                )
+            }
+
+            Spacer(modifier = Modifier.size(4.dp))
+
+            // ✅ commentaire en dessous
+            Text(
+                text = comment.content,
+                color = Color.White
+            )
+        }
+    }
+}
+
+@Composable
+private fun CommentAvatar(
+    url: String?,
+    letter: String
+) {
+    val size = 34.dp
+
+    Box(
+        modifier = Modifier
+            .size(size)
+            .clip(CircleShape)
+            .background(
+                Brush.linearGradient(
+                    listOf(Color(0xFFFF4EB8), Color(0xFFFF9F3F))
+                )
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        if (!url.isNullOrBlank()) {
+            AsyncImage(
+                model = url,
+                contentDescription = "Avatar",
+                modifier = Modifier
+                    .size(size)
+                    .clip(CircleShape)
+            )
+        } else {
+            Text(
+                text = letter,
+                color = Color.White,
+                fontWeight = FontWeight.Bold
+            )
         }
     }
 }

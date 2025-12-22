@@ -8,6 +8,7 @@ data class HomeUiState(
     val isLoggedIn: Boolean = false,
 
     // ✅ infos user (pour l’avatar dans l’input)
+    val currentUserId: String? = null,
     val currentUserEmail: String? = null,
     val currentUserDisplayName: String? = null,
 
