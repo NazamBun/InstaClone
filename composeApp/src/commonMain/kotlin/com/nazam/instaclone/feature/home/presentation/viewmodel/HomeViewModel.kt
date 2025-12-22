@@ -44,7 +44,13 @@ class HomeViewModel : KoinComponent {
     fun refreshSession() {
         scope.launch {
             val user = getCurrentUserUseCase.execute()
-            _uiState.update { it.copy(isLoggedIn = user != null) }
+            _uiState.update {
+                it.copy(
+                    isLoggedIn = user != null,
+                    currentUserEmail = user?.email,
+                    currentUserDisplayName = user?.displayName
+                )
+            }
         }
     }
 
@@ -66,7 +72,7 @@ class HomeViewModel : KoinComponent {
     }
 
     // ----------------------------
-    // ✅ VOTE (bloqué si pas connecté)
+    // ✅ VOTE
     // ----------------------------
 
     fun voteLeft(postId: String) {
@@ -135,7 +141,7 @@ class HomeViewModel : KoinComponent {
     }
 
     // ----------------------------
-    // ✅ COMMENTS (BottomSheet)
+    // ✅ COMMENTS
     // ----------------------------
 
     fun openComments(postId: String) {
@@ -184,14 +190,26 @@ class HomeViewModel : KoinComponent {
         _uiState.update { it.copy(newCommentText = value.take(500)) }
     }
 
-    fun submitComment() {
+    // ✅ Si pas connecté -> popup, sinon -> envoi
+    fun onSendCommentClicked() {
         val state = _uiState.value
-        val postId = state.commentsPostId ?: return
-
         if (!state.isLoggedIn) {
-            showAuthRequiredDialog("Tu dois être connecté ou créer un compte pour commenter.")
+            showAuthRequiredDialog("Tu dois te connecter ou créer un compte pour commenter.")
             return
         }
+        submitComment()
+    }
+
+    // ✅ Si user clique “commenter” alors qu’il n’est pas connecté
+    fun onCommentInputRequested() {
+        if (!_uiState.value.isLoggedIn) {
+            showAuthRequiredDialog("Tu dois te connecter ou créer un compte pour commenter.")
+        }
+    }
+
+    private fun submitComment() {
+        val state = _uiState.value
+        val postId = state.commentsPostId ?: return
 
         val content = state.newCommentText.trim()
         if (content.isBlank()) return
@@ -228,7 +246,13 @@ class HomeViewModel : KoinComponent {
 
             result
                 .onSuccess {
-                    _uiState.update { it.copy(isLoggedIn = false) }
+                    _uiState.update {
+                        it.copy(
+                            isLoggedIn = false,
+                            currentUserEmail = null,
+                            currentUserDisplayName = null
+                        )
+                    }
                     showInfoDialog("Déconnecté")
                     loadFeed()
                 }
