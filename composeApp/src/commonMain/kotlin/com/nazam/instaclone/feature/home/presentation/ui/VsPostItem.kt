@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
@@ -34,14 +35,15 @@ import kotlin.math.roundToInt
 @Composable
 fun VsPostItem(
     post: VsPost,
-    isVoting: Boolean, // 🔒 verrou UNIQUEMENT pour ce post
+    isVoting: Boolean,
     onVoteLeft: () -> Unit,
     onVoteRight: () -> Unit,
     resultsAlpha: Float,
     modifier: Modifier = Modifier,
     onCommentsClick: () -> Unit = {},
     onMessageClick: () -> Unit = {},
-    onShareClick: () -> Unit = {}
+    onShareClick: () -> Unit = {},
+    extraBottomPadding: Dp = 0.dp
 ) {
     val leftAlpha = if (post.userVote == VoteChoice.RIGHT) 0.3f else 1f
     val rightAlpha = if (post.userVote == VoteChoice.LEFT) 0.3f else 1f
@@ -66,9 +68,7 @@ fun VsPostItem(
 
     Box(modifier = modifier.fillMaxSize()) {
 
-        // ----- IMAGES -----
         Row(modifier = Modifier.fillMaxSize()) {
-
             AsyncImage(
                 model = post.leftImageUrl,
                 contentDescription = post.leftLabel,
@@ -94,7 +94,6 @@ fun VsPostItem(
             )
         }
 
-        // ✅ LOADER OVERLAY (SUR CE POST)
         if (isVoting) {
             Box(
                 modifier = Modifier
@@ -106,7 +105,6 @@ fun VsPostItem(
             }
         }
 
-        // ----- GRADIENT -----
         Box(
             modifier = Modifier
                 .matchParentSize()
@@ -121,7 +119,6 @@ fun VsPostItem(
                 )
         )
 
-        // ----- HEADER -----
         Column(
             modifier = Modifier
                 .align(Alignment.TopStart)
@@ -131,7 +128,6 @@ fun VsPostItem(
             Text(text = post.category, color = Color.White, fontSize = 12.sp)
         }
 
-        // ----- ACTIONS (icônes à droite) -----
         ActionRail(
             modifier = Modifier
                 .align(Alignment.CenterEnd)
@@ -141,7 +137,6 @@ fun VsPostItem(
             onShareClick = onShareClick
         )
 
-        // ----- QUESTION -----
         Box(
             modifier = Modifier
                 .align(Alignment.Center)
@@ -158,7 +153,6 @@ fun VsPostItem(
             )
         }
 
-        // ----- VS -----
         Box(
             modifier = Modifier
                 .align(Alignment.Center)
@@ -175,17 +169,20 @@ fun VsPostItem(
             Text(text = "VS", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
         }
 
-        // ----- RESULTS -----
         Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 12.dp)
+                .padding(
+                    start = 20.dp,
+                    end = 20.dp,
+                    top = 12.dp,
+                    bottom = 12.dp + extraBottomPadding
+                )
                 .alpha(resultsAlpha)
         ) {
             Row(modifier = Modifier.fillMaxWidth()) {
 
-                // ----- LEFT -----
                 Column(modifier = Modifier.weight(1f)) {
                     Text(text = post.leftLabel, color = Color.White)
                     Text(text = "${post.leftVotesCount} votes", color = Color.White, fontSize = 12.sp)
@@ -193,7 +190,6 @@ fun VsPostItem(
                     Text(text = "${leftPercent.roundToInt()}%", color = Color.White, fontSize = 12.sp)
                     Spacer(modifier = Modifier.height(6.dp))
 
-                    // ✅ BARRE GAUCHE (CORRIGÉE)
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -217,7 +213,6 @@ fun VsPostItem(
 
                 Spacer(modifier = Modifier.width(12.dp))
 
-                // ----- RIGHT -----
                 Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.End) {
                     Text(text = post.rightLabel, color = Color.White)
                     Text(text = "${post.rightVotesCount} votes", color = Color.White, fontSize = 12.sp)
@@ -225,7 +220,6 @@ fun VsPostItem(
                     Text(text = "${rightPercent.roundToInt()}%", color = Color.White, fontSize = 12.sp)
                     Spacer(modifier = Modifier.height(6.dp))
 
-                    // ✅ BARRE DROITE (CORRIGÉE)
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
