@@ -27,7 +27,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil3.compose.AsyncImage
+import io.kamel.image.KamelImage
+import io.kamel.image.asyncPainterResource
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.ColorFilter
 import com.nazam.instaclone.feature.home.domain.model.VoteChoice
 import com.nazam.instaclone.feature.home.domain.model.VsPost
 import kotlin.math.roundToInt
@@ -48,52 +53,49 @@ fun VsPostItem(
     val leftAlpha = if (post.userVote == VoteChoice.RIGHT) 0.3f else 1f
     val rightAlpha = if (post.userVote == VoteChoice.LEFT) 0.3f else 1f
 
-    val leftBorderModifier =
-        if (post.userVote == VoteChoice.LEFT) {
-            Modifier.border(3.dp, Color(0xFFFF4EB8), RoundedCornerShape(0.dp))
-        } else Modifier
+    val leftBorder =
+        if (post.userVote == VoteChoice.LEFT)
+            Modifier.border(3.dp, Color(0xFFFF4EB8))
+        else Modifier
 
-    val rightBorderModifier =
-        if (post.userVote == VoteChoice.RIGHT) {
-            Modifier.border(3.dp, Color(0xFFFF4EB8), RoundedCornerShape(0.dp))
-        } else Modifier
+    val rightBorder =
+        if (post.userVote == VoteChoice.RIGHT)
+            Modifier.border(3.dp, Color(0xFFFF4EB8))
+        else Modifier
 
-    val total = post.totalVotesCount.coerceAtLeast(1)
-    val leftPercent = (post.leftVotesCount * 100f) / total
-    val rightPercent = (post.rightVotesCount * 100f) / total
-    val leftRatio = (leftPercent / 100f).coerceIn(0f, 1f)
-    val rightRatio = (rightPercent / 100f).coerceIn(0f, 1f)
+    val totalVotes = post.totalVotesCount.coerceAtLeast(1)
+    val leftPercent = (post.leftVotesCount * 100f) / totalVotes
+    val rightPercent = (post.rightVotesCount * 100f) / totalVotes
 
     val canClick = !isVoting
 
     Box(modifier = modifier.fillMaxSize()) {
 
+        // ================= IMAGES =================
         Row(modifier = Modifier.fillMaxSize()) {
-            AsyncImage(
-                model = post.leftImageUrl,
-                contentDescription = post.leftLabel,
-                contentScale = ContentScale.Crop,
+
+            NetworkImage(
+                url = post.leftImageUrl,
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight()
                     .alpha(leftAlpha)
-                    .then(leftBorderModifier)
+                    .then(leftBorder)
                     .clickable(enabled = canClick) { onVoteLeft() }
             )
 
-            AsyncImage(
-                model = post.rightImageUrl,
-                contentDescription = post.rightLabel,
-                contentScale = ContentScale.Crop,
+            NetworkImage(
+                url = post.rightImageUrl,
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight()
                     .alpha(rightAlpha)
-                    .then(rightBorderModifier)
+                    .then(rightBorder)
                     .clickable(enabled = canClick) { onVoteRight() }
             )
         }
 
+        // ================= LOADER =================
         if (isVoting) {
             Box(
                 modifier = Modifier
@@ -105,12 +107,13 @@ fun VsPostItem(
             }
         }
 
+        // ================= GRADIENT =================
         Box(
             modifier = Modifier
                 .matchParentSize()
                 .background(
                     Brush.verticalGradient(
-                        colors = listOf(
+                        listOf(
                             Color.Transparent,
                             Color.Transparent,
                             Color(0xAA000000)
@@ -119,15 +122,17 @@ fun VsPostItem(
                 )
         )
 
+        // ================= HEADER =================
         Column(
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .padding(16.dp)
         ) {
-            Text(text = post.authorName, color = Color.White, fontWeight = FontWeight.Bold)
-            Text(text = post.category, color = Color.White, fontSize = 12.sp)
+            Text(post.authorName, color = Color.White, fontWeight = FontWeight.Bold)
+            Text(post.category, color = Color.White, fontSize = 12.sp)
         }
 
+        // ================= ACTIONS =================
         ActionRail(
             modifier = Modifier
                 .align(Alignment.CenterEnd)
@@ -137,6 +142,7 @@ fun VsPostItem(
             onShareClick = onShareClick
         )
 
+        // ================= QUESTION =================
         Box(
             modifier = Modifier
                 .align(Alignment.Center)
@@ -153,6 +159,7 @@ fun VsPostItem(
             )
         }
 
+        // ================= VS =================
         Box(
             modifier = Modifier
                 .align(Alignment.Center)
@@ -166,9 +173,10 @@ fun VsPostItem(
                 ),
             contentAlignment = Alignment.Center
         ) {
-            Text(text = "VS", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+            Text("VS", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
         }
 
+        // ================= RESULTS =================
         Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -176,71 +184,120 @@ fun VsPostItem(
                 .padding(
                     start = 20.dp,
                     end = 20.dp,
-                    top = 12.dp,
                     bottom = 12.dp + extraBottomPadding
                 )
                 .alpha(resultsAlpha)
         ) {
             Row(modifier = Modifier.fillMaxWidth()) {
 
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(text = post.leftLabel, color = Color.White)
-                    Text(text = "${post.leftVotesCount} votes", color = Color.White, fontSize = 12.sp)
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(text = "${leftPercent.roundToInt()}%", color = Color.White, fontSize = 12.sp)
-                    Spacer(modifier = Modifier.height(6.dp))
+                ResultBar(
+                    label = post.leftLabel,
+                    votes = post.leftVotesCount,
+                    percent = leftPercent,
+                    alignEnd = true,
+                    modifier = Modifier.weight(1f)
+                )
 
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(6.dp)
-                            .clip(RoundedCornerShape(50))
-                            .background(Color(0x33FFFFFF))
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxHeight()
-                                .fillMaxWidth(leftRatio)
-                                .clip(RoundedCornerShape(50))
-                                .background(
-                                    Brush.horizontalGradient(
-                                        listOf(Color(0xFF7B61FF), Color(0xFFB95CFF))
-                                    )
-                                )
-                        )
-                    }
-                }
+                Spacer(Modifier.width(12.dp))
 
-                Spacer(modifier = Modifier.width(12.dp))
-
-                Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.End) {
-                    Text(text = post.rightLabel, color = Color.White)
-                    Text(text = "${post.rightVotesCount} votes", color = Color.White, fontSize = 12.sp)
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(text = "${rightPercent.roundToInt()}%", color = Color.White, fontSize = 12.sp)
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(6.dp)
-                            .clip(RoundedCornerShape(50))
-                            .background(Color(0x33FFFFFF))
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxHeight()
-                                .fillMaxWidth(rightRatio)
-                                .clip(RoundedCornerShape(50))
-                                .background(
-                                    Brush.horizontalGradient(
-                                        listOf(Color(0xFFFF9F3F), Color(0xFFFF4EB8))
-                                    )
-                                )
-                        )
-                    }
-                }
+                ResultBar(
+                    label = post.rightLabel,
+                    votes = post.rightVotesCount,
+                    percent = rightPercent,
+                    alignEnd = false,
+                    modifier = Modifier.weight(1f)
+                )
             }
+        }
+    }
+}
+
+@Composable
+private fun NetworkImage(
+    url: String,
+    modifier: Modifier = Modifier
+) {
+    // ✅ évite crash/erreurs si l’url est vide
+    if (url.isBlank()) {
+        Box(modifier = modifier.background(Color.DarkGray))
+        return
+    }
+
+    // ✅ KMP (Android + iOS) : Kamel
+    // Nouvelle API (plus de dépréciation)
+    KamelImage(
+        resource = { asyncPainterResource(data = url) },
+        contentDescription = null,
+        modifier = modifier,
+        contentScale = ContentScale.Crop,
+        onLoading = {
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .background(Color(0xFF1A1A1A)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = Color(0xFFFF4EB8), strokeWidth = 2.dp)
+            }
+        },
+        onFailure = {
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .background(Color(0xFF1A1A1A)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("Image", color = Color(0xFFBBBBBB), fontSize = 12.sp)
+            }
+        }
+    )
+}
+
+@Composable
+private fun ResultBar(
+    label: String,
+    votes: Int,
+    percent: Float,
+    alignEnd: Boolean,
+    modifier: Modifier = Modifier
+) {
+    val ratio = (percent / 100f).coerceIn(0f, 1f)
+
+    Column(
+        modifier = modifier,
+        horizontalAlignment = if (alignEnd) Alignment.Start else Alignment.End
+    ) {
+        Text(text = label, color = Color.White)
+        Text(text = "$votes votes", color = Color.White, fontSize = 12.sp)
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(text = "${percent.roundToInt()}%", color = Color.White, fontSize = 12.sp)
+        Spacer(modifier = Modifier.height(6.dp))
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(6.dp)
+                .clip(RoundedCornerShape(50))
+                .background(Color(0x33FFFFFF))
+        ) {
+            // ✅ gauche = progression droite -> gauche (alignEnd = true)
+            // ✅ droite = progression gauche -> droite (alignEnd = false)
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth(ratio)
+                    .align(if (alignEnd) Alignment.CenterEnd else Alignment.CenterStart)
+                    .clip(RoundedCornerShape(50))
+                    .background(
+                        Brush.horizontalGradient(
+                            if (alignEnd) {
+                                listOf(Color(0xFF7B61FF), Color(0xFFB95CFF))
+                            } else {
+                                listOf(Color(0xFFFF9F3F), Color(0xFFFF4EB8))
+                            }
+                        )
+                    )
+            )
         }
     }
 }
