@@ -1,7 +1,12 @@
 package com.nazam.instaclone.feature.auth.presentation.ui
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -24,38 +29,45 @@ fun LoginScreen(
     val viewModel = remember { LoginViewModel() }
     val ui = viewModel.uiState.collectAsState()
 
-    // ✅ Navigation propre (1 seule fois)
     LaunchedEffect(ui.value.isLoggedIn) {
-        if (ui.value.isLoggedIn) {
-            onNavigateToHome()
-        }
+        if (ui.value.isLoggedIn) onNavigateToHome()
     }
 
     Column(
-        modifier = Modifier.padding(24.dp)
+        modifier = Modifier
+            .fillMaxSize()
+            .imePadding() // ✅ quand le clavier s'ouvre
+            .padding(24.dp),
+        verticalArrangement = Arrangement.Center
     ) {
+
+        Text(text = "Connexion")
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         TextField(
             value = ui.value.email,
-            onValueChange = { viewModel.onEmailChanged(it) },
+            onValueChange = viewModel::onEmailChanged,
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Email") }
+            placeholder = { Text("Email") },
+            singleLine = true
         )
+
+        Spacer(modifier = Modifier.height(12.dp))
 
         TextField(
             value = ui.value.password,
-            onValueChange = { viewModel.onPasswordChanged(it) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 16.dp),
-            placeholder = { Text("Mot de passe") }
+            onValueChange = viewModel::onPasswordChanged,
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text("Mot de passe") },
+            singleLine = true
         )
 
+        Spacer(modifier = Modifier.height(20.dp))
+
         Button(
-            onClick = { viewModel.login() },
-            modifier = Modifier
-                .padding(top = 24.dp)
-                .fillMaxWidth(),
+            onClick = viewModel::login,
+            modifier = Modifier.fillMaxWidth(),
             enabled = !ui.value.isLoading
         ) {
             if (ui.value.isLoading) {
@@ -65,19 +77,19 @@ fun LoginScreen(
             }
         }
 
+        Spacer(modifier = Modifier.height(8.dp))
+
         Button(
             onClick = onNavigateToSignup,
-            modifier = Modifier.padding(top = 8.dp)
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !ui.value.isLoading
         ) {
             Text("Créer un compte")
         }
 
-        if (ui.value.errorMessage != null) {
-            Text(
-                text = ui.value.errorMessage!!,
-                color = Color.Red,
-                modifier = Modifier.padding(top = 16.dp)
-            )
+        ui.value.errorMessage?.let { msg ->
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(text = msg, color = Color.Red)
         }
     }
 }
