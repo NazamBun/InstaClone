@@ -10,11 +10,12 @@ import com.nazam.instaclone.feature.home.domain.usecase.VoteRightUseCase
 import com.nazam.instaclone.feature.home.presentation.model.HomeUiState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -23,15 +24,13 @@ class HomeViewModel : KoinComponent {
     private val getFeedUseCase: GetFeedUseCase by inject()
     private val voteLeftUseCase: VoteLeftUseCase by inject()
     private val voteRightUseCase: VoteRightUseCase by inject()
-
     private val getCommentsUseCase: GetCommentsUseCase by inject()
     private val addCommentUseCase: AddCommentUseCase by inject()
-
     private val getCurrentUserUseCase: GetCurrentUserUseCase by inject()
     private val logoutUseCase: LogoutUseCase by inject()
 
-    private val job = Job()
-    private val scope = CoroutineScope(Dispatchers.Default + job)
+    private val job = SupervisorJob()
+    private val scope = CoroutineScope(job + Dispatchers.Main)
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState
@@ -43,7 +42,7 @@ class HomeViewModel : KoinComponent {
 
     fun refreshSession() {
         scope.launch {
-            val user = getCurrentUserUseCase.execute()
+            val user = withContext(Dispatchers.Default) { getCurrentUserUseCase.execute() }
             _uiState.update {
                 it.copy(
                     isLoggedIn = user != null,
@@ -59,7 +58,7 @@ class HomeViewModel : KoinComponent {
         scope.launch {
             _uiState.update { it.copy(isLoading = true) }
 
-            val result = getFeedUseCase.execute()
+            val result = withContext(Dispatchers.Default) { getFeedUseCase.execute() }
 
             result
                 .onSuccess { posts ->
@@ -73,16 +72,16 @@ class HomeViewModel : KoinComponent {
     }
 
     fun voteLeft(postId: String) {
-        if (!_uiState.value.isLoggedIn) {
+        if (!uiState.value.isLoggedIn) {
             showAuthRequiredDialog("Tu dois être connecté ou créer un compte pour voter.")
             return
         }
-        if (_uiState.value.votingPostId == postId) return
+        if (uiState.value.votingPostId == postId) return
 
         scope.launch {
             _uiState.update { it.copy(votingPostId = postId) }
 
-            val result = voteLeftUseCase.execute(postId)
+            val result = withContext(Dispatchers.Default) { voteLeftUseCase.execute(postId) }
 
             result
                 .onSuccess { updated ->
@@ -103,16 +102,16 @@ class HomeViewModel : KoinComponent {
     }
 
     fun voteRight(postId: String) {
-        if (!_uiState.value.isLoggedIn) {
+        if (!uiState.value.isLoggedIn) {
             showAuthRequiredDialog("Tu dois être connecté ou créer un compte pour voter.")
             return
         }
-        if (_uiState.value.votingPostId == postId) return
+        if (uiState.value.votingPostId == postId) return
 
         scope.launch {
             _uiState.update { it.copy(votingPostId = postId) }
 
-            val result = voteRightUseCase.execute(postId)
+            val result = withContext(Dispatchers.Default) { voteRightUseCase.execute(postId) }
 
             result
                 .onSuccess { updated ->
@@ -133,7 +132,7 @@ class HomeViewModel : KoinComponent {
     }
 
     fun onCreatePostClicked() {
-        if (_uiState.value.isLoggedIn) return
+        if (uiState.value.isLoggedIn) return
         showAuthRequiredDialog("Tu dois être connecté pour créer un post.")
     }
 
@@ -166,7 +165,7 @@ class HomeViewModel : KoinComponent {
         scope.launch {
             _uiState.update { it.copy(isCommentsLoading = true) }
 
-            val result = getCommentsUseCase.execute(postId)
+            val result = withContext(Dispatchers.Default) { getCommentsUseCase.execute(postId) }
 
             result
                 .onSuccess { list ->
@@ -184,7 +183,7 @@ class HomeViewModel : KoinComponent {
     }
 
     fun onSendCommentClicked() {
-        val state = _uiState.value
+        val state = uiState.value
         if (!state.isLoggedIn) {
             showAuthRequiredDialog("Tu dois te connecter ou créer un compte pour commenter.")
             return
@@ -193,22 +192,23 @@ class HomeViewModel : KoinComponent {
     }
 
     fun onCommentInputRequested() {
-        if (!_uiState.value.isLoggedIn) {
+        if (!uiState.value.isLoggedIn) {
             showAuthRequiredDialog("Tu dois te connecter ou créer un compte pour commenter.")
         }
     }
 
     private fun submitComment() {
-        val state = _uiState.value
+        val state = uiState.value
         val postId = state.commentsPostId ?: return
-
         val content = state.newCommentText.trim()
         if (content.isBlank()) return
 
         scope.launch {
             _uiState.update { it.copy(isCommentsLoading = true) }
 
-            val result = addCommentUseCase.execute(postId = postId, content = content)
+            val result = withContext(Dispatchers.Default) {
+                addCommentUseCase.execute(postId = postId, content = content)
+            }
 
             result
                 .onSuccess { created ->
@@ -229,7 +229,7 @@ class HomeViewModel : KoinComponent {
 
     fun logout() {
         scope.launch {
-            val result = logoutUseCase.execute()
+            val result = withContext(Dispatchers.Default) { logoutUseCase.execute() }
 
             result
                 .onSuccess {
