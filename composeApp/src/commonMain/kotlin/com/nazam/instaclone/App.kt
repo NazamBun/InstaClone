@@ -15,6 +15,7 @@ import com.nazam.instaclone.core.navigation.Screen
 import com.nazam.instaclone.feature.auth.presentation.ui.LoginScreen
 import com.nazam.instaclone.feature.auth.presentation.ui.SignupScreen
 import com.nazam.instaclone.feature.home.presentation.ui.CreatePostRoute
+import com.nazam.instaclone.feature.home.presentation.ui.HomeRoute
 import com.nazam.instaclone.feature.home.presentation.ui.HomeScreen
 
 @Composable
@@ -32,7 +33,7 @@ fun App() {
         ) {
             when (currentScreen) {
 
-                Screen.Home -> HomeScreen(
+                Screen.Home -> HomeRoute(
                     onNavigateToCreatePost = { currentScreen = Screen.CreatePost },
                     onNavigateToLogin = { currentScreen = Screen.Login },
                     onNavigateToSignup = { currentScreen = Screen.Signup }
