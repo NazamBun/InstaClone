@@ -27,6 +27,7 @@
 
 /* Begin PBXFileReference section */
 		A993C8EE2EF9590F00FBC048 /* ComposeApp.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ComposeApp.framework; path = ../composeApp/build/bin/iosSimulatorArm64/debugFramework/ComposeApp.framework; sourceTree = "<group>"; };
+		A9A110FE2EFDA9BE00A4AE4E /* ComposeApp.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ComposeApp.framework; path = ../composeApp/build/bin/iosSimulatorArm64/debugFramework/ComposeApp.framework; sourceTree = "<group>"; };
 		CAD16B485CBBA00A1630F6D0 /* InstaClone.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = InstaClone.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -79,6 +80,7 @@
 		C717730F3CC5F7BDDFC2ED4E = {
 			isa = PBXGroup;
 			children = (
+				A9A110FE2EFDA9BE00A4AE4E /* ComposeApp.framework */,
 				D967CC42B36308C8B9805C21 /* Configuration */,
 				9B3DDEB8FFCE183AD810EC64 /* iosApp */,
 				A993C8ED2EF9590F00FBC048 /* Frameworks */,
@@ -105,6 +107,7 @@
 				C2F748CB07F14E49B13B43AD /* Sources */,
 				383553EF7D55150958C2CAB9 /* Frameworks */,
 				1BD62CE201F3B33B1CBA9BA5 /* Resources */,
+				A9A110FC2EFDA8EB00A4AE4E /* ShellScript */,
 				A993C8F12EF9590F00FBC048 /* Embed Frameworks */,
 			);
 			buildRules = (
@@ -184,6 +187,23 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "if [ \"YES\" = \"$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED\" ]; then\n  echo \"Skipping Gradle build task invocation due to OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED environment variable set to \\\"YES\\\"\"\n  exit 0\nfi\ncd \"$SRCROOT/..\"\n./gradlew :composeApp:embedAndSignAppleFrameworkForXcode\n";
+		};
+		A9A110FC2EFDA8EB00A4AE4E /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\ncd \"$SRCROOT/..\"\n./gradlew :composeApp:linkDebugFrameworkIosSimulatorArm64\n\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
