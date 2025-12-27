@@ -12,19 +12,26 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.nazam.instaclone.feature.auth.presentation.viewmodel.SignupViewModel
+import org.koin.compose.koinInject
 
 @Composable
 fun SignupScreen(
     onNavigateToLogin: () -> Unit
 ) {
-    val viewModel = remember { SignupViewModel() }
-    val ui = viewModel.uiState.collectAsState()
+    val viewModel: SignupViewModel = koinInject()
+
+    DisposableEffect(viewModel) {
+        onDispose(viewModel::onClear)
+    }
+
+    val ui by viewModel.uiState.collectAsState()
 
     Column(
         modifier = Modifier
@@ -33,13 +40,12 @@ fun SignupScreen(
             .padding(24.dp),
         verticalArrangement = Arrangement.Center
     ) {
-
         Text(text = "Créer un compte")
 
         Spacer(modifier = Modifier.height(16.dp))
 
         TextField(
-            value = ui.value.email,
+            value = ui.email,
             onValueChange = viewModel::onEmailChanged,
             modifier = Modifier.fillMaxWidth(),
             placeholder = { Text("Email") },
@@ -49,7 +55,7 @@ fun SignupScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         TextField(
-            value = ui.value.password,
+            value = ui.password,
             onValueChange = viewModel::onPasswordChanged,
             modifier = Modifier.fillMaxWidth(),
             placeholder = { Text("Mot de passe") },
@@ -59,7 +65,7 @@ fun SignupScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         TextField(
-            value = ui.value.displayName,
+            value = ui.displayName,
             onValueChange = viewModel::onDisplayNameChanged,
             modifier = Modifier.fillMaxWidth(),
             placeholder = { Text("Nom d'utilisateur") },
@@ -71,7 +77,7 @@ fun SignupScreen(
         Button(
             onClick = viewModel::signup,
             modifier = Modifier.fillMaxWidth(),
-            enabled = !ui.value.isLoading
+            enabled = !ui.isLoading
         ) {
             Text("Créer un compte")
         }
@@ -81,17 +87,17 @@ fun SignupScreen(
         Button(
             onClick = onNavigateToLogin,
             modifier = Modifier.fillMaxWidth(),
-            enabled = !ui.value.isLoading
+            enabled = !ui.isLoading
         ) {
             Text("Déjà un compte ? Se connecter")
         }
 
-        ui.value.errorMessage?.let { msg ->
+        ui.errorMessage?.let { msg ->
             Spacer(modifier = Modifier.height(12.dp))
             Text(text = msg, color = Color.Red)
         }
 
-        if (ui.value.isSignedUp) {
+        if (ui.isSignedUp) {
             Spacer(modifier = Modifier.height(12.dp))
             Text(text = "🎉 Compte créé ! Vérifie ton email.", color = Color(0xFF2E7D32))
         }

@@ -1,25 +1,22 @@
 package com.nazam.instaclone.feature.home.presentation.ui
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import com.nazam.instaclone.feature.home.presentation.viewmodel.HomeViewModel
+import org.koin.compose.koinInject
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun HomeRoute(
     onNavigateToCreatePost: () -> Unit,
     onNavigateToLogin: () -> Unit,
     onNavigateToSignup: () -> Unit
 ) {
-    val viewModel = remember { HomeViewModel() }
+    val viewModel: HomeViewModel = koinInject()
 
-    DisposableEffect(Unit) {
-        onDispose { viewModel.clear() }
+    DisposableEffect(viewModel) {
+        onDispose(viewModel::clear)
     }
 
     val ui by viewModel.uiState.collectAsState()
