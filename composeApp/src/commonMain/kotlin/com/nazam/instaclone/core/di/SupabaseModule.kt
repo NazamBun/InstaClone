@@ -47,4 +47,10 @@ val appModule = module {
     factory { CreatePostUseCase(get()) }
     factory { GetCommentsUseCase(get()) }
     factory { AddCommentUseCase(get()) }
+
+    // ViewModels
+    factory { com.nazam.instaclone.feature.home.presentation.viewmodel.HomeViewModel() }
+    factory { com.nazam.instaclone.feature.home.presentation.viewmodel.CreatePostViewModel() }
+    factory { com.nazam.instaclone.feature.auth.presentation.viewmodel.LoginViewModel() }
+    factory { com.nazam.instaclone.feature.auth.presentation.viewmodel.SignupViewModel() }
 }

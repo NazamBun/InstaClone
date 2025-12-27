@@ -13,40 +13,46 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.nazam.instaclone.feature.auth.presentation.viewmodel.LoginViewModel
+import org.koin.compose.koinInject
 
 @Composable
 fun LoginScreen(
     onNavigateToSignup: () -> Unit,
     onNavigateToHome: () -> Unit
 ) {
-    val viewModel = remember { LoginViewModel() }
-    val ui = viewModel.uiState.collectAsState()
+    val viewModel: LoginViewModel = koinInject()
 
-    LaunchedEffect(ui.value.isLoggedIn) {
-        if (ui.value.isLoggedIn) onNavigateToHome()
+    DisposableEffect(viewModel) {
+        onDispose(viewModel::onClear)
+    }
+
+    val ui by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(ui.isLoggedIn) {
+        if (ui.isLoggedIn) onNavigateToHome()
     }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .imePadding() // ✅ quand le clavier s'ouvre
+            .imePadding()
             .padding(24.dp),
         verticalArrangement = Arrangement.Center
     ) {
-
         Text(text = "Connexion")
 
         Spacer(modifier = Modifier.height(16.dp))
 
         TextField(
-            value = ui.value.email,
+            value = ui.email,
             onValueChange = viewModel::onEmailChanged,
             modifier = Modifier.fillMaxWidth(),
             placeholder = { Text("Email") },
@@ -56,7 +62,7 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         TextField(
-            value = ui.value.password,
+            value = ui.password,
             onValueChange = viewModel::onPasswordChanged,
             modifier = Modifier.fillMaxWidth(),
             placeholder = { Text("Mot de passe") },
@@ -68,13 +74,10 @@ fun LoginScreen(
         Button(
             onClick = viewModel::login,
             modifier = Modifier.fillMaxWidth(),
-            enabled = !ui.value.isLoading
+            enabled = !ui.isLoading
         ) {
-            if (ui.value.isLoading) {
-                CircularProgressIndicator(color = Color.White)
-            } else {
-                Text("Connexion")
-            }
+            if (ui.isLoading) CircularProgressIndicator(color = Color.White)
+            else Text("Connexion")
         }
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -82,12 +85,12 @@ fun LoginScreen(
         Button(
             onClick = onNavigateToSignup,
             modifier = Modifier.fillMaxWidth(),
-            enabled = !ui.value.isLoading
+            enabled = !ui.isLoading
         ) {
             Text("Créer un compte")
         }
 
-        ui.value.errorMessage?.let { msg ->
+        ui.errorMessage?.let { msg ->
             Spacer(modifier = Modifier.height(12.dp))
             Text(text = msg, color = Color.Red)
         }
