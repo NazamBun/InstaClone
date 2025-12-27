@@ -6,10 +6,7 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
-
     alias(libs.plugins.kotlinSerialization)
-
-
 }
 
 kotlin {
@@ -34,14 +31,6 @@ kotlin {
     }
 
     sourceSets {
-        androidMain.dependencies {
-            implementation(compose.preview)
-            implementation(libs.androidx.activity.compose)
-
-            // ✅ MOTEUR RÉSEAU POUR COIL (ANDROID)
-            implementation("io.coil-kt.coil3:coil-network-okhttp:3.3.0")
-        }
-
         // ⭐ commun (Android + iOS)
         val commonMain by getting {
             dependencies {
@@ -74,8 +63,6 @@ kotlin {
                 implementation(libs.coil.compose)
 
                 implementation(compose.materialIconsExtended)
-
-
             }
         }
 
@@ -90,8 +77,7 @@ kotlin {
             dependencies {
                 implementation(compose.preview)
                 implementation(libs.androidx.activity.compose)
-
-                // moteur HTTP pour Android
+                implementation("io.coil-kt.coil3:coil-network-okhttp:3.3.0")
                 implementation(libs.ktor.client.android)
             }
         }
