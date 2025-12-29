@@ -1,28 +1,29 @@
 package com.nazam.instaclone.feature.home.presentation.viewmodel
 
+import com.nazam.instaclone.core.dispatchers.AppDispatchers
 import com.nazam.instaclone.feature.auth.domain.usecase.LogoutUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.AddCommentUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.GetCommentsUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.GetFeedUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.VoteLeftUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.VoteRightUseCase
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.update
 
 /**
- * Fichier "interne" : on met ici la logique pour garder HomeViewModel.kt petit.
- * On utilise des fonctions extension sur HomeViewModel.
+ * ✅ Fichier interne : on garde HomeViewModel petit.
+ * Ici, on met la "logique longue".
  */
 
 internal fun HomeViewModel.loadFeedInternal(
+    dispatchers: AppDispatchers,
     getFeedUseCase: GetFeedUseCase
 ) {
     scope.launch {
         _uiState.update { it.copy(isLoading = true) }
 
-        val result = withContext(Dispatchers.Default) { getFeedUseCase.execute() }
+        val result = withContext(dispatchers.default) { getFeedUseCase.execute() }
 
         result
             .onSuccess { posts ->
@@ -36,6 +37,7 @@ internal fun HomeViewModel.loadFeedInternal(
 }
 
 internal fun HomeViewModel.voteInternal(
+    dispatchers: AppDispatchers,
     postId: String,
     isLeft: Boolean,
     voteLeftUseCase: VoteLeftUseCase,
@@ -52,7 +54,7 @@ internal fun HomeViewModel.voteInternal(
     scope.launch {
         _uiState.update { it.copy(votingPostId = postId) }
 
-        val result = withContext(Dispatchers.Default) {
+        val result = withContext(dispatchers.default) {
             if (isLeft) voteLeftUseCase.execute(postId) else voteRightUseCase.execute(postId)
         }
 
@@ -73,6 +75,7 @@ internal fun HomeViewModel.voteInternal(
 }
 
 internal fun HomeViewModel.openCommentsInternal(
+    dispatchers: AppDispatchers,
     postId: String,
     getCommentsUseCase: GetCommentsUseCase
 ) {
@@ -89,7 +92,7 @@ internal fun HomeViewModel.openCommentsInternal(
     scope.launch {
         _uiState.update { it.copy(isCommentsLoading = true) }
 
-        val result = withContext(Dispatchers.Default) { getCommentsUseCase.execute(postId) }
+        val result = withContext(dispatchers.default) { getCommentsUseCase.execute(postId) }
 
         result
             .onSuccess { list ->
@@ -115,6 +118,7 @@ internal fun HomeViewModel.closeCommentsInternal() {
 }
 
 internal fun HomeViewModel.sendCommentInternal(
+    dispatchers: AppDispatchers,
     addCommentUseCase: AddCommentUseCase
 ) {
     val state = uiState.value
@@ -131,7 +135,7 @@ internal fun HomeViewModel.sendCommentInternal(
     scope.launch {
         _uiState.update { it.copy(isCommentsLoading = true) }
 
-        val result = withContext(Dispatchers.Default) {
+        val result = withContext(dispatchers.default) {
             addCommentUseCase.execute(postId = postId, content = content)
         }
 
@@ -153,10 +157,11 @@ internal fun HomeViewModel.sendCommentInternal(
 }
 
 internal fun HomeViewModel.logoutInternal(
+    dispatchers: AppDispatchers,
     logoutUseCase: LogoutUseCase
 ) {
     scope.launch {
-        val result = withContext(Dispatchers.Default) { logoutUseCase.execute() }
+        val result = withContext(dispatchers.default) { logoutUseCase.execute() }
 
         result
             .onSuccess {

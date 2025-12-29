@@ -17,6 +17,8 @@ import com.nazam.instaclone.feature.home.domain.usecase.VoteLeftUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.VoteRightUseCase
 import kotlinx.serialization.json.Json
 import org.koin.dsl.module
+import com.nazam.instaclone.core.dispatchers.AppDispatchers
+import com.nazam.instaclone.core.dispatchers.DefaultAppDispatchers
 
 val appModule = module {
 
@@ -29,6 +31,8 @@ val appModule = module {
             ignoreUnknownKeys = true
         }
     }
+    // Dispatchers
+    single<AppDispatchers> { DefaultAppDispatchers }
 
     // Auth
     single<AuthRepository> { AuthRepositoryImpl(get()) }
@@ -50,6 +54,7 @@ val appModule = module {
 
     // ViewModels
     factory { com.nazam.instaclone.feature.home.presentation.viewmodel.HomeViewModel(
+        dispatchers = get(),
         getFeedUseCase = get(),
         voteLeftUseCase = get(),
         voteRightUseCase = get(),
@@ -58,7 +63,10 @@ val appModule = module {
         getCurrentUserUseCase = get(),
         logoutUseCase = get()
     ) }
-    factory { com.nazam.instaclone.feature.home.presentation.viewmodel.CreatePostViewModel() }
+    factory { com.nazam.instaclone.feature.home.presentation.viewmodel.CreatePostViewModel(
+        dispatchers = get(),
+        createPostUseCase = get()
+    ) }
     factory { com.nazam.instaclone.feature.auth.presentation.viewmodel.LoginViewModel() }
     factory { com.nazam.instaclone.feature.auth.presentation.viewmodel.SignupViewModel() }
 }
