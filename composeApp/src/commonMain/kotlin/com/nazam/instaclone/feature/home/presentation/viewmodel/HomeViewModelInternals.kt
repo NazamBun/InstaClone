@@ -1,0 +1,210 @@
+package com.nazam.instaclone.feature.home.presentation.viewmodel
+
+import com.nazam.instaclone.feature.auth.domain.usecase.LogoutUseCase
+import com.nazam.instaclone.feature.home.domain.usecase.AddCommentUseCase
+import com.nazam.instaclone.feature.home.domain.usecase.GetCommentsUseCase
+import com.nazam.instaclone.feature.home.domain.usecase.GetFeedUseCase
+import com.nazam.instaclone.feature.home.domain.usecase.VoteLeftUseCase
+import com.nazam.instaclone.feature.home.domain.usecase.VoteRightUseCase
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.update
+
+/**
+ * Fichier "interne" : on met ici la logique pour garder HomeViewModel.kt petit.
+ * On utilise des fonctions extension sur HomeViewModel.
+ */
+
+internal fun HomeViewModel.loadFeedInternal(
+    getFeedUseCase: GetFeedUseCase
+) {
+    scope.launch {
+        _uiState.update { it.copy(isLoading = true) }
+
+        val result = withContext(Dispatchers.Default) { getFeedUseCase.execute() }
+
+        result
+            .onSuccess { posts ->
+                _uiState.update { it.copy(isLoading = false, posts = posts) }
+            }
+            .onFailure { error ->
+                _uiState.update { it.copy(isLoading = false) }
+                showInfoDialogInternal(error.toUiMessage("Erreur de chargement"))
+            }
+    }
+}
+
+internal fun HomeViewModel.voteInternal(
+    postId: String,
+    isLeft: Boolean,
+    voteLeftUseCase: VoteLeftUseCase,
+    voteRightUseCase: VoteRightUseCase
+) {
+    val state = uiState.value
+
+    if (!state.isLoggedIn) {
+        showAuthRequiredDialogInternal("Tu dois être connecté ou créer un compte pour voter.")
+        return
+    }
+    if (state.votingPostId == postId) return
+
+    scope.launch {
+        _uiState.update { it.copy(votingPostId = postId) }
+
+        val result = withContext(Dispatchers.Default) {
+            if (isLeft) voteLeftUseCase.execute(postId) else voteRightUseCase.execute(postId)
+        }
+
+        result
+            .onSuccess { updated ->
+                _uiState.update { s ->
+                    s.copy(
+                        votingPostId = null,
+                        posts = s.posts.map { if (it.id == updated.id) updated else it }
+                    )
+                }
+            }
+            .onFailure { error ->
+                _uiState.update { it.copy(votingPostId = null) }
+                handleAuthOrGenericErrorInternal(error)
+            }
+    }
+}
+
+internal fun HomeViewModel.openCommentsInternal(
+    postId: String,
+    getCommentsUseCase: GetCommentsUseCase
+) {
+    _uiState.update {
+        it.copy(
+            isCommentsSheetOpen = true,
+            commentsPostId = postId,
+            isCommentsLoading = true,
+            comments = emptyList(),
+            newCommentText = ""
+        )
+    }
+
+    scope.launch {
+        _uiState.update { it.copy(isCommentsLoading = true) }
+
+        val result = withContext(Dispatchers.Default) { getCommentsUseCase.execute(postId) }
+
+        result
+            .onSuccess { list ->
+                _uiState.update { it.copy(isCommentsLoading = false, comments = list) }
+            }
+            .onFailure { error ->
+                _uiState.update { it.copy(isCommentsLoading = false) }
+                showInfoDialogInternal(error.toUiMessage("Impossible de charger les commentaires"))
+            }
+    }
+}
+
+internal fun HomeViewModel.closeCommentsInternal() {
+    _uiState.update {
+        it.copy(
+            isCommentsSheetOpen = false,
+            commentsPostId = null,
+            isCommentsLoading = false,
+            comments = emptyList(),
+            newCommentText = ""
+        )
+    }
+}
+
+internal fun HomeViewModel.sendCommentInternal(
+    addCommentUseCase: AddCommentUseCase
+) {
+    val state = uiState.value
+
+    if (!state.isLoggedIn) {
+        showAuthRequiredDialogInternal("Tu dois te connecter ou créer un compte pour commenter.")
+        return
+    }
+
+    val postId = state.commentsPostId ?: return
+    val content = state.newCommentText.trim()
+    if (content.isBlank()) return
+
+    scope.launch {
+        _uiState.update { it.copy(isCommentsLoading = true) }
+
+        val result = withContext(Dispatchers.Default) {
+            addCommentUseCase.execute(postId = postId, content = content)
+        }
+
+        result
+            .onSuccess { created ->
+                _uiState.update {
+                    it.copy(
+                        isCommentsLoading = false,
+                        comments = it.comments + created,
+                        newCommentText = ""
+                    )
+                }
+            }
+            .onFailure { error ->
+                _uiState.update { it.copy(isCommentsLoading = false) }
+                handleAuthOrGenericErrorInternal(error)
+            }
+    }
+}
+
+internal fun HomeViewModel.logoutInternal(
+    logoutUseCase: LogoutUseCase
+) {
+    scope.launch {
+        val result = withContext(Dispatchers.Default) { logoutUseCase.execute() }
+
+        result
+            .onSuccess {
+                _uiState.update {
+                    it.copy(
+                        isLoggedIn = false,
+                        currentUserId = null,
+                        currentUserEmail = null,
+                        currentUserDisplayName = null
+                    )
+                }
+                showInfoDialogInternal("Déconnecté")
+                loadFeed()
+            }
+            .onFailure { error ->
+                showInfoDialogInternal(error.toUiMessage("Erreur de déconnexion"))
+            }
+    }
+}
+
+internal fun HomeViewModel.handleAuthOrGenericErrorInternal(error: Throwable) {
+    if (error.isAuthRequired()) {
+        showAuthRequiredDialogInternal("Tu dois être connecté ou créer un compte.")
+    } else {
+        showInfoDialogInternal(error.toUiMessage("Une erreur est arrivée"))
+    }
+}
+
+internal fun HomeViewModel.showAuthRequiredDialogInternal(message: String) {
+    _uiState.update {
+        it.copy(
+            dialogMessage = message,
+            dialogConfirmLabel = "Se connecter",
+            dialogSecondaryLabel = "Créer un compte",
+            dialogShouldOpenLogin = true,
+            dialogShouldOpenSignup = true
+        )
+    }
+}
+
+internal fun HomeViewModel.showInfoDialogInternal(message: String) {
+    _uiState.update {
+        it.copy(
+            dialogMessage = message,
+            dialogConfirmLabel = null,
+            dialogSecondaryLabel = null,
+            dialogShouldOpenLogin = false,
+            dialogShouldOpenSignup = false
+        )
+    }
+}

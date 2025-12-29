@@ -49,7 +49,15 @@ val appModule = module {
     factory { AddCommentUseCase(get()) }
 
     // ViewModels
-    factory { com.nazam.instaclone.feature.home.presentation.viewmodel.HomeViewModel() }
+    factory { com.nazam.instaclone.feature.home.presentation.viewmodel.HomeViewModel(
+        getFeedUseCase = get(),
+        voteLeftUseCase = get(),
+        voteRightUseCase = get(),
+        getCommentsUseCase = get(),
+        addCommentUseCase = get(),
+        getCurrentUserUseCase = get(),
+        logoutUseCase = get()
+    ) }
     factory { com.nazam.instaclone.feature.home.presentation.viewmodel.CreatePostViewModel() }
     factory { com.nazam.instaclone.feature.auth.presentation.viewmodel.LoginViewModel() }
     factory { com.nazam.instaclone.feature.auth.presentation.viewmodel.SignupViewModel() }
