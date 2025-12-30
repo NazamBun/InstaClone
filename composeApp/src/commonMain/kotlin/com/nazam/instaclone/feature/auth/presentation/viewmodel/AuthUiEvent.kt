@@ -1,21 +1,13 @@
 package com.nazam.instaclone.feature.auth.presentation.viewmodel
 
 /**
- * ✅ Events UI "one-shot"
- * - Navigation
- * - Message
- * - Action unique
- *
- * ❌ Pas d’état ici
+ * Evénements UI one-shot.
+ * Ici : uniquement la navigation.
+ * (Les erreurs restent dans UiState.errorMessage)
  */
 sealed interface AuthUiEvent {
-
-    // Navigation
-    object NavigateToHome : AuthUiEvent
-    object NavigateToLogin : AuthUiEvent
-    object NavigateToSignup : AuthUiEvent
-    object NavigateBack : AuthUiEvent
-
-    // Message
-    data class ShowError(val message: String) : AuthUiEvent
+    data object NavigateToHome : AuthUiEvent
+    data object NavigateToLogin : AuthUiEvent
+    data object NavigateToSignup : AuthUiEvent
+    data object NavigateBack : AuthUiEvent
 }

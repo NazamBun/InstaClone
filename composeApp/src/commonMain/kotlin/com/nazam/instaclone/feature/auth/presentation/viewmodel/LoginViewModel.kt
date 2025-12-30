@@ -6,27 +6,31 @@ import com.nazam.instaclone.feature.auth.domain.usecase.LoginUseCase
 import com.nazam.instaclone.feature.auth.presentation.model.LoginUiState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
- * ✅ ViewModel KMP pur
- * - StateFlow = état
- * - SharedFlow = events
+ * ViewModel KMP pur.
+ * - StateFlow = état durable (champs, loading, erreur)
+ * - SharedFlow = events (navigation)
  */
 class LoginViewModel(
     private val dispatchers: AppDispatchers,
     private val loginUseCase: LoginUseCase,
     private val getCurrentUserUseCase: GetCurrentUserUseCase
 ) {
-
     private val job = Job()
     private val scope = CoroutineScope(dispatchers.main + job)
 
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState
 
-    private val _events = MutableSharedFlow<AuthUiEvent>()
+    private val _events = MutableSharedFlow<AuthUiEvent>(extraBufferCapacity = 1)
     val events: SharedFlow<AuthUiEvent> = _events
 
     fun onEmailChanged(value: String) {
@@ -37,41 +41,52 @@ class LoginViewModel(
         _uiState.update { it.copy(password = value, errorMessage = null) }
     }
 
+    /**
+     * Optionnel : si déjà connecté, on part direct Home.
+     * A appeler une fois depuis la Route (LaunchedEffect).
+     */
+    fun checkSession() {
+        scope.launch {
+            val user = withContext(dispatchers.default) { getCurrentUserUseCase.execute() }
+            if (user != null) {
+                _events.tryEmit(AuthUiEvent.NavigateToHome)
+            }
+        }
+    }
+
     fun login() {
         val state = _uiState.value
 
         if (state.email.isBlank() || state.password.isBlank()) {
-            emitError("Email et mot de passe requis")
+            _uiState.update { it.copy(errorMessage = "Email et mot de passe requis") }
             return
         }
 
         scope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
-            val result = loginUseCase.execute(state.email, state.password)
+            val result = withContext(dispatchers.default) {
+                loginUseCase.execute(state.email, state.password)
+            }
 
             result
                 .onSuccess {
                     _uiState.update { it.copy(isLoading = false) }
-                    _events.emit(AuthUiEvent.NavigateToHome)
+                    _events.tryEmit(AuthUiEvent.NavigateToHome)
                 }
                 .onFailure { error ->
-                    _uiState.update { it.copy(isLoading = false) }
-                    emitError(error.message ?: "Erreur inconnue")
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = error.message ?: "Erreur inconnue"
+                        )
+                    }
                 }
         }
     }
 
     fun goToSignup() {
-        scope.launch {
-            _events.emit(AuthUiEvent.NavigateToSignup)
-        }
-    }
-
-    private fun emitError(message: String) {
-        scope.launch {
-            _events.emit(AuthUiEvent.ShowError(message))
-        }
+        _events.tryEmit(AuthUiEvent.NavigateToSignup)
     }
 
     fun clear() {
