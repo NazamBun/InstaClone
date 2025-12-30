@@ -2,18 +2,20 @@ package com.nazam.instaclone.feature.home.presentation.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import com.nazam.instaclone.feature.home.presentation.viewmodel.CreatePostViewModel
 import org.koin.compose.koinInject
+import com.nazam.instaclone.feature.home.presentation.viewmodel.CreatePostViewModel
 
 @Composable
 fun CreatePostRoute(
     onBack: () -> Unit,
     onPostCreated: () -> Unit
 ) {
+    // ✅ VM fourni par Koin
     val viewModel: CreatePostViewModel = koinInject()
 
-    DisposableEffect(viewModel) {
-        onDispose(viewModel::clear)
+    // ✅ Nettoyage quand on quitte l’écran
+    DisposableEffect(Unit) {
+        onDispose { viewModel.clear() }
     }
 
     CreatePostScreen(
