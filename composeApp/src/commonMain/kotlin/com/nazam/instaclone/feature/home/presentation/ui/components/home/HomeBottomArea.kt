@@ -17,10 +17,9 @@ import com.nazam.instaclone.feature.home.presentation.ui.components.utils.getUse
 @Composable
 fun HomeBottomArea(
     ui: HomeUiState,
-    onNavigateToCreatePost: () -> Unit,
-    onNavigateToLogin: () -> Unit,
-    onLogoutClick: () -> Unit,
     onCreatePostClick: () -> Unit,
+    onLoginClick: () -> Unit,
+    onLogoutClick: () -> Unit,
     onNewCommentChange: (String) -> Unit,
     onSendCommentClick: () -> Unit,
     onCommentInputRequested: () -> Unit,
@@ -51,10 +50,8 @@ fun HomeBottomArea(
 
         HomeBottomBar(
             isLoggedIn = ui.isLoggedIn,
-            onCreatePostClick = {
-                if (ui.isLoggedIn) onNavigateToCreatePost() else onCreatePostClick()
-            },
-            onLoginClick = onNavigateToLogin,
+            onCreatePostClick = onCreatePostClick,
+            onLoginClick = onLoginClick,
             onLogoutClick = onLogoutClick
         )
     }

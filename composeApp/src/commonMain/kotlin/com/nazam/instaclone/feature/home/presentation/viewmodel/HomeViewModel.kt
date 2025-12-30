@@ -11,17 +11,19 @@ import com.nazam.instaclone.feature.home.domain.usecase.VoteRightUseCase
 import com.nazam.instaclone.feature.home.presentation.model.HomeUiState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * ✅ ViewModel KMP "pur"
- * - Pas de androidx.lifecycle.ViewModel
- * - Pas de code Android/iOS
- * - 1 seul uiState
+ * ViewModel KMP pur:
+ * - pas de code Android/iOS
+ * - UiState = état durable
+ * - events = navigation + messages one-shot
  */
 class HomeViewModel(
     private val dispatchers: AppDispatchers,
@@ -33,26 +35,23 @@ class HomeViewModel(
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
     private val logoutUseCase: LogoutUseCase
 ) {
-
-    // internal : visible pour les helpers (HomeViewModelInternals.kt)
     internal val job = SupervisorJob()
     internal val scope = CoroutineScope(job + dispatchers.main)
 
     internal val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState
 
+    private val _events = MutableSharedFlow<HomeUiEvent>(extraBufferCapacity = 1)
+    val events: SharedFlow<HomeUiEvent> = _events
+
     init {
         refreshSession()
         loadFeed()
     }
 
-    /** ✅ Vérifie la session et met à jour l’état utilisateur */
     fun refreshSession() {
         scope.launch {
-            val user = withContext(dispatchers.default) {
-                getCurrentUserUseCase.execute()
-            }
-
+            val user = withContext(dispatchers.default) { getCurrentUserUseCase.execute() }
             _uiState.update {
                 it.copy(
                     isLoggedIn = user != null,
@@ -64,13 +63,11 @@ class HomeViewModel(
         }
     }
 
-    /** ✅ Charge le feed */
     fun loadFeed() = loadFeedInternal(
         dispatchers = dispatchers,
         getFeedUseCase = getFeedUseCase
     )
 
-    /** ✅ Vote gauche */
     fun voteLeft(postId: String) = voteInternal(
         dispatchers = dispatchers,
         postId = postId,
@@ -79,7 +76,6 @@ class HomeViewModel(
         voteRightUseCase = voteRightUseCase
     )
 
-    /** ✅ Vote droite */
     fun voteRight(postId: String) = voteInternal(
         dispatchers = dispatchers,
         postId = postId,
@@ -88,47 +84,70 @@ class HomeViewModel(
         voteRightUseCase = voteRightUseCase
     )
 
-    /** ✅ Si pas connecté et clic créer post -> dialog */
+    /**
+     * Le bouton "Créer post":
+     * - si connecté -> event navigation
+     * - sinon -> dialog (2 boutons)
+     */
     fun onCreatePostClicked() {
-        if (uiState.value.isLoggedIn) return
-        showAuthRequiredDialogInternal("Tu dois être connecté pour créer un post.")
+        if (uiState.value.isLoggedIn) {
+            _events.tryEmit(HomeUiEvent.NavigateToCreatePost)
+        } else {
+            showAuthRequiredDialogInternal("Tu dois être connecté pour créer un post.")
+        }
     }
 
-    /** ✅ Ouvre les commentaires + charge la liste */
+    /**
+     * Quand l'utilisateur clique "Se connecter" depuis le bas (HomeBottomBar).
+     */
+    fun onLoginClicked() {
+        _events.tryEmit(HomeUiEvent.NavigateToLogin)
+    }
+
     fun openComments(postId: String) = openCommentsInternal(
         dispatchers = dispatchers,
         postId = postId,
         getCommentsUseCase = getCommentsUseCase
     )
 
-    /** ✅ Ferme les commentaires */
     fun closeComments() = closeCommentsInternal()
 
-    /** ✅ Texte commentaire (max 500) */
     fun onNewCommentChange(value: String) {
         _uiState.update { it.copy(newCommentText = value.take(500)) }
     }
 
-    /** ✅ Envoi commentaire */
     fun onSendCommentClicked() = sendCommentInternal(
         dispatchers = dispatchers,
         addCommentUseCase = addCommentUseCase
     )
 
-    /** ✅ Si l’utilisateur clique pour écrire mais pas connecté */
     fun onCommentInputRequested() {
         if (!uiState.value.isLoggedIn) {
             showAuthRequiredDialogInternal("Tu dois te connecter ou créer un compte pour commenter.")
         }
     }
 
-    /** ✅ Logout */
     fun logout() = logoutInternal(
         dispatchers = dispatchers,
         logoutUseCase = logoutUseCase
     )
 
-    /** ✅ Ferme la popup */
+    /**
+     * Dialog (2 boutons) -> l'UI appelle ça.
+     * On garde la logique ici, l'UI ne décide pas où naviguer.
+     */
+    fun onDialogConfirmClicked() {
+        val shouldGoLogin = uiState.value.dialogShouldOpenLogin
+        consumeDialog()
+        if (shouldGoLogin) _events.tryEmit(HomeUiEvent.NavigateToLogin)
+    }
+
+    fun onDialogSecondaryClicked() {
+        val shouldGoSignup = uiState.value.dialogShouldOpenSignup
+        consumeDialog()
+        if (shouldGoSignup) _events.tryEmit(HomeUiEvent.NavigateToSignup)
+    }
+
     fun consumeDialog() {
         _uiState.update {
             it.copy(
@@ -141,7 +160,10 @@ class HomeViewModel(
         }
     }
 
-    /** ✅ Stoppe toutes les coroutines */
+    internal fun emitMessage(message: String) {
+        _events.tryEmit(HomeUiEvent.ShowMessage(message))
+    }
+
     fun clear() {
         job.cancel()
     }
