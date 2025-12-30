@@ -1,9 +1,8 @@
 package com.nazam.instaclone.feature.auth.presentation.viewmodel
 
 /**
- * Evénements UI one-shot.
- * Ici : uniquement la navigation.
- * (Les erreurs restent dans UiState.errorMessage)
+ * Events one-shot: seulement navigation.
+ * Les erreurs restent dans UiState (ex: ui.errorMessage).
  */
 sealed interface AuthUiEvent {
     data object NavigateToHome : AuthUiEvent

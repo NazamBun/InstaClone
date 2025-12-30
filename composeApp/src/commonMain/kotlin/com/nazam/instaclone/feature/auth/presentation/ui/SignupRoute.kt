@@ -5,18 +5,15 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import com.nazam.instaclone.core.navigation.Screen
 import com.nazam.instaclone.feature.auth.presentation.viewmodel.AuthUiEvent
 import com.nazam.instaclone.feature.auth.presentation.viewmodel.SignupViewModel
 import kotlinx.coroutines.flow.collectLatest
 import org.koin.compose.koinInject
 
-/**
- * Route = colle l'UI au ViewModel.
- * Elle écoute les events (navigation).
- */
 @Composable
 fun SignupRoute(
-    onNavigateToLogin: () -> Unit
+    onNavigate: (Screen) -> Unit
 ) {
     val viewModel: SignupViewModel = koinInject()
     val ui by viewModel.uiState.collectAsState()
@@ -28,10 +25,10 @@ fun SignupRoute(
     LaunchedEffect(Unit) {
         viewModel.events.collectLatest { event ->
             when (event) {
-                AuthUiEvent.NavigateBack -> onNavigateToLogin()
-                AuthUiEvent.NavigateToLogin -> onNavigateToLogin()
-                AuthUiEvent.NavigateToHome -> Unit
-                AuthUiEvent.NavigateToSignup -> Unit
+                AuthUiEvent.NavigateBack -> onNavigate(Screen.Login)
+                AuthUiEvent.NavigateToLogin -> onNavigate(Screen.Login)
+                AuthUiEvent.NavigateToHome -> onNavigate(Screen.Home)
+                AuthUiEvent.NavigateToSignup -> onNavigate(Screen.Signup)
             }
         }
     }
@@ -42,6 +39,6 @@ fun SignupRoute(
         onPasswordChange = viewModel::onPasswordChanged,
         onDisplayNameChange = viewModel::onDisplayNameChanged,
         onSignupClick = viewModel::signup,
-        onGoToLoginClick = onNavigateToLogin
+        onGoToLoginClick = { onNavigate(Screen.Login) }
     )
 }

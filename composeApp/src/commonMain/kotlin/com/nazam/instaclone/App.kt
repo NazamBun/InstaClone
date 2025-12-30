@@ -34,20 +34,9 @@ fun App() {
         ) {
             when (currentScreen) {
                 Screen.Home -> HomeRoute(onNavigate = ::navigateTo)
-
-                Screen.Login -> LoginRoute(
-                    onNavigateToSignup = { navigateTo(Screen.Signup) },
-                    onNavigateToHome = { navigateTo(Screen.Home) }
-                )
-
-                Screen.Signup -> SignupRoute(
-                    onNavigateToLogin = { navigateTo(Screen.Login) }
-                )
-
-                Screen.CreatePost -> CreatePostRoute(
-                    onBack = { navigateTo(Screen.Home) },
-                    onPostCreated = { navigateTo(Screen.Home) }
-                )
+                Screen.Login -> LoginRoute(onNavigate = ::navigateTo)
+                Screen.Signup -> SignupRoute(onNavigate = ::navigateTo)
+                Screen.CreatePost -> CreatePostRoute(onNavigate = ::navigateTo)
             }
         }
     }

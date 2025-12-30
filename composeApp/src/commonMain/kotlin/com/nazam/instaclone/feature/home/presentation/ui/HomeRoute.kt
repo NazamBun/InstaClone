@@ -14,7 +14,7 @@ import org.koin.compose.koinInject
 
 /**
  * Route = colle l'UI au ViewModel.
- * Elle écoute les events (navigation + messages).
+ * Elle écoute les events (navigation + messages one-shot).
  */
 @Composable
 fun HomeRoute(
@@ -25,8 +25,8 @@ fun HomeRoute(
 
     val snackbarHostState = SnackbarHostState()
 
-    DisposableEffect(viewModel) {
-        onDispose(viewModel::clear)
+    DisposableEffect(Unit) {
+        onDispose { viewModel.clear() }
     }
 
     LaunchedEffect(Unit) {

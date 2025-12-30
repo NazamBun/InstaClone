@@ -5,19 +5,15 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import com.nazam.instaclone.core.navigation.Screen
 import com.nazam.instaclone.feature.auth.presentation.viewmodel.AuthUiEvent
 import com.nazam.instaclone.feature.auth.presentation.viewmodel.LoginViewModel
 import kotlinx.coroutines.flow.collectLatest
 import org.koin.compose.koinInject
 
-/**
- * Route = colle l'UI au ViewModel.
- * Elle écoute les events (navigation).
- */
 @Composable
 fun LoginRoute(
-    onNavigateToSignup: () -> Unit,
-    onNavigateToHome: () -> Unit
+    onNavigate: (Screen) -> Unit
 ) {
     val viewModel: LoginViewModel = koinInject()
     val ui by viewModel.uiState.collectAsState()
@@ -27,13 +23,11 @@ fun LoginRoute(
     }
 
     LaunchedEffect(Unit) {
-        viewModel.checkSession()
-
         viewModel.events.collectLatest { event ->
             when (event) {
-                AuthUiEvent.NavigateToHome -> onNavigateToHome()
-                AuthUiEvent.NavigateToSignup -> onNavigateToSignup()
-                AuthUiEvent.NavigateToLogin -> Unit
+                AuthUiEvent.NavigateToHome -> onNavigate(Screen.Home)
+                AuthUiEvent.NavigateToSignup -> onNavigate(Screen.Signup)
+                AuthUiEvent.NavigateToLogin -> onNavigate(Screen.Login)
                 AuthUiEvent.NavigateBack -> Unit
             }
         }
