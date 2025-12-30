@@ -22,32 +22,31 @@ import com.nazam.instaclone.feature.home.presentation.ui.HomeRoute
 fun App() {
     var currentScreen by remember { mutableStateOf(Screen.Home) }
 
+    fun navigateTo(screen: Screen) {
+        currentScreen = screen
+    }
+
     MaterialTheme {
-        // Applique la safe area pour Android et iOS
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .windowInsetsPadding(WindowInsets.safeDrawing)
         ) {
             when (currentScreen) {
-                Screen.Home -> HomeRoute(
-                    onNavigateToCreatePost = { currentScreen = Screen.CreatePost },
-                    onNavigateToLogin = { currentScreen = Screen.Login },
-                    onNavigateToSignup = { currentScreen = Screen.Signup }
-                )
+                Screen.Home -> HomeRoute(onNavigate = ::navigateTo)
 
                 Screen.Login -> LoginRoute(
-                    onNavigateToSignup = { currentScreen = Screen.Signup },
-                    onNavigateToHome = { currentScreen = Screen.Home }
+                    onNavigateToSignup = { navigateTo(Screen.Signup) },
+                    onNavigateToHome = { navigateTo(Screen.Home) }
                 )
 
                 Screen.Signup -> SignupRoute(
-                    onNavigateToLogin = { currentScreen = Screen.Login }
+                    onNavigateToLogin = { navigateTo(Screen.Login) }
                 )
 
                 Screen.CreatePost -> CreatePostRoute(
-                    onBack = { currentScreen = Screen.Home },
-                    onPostCreated = { currentScreen = Screen.Home }
+                    onBack = { navigateTo(Screen.Home) },
+                    onPostCreated = { navigateTo(Screen.Home) }
                 )
             }
         }

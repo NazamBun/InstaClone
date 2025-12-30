@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -26,11 +28,10 @@ import com.nazam.instaclone.feature.home.presentation.ui.components.home.HomeFee
 @Composable
 fun HomeScreen(
     ui: HomeUiState,
-    onNavigateToCreatePost: () -> Unit,
-    onNavigateToLogin: () -> Unit,
-    onNavigateToSignup: () -> Unit,
+    snackbarHostState: SnackbarHostState,
 
     onCreatePostClick: () -> Unit,
+    onLoginClick: () -> Unit,
     onLogoutClick: () -> Unit,
 
     onVoteLeft: (String) -> Unit,
@@ -42,7 +43,9 @@ fun HomeScreen(
     onSendCommentClick: () -> Unit,
     onCommentInputRequested: () -> Unit,
 
-    onConsumeDialog: () -> Unit
+    onConsumeDialog: () -> Unit,
+    onDialogConfirm: () -> Unit,
+    onDialogSecondary: () -> Unit
 ) {
     var bottomBlockHeightDp by remember { mutableStateOf(0.dp) }
     val panelHeight = 320.dp
@@ -56,31 +59,23 @@ fun HomeScreen(
             confirmLabel = ui.dialogConfirmLabel,
             secondaryLabel = ui.dialogSecondaryLabel,
             onDismiss = onConsumeDialog,
-            onConfirm = {
-                val goLogin = ui.dialogShouldOpenLogin
-                onConsumeDialog()
-                if (goLogin) onNavigateToLogin()
-            },
-            onSecondary = {
-                val goSignup = ui.dialogShouldOpenSignup
-                onConsumeDialog()
-                if (goSignup) onNavigateToSignup()
-            }
+            onConfirm = onDialogConfirm,
+            onSecondary = onDialogSecondary
         )
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
             HomeBottomArea(
                 ui = ui,
-                onNavigateToCreatePost = onNavigateToCreatePost,
-                onNavigateToLogin = onNavigateToLogin,
-                onLogoutClick = onLogoutClick,
                 onCreatePostClick = onCreatePostClick,
+                onLoginClick = onLoginClick,
+                onLogoutClick = onLogoutClick,
                 onNewCommentChange = onNewCommentChange,
                 onSendCommentClick = onSendCommentClick,
                 onCommentInputRequested = onCommentInputRequested,
-                onBottomHeightChanged = { bottomBlockHeightDp = it }
+                onBottomHeightChanged = { newHeight -> bottomBlockHeightDp = newHeight }
             )
         }
     ) { padding ->

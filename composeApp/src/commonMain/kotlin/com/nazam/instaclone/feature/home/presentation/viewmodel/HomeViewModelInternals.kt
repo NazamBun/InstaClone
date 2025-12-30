@@ -7,15 +7,14 @@ import com.nazam.instaclone.feature.home.domain.usecase.GetCommentsUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.GetFeedUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.VoteLeftUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.VoteRightUseCase
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.flow.update
 
 /**
- * ✅ Fichier interne : on garde HomeViewModel petit.
- * Ici, on met la "logique longue".
+ * Logique longue séparée:
+ * HomeViewModel reste simple.
  */
-
 internal fun HomeViewModel.loadFeedInternal(
     dispatchers: AppDispatchers,
     getFeedUseCase: GetFeedUseCase
@@ -31,7 +30,7 @@ internal fun HomeViewModel.loadFeedInternal(
             }
             .onFailure { error ->
                 _uiState.update { it.copy(isLoading = false) }
-                showInfoDialogInternal(error.toUiMessage("Erreur de chargement"))
+                emitMessage(error.toUiMessage("Erreur de chargement"))
             }
     }
 }
@@ -100,7 +99,7 @@ internal fun HomeViewModel.openCommentsInternal(
             }
             .onFailure { error ->
                 _uiState.update { it.copy(isCommentsLoading = false) }
-                showInfoDialogInternal(error.toUiMessage("Impossible de charger les commentaires"))
+                emitMessage(error.toUiMessage("Impossible de charger les commentaires"))
             }
     }
 }
@@ -173,11 +172,11 @@ internal fun HomeViewModel.logoutInternal(
                         currentUserDisplayName = null
                     )
                 }
-                showInfoDialogInternal("Déconnecté")
+                emitMessage("Déconnecté")
                 loadFeed()
             }
             .onFailure { error ->
-                showInfoDialogInternal(error.toUiMessage("Erreur de déconnexion"))
+                emitMessage(error.toUiMessage("Erreur de déconnexion"))
             }
     }
 }
@@ -186,7 +185,7 @@ internal fun HomeViewModel.handleAuthOrGenericErrorInternal(error: Throwable) {
     if (error.isAuthRequired()) {
         showAuthRequiredDialogInternal("Tu dois être connecté ou créer un compte.")
     } else {
-        showInfoDialogInternal(error.toUiMessage("Une erreur est arrivée"))
+        emitMessage(error.toUiMessage("Une erreur est arrivée"))
     }
 }
 
@@ -198,18 +197,6 @@ internal fun HomeViewModel.showAuthRequiredDialogInternal(message: String) {
             dialogSecondaryLabel = "Créer un compte",
             dialogShouldOpenLogin = true,
             dialogShouldOpenSignup = true
-        )
-    }
-}
-
-internal fun HomeViewModel.showInfoDialogInternal(message: String) {
-    _uiState.update {
-        it.copy(
-            dialogMessage = message,
-            dialogConfirmLabel = null,
-            dialogSecondaryLabel = null,
-            dialogShouldOpenLogin = false,
-            dialogShouldOpenSignup = false
         )
     }
 }
