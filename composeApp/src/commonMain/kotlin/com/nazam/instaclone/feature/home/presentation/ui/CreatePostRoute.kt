@@ -23,10 +23,14 @@ fun CreatePostRoute(
     }
 
     LaunchedEffect(Unit) {
+        // Sécurité: dès qu'on arrive ici, on vérifie la session
+        viewModel.checkAccess()
+
         viewModel.events.collectLatest { event ->
             when (event) {
                 CreatePostUiEvent.PostCreated -> onNavigate(Screen.Home)
                 CreatePostUiEvent.NavigateBack -> onNavigate(Screen.Home)
+                CreatePostUiEvent.NavigateToLogin -> onNavigate(Screen.Login)
                 is CreatePostUiEvent.ShowMessage -> Unit
             }
         }

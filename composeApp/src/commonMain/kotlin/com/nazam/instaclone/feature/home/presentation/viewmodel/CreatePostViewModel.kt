@@ -1,6 +1,7 @@
 package com.nazam.instaclone.feature.home.presentation.viewmodel
 
 import com.nazam.instaclone.core.dispatchers.AppDispatchers
+import com.nazam.instaclone.feature.auth.domain.usecase.GetCurrentUserUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.CreatePostUseCase
 import com.nazam.instaclone.feature.home.presentation.model.CreatePostUiState
 import kotlinx.coroutines.CoroutineScope
@@ -16,11 +17,12 @@ import kotlinx.coroutines.withContext
 /**
  * ViewModel KMP pur:
  * - UiState: état durable
- * - events: navigation one-shot
+ * - events: navigation / messages one-shot
  */
 class CreatePostViewModel(
     private val dispatchers: AppDispatchers,
-    private val createPostUseCase: CreatePostUseCase
+    private val createPostUseCase: CreatePostUseCase,
+    private val getCurrentUserUseCase: GetCurrentUserUseCase
 ) {
     private val job = Job()
     private val scope = CoroutineScope(dispatchers.main + job)
@@ -30,6 +32,23 @@ class CreatePostViewModel(
 
     private val _events = MutableSharedFlow<CreatePostUiEvent>(extraBufferCapacity = 1)
     val events: SharedFlow<CreatePostUiEvent> = _events
+
+    /**
+     * Appelé au démarrage de l'écran.
+     * But : empêcher d'accéder à CreatePost si pas connecté.
+     */
+    fun checkAccess() {
+        scope.launch {
+            val user = withContext(dispatchers.default) {
+                getCurrentUserUseCase.execute()
+            }
+
+            if (user == null) {
+                _events.tryEmit(CreatePostUiEvent.ShowMessage("Tu dois être connecté pour créer un post."))
+                _events.tryEmit(CreatePostUiEvent.NavigateToLogin)
+            }
+        }
+    }
 
     fun onQuestionChange(value: String) {
         _uiState.update { it.copy(question = value, errorMessage = null) }
@@ -93,13 +112,15 @@ class CreatePostViewModel(
                     _events.tryEmit(CreatePostUiEvent.PostCreated)
                 }
                 .onFailure { error ->
-                    val msg =
-                        if (error is IllegalStateException && error.message == "AUTH_REQUIRED") {
-                            "Tu dois être connecté pour créer un post."
-                        } else {
-                            error.message ?: "Erreur lors de la création du post."
-                        }
+                    // Si le backend dit "AUTH_REQUIRED", on force un retour login
+                    if (error is IllegalStateException && error.message == "AUTH_REQUIRED") {
+                        _uiState.update { it.copy(isLoading = false) }
+                        _events.tryEmit(CreatePostUiEvent.ShowMessage("Tu dois être connecté pour créer un post."))
+                        _events.tryEmit(CreatePostUiEvent.NavigateToLogin)
+                        return@onFailure
+                    }
 
+                    val msg = error.message ?: "Erreur lors de la création du post."
                     _uiState.update { it.copy(isLoading = false, errorMessage = msg) }
                 }
         }
