@@ -25,13 +25,16 @@ import org.koin.compose.koinInject
 fun SignupScreen(
     onNavigateToLogin: () -> Unit
 ) {
+    // ✅ ViewModel via Koin
     val viewModel: SignupViewModel = koinInject()
 
-    DisposableEffect(viewModel) {
-        onDispose(viewModel::onClear)
-    }
-
+    // ✅ ui est directement SignupUiState grâce à "by"
     val ui by viewModel.uiState.collectAsState()
+
+    // ✅ Nettoyage quand on quitte l’écran
+    DisposableEffect(Unit) {
+        onDispose { viewModel.clear() }
+    }
 
     Column(
         modifier = Modifier
@@ -40,6 +43,7 @@ fun SignupScreen(
             .padding(24.dp),
         verticalArrangement = Arrangement.Center
     ) {
+
         Text(text = "Créer un compte")
 
         Spacer(modifier = Modifier.height(16.dp))

@@ -28,14 +28,18 @@ fun LoginScreen(
     onNavigateToSignup: () -> Unit,
     onNavigateToHome: () -> Unit
 ) {
+    // ✅ ViewModel via Koin
     val viewModel: LoginViewModel = koinInject()
 
-    DisposableEffect(viewModel) {
-        onDispose(viewModel::onClear)
-    }
-
+    // ✅ ui est directement LoginUiState grâce à "by"
     val ui by viewModel.uiState.collectAsState()
 
+    // ✅ Nettoyage quand on quitte l’écran
+    DisposableEffect(Unit) {
+        onDispose { viewModel.clear() }
+    }
+
+    // ✅ Navigation quand connecté
     LaunchedEffect(ui.isLoggedIn) {
         if (ui.isLoggedIn) onNavigateToHome()
     }
@@ -47,6 +51,7 @@ fun LoginScreen(
             .padding(24.dp),
         verticalArrangement = Arrangement.Center
     ) {
+
         Text(text = "Connexion")
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -76,8 +81,11 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth(),
             enabled = !ui.isLoading
         ) {
-            if (ui.isLoading) CircularProgressIndicator(color = Color.White)
-            else Text("Connexion")
+            if (ui.isLoading) {
+                CircularProgressIndicator(color = Color.White)
+            } else {
+                Text("Connexion")
+            }
         }
 
         Spacer(modifier = Modifier.height(8.dp))
