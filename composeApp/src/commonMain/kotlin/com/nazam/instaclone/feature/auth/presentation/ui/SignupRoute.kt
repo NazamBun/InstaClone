@@ -12,7 +12,7 @@ import org.koin.compose.koinInject
 
 /**
  * Route = colle l'UI au ViewModel.
- * Elle écoute les events (navigation / messages).
+ * Elle écoute les events (navigation).
  */
 @Composable
 fun SignupRoute(
@@ -32,7 +32,6 @@ fun SignupRoute(
                 AuthUiEvent.NavigateToLogin -> onNavigateToLogin()
                 AuthUiEvent.NavigateToHome -> Unit
                 AuthUiEvent.NavigateToSignup -> Unit
-                is AuthUiEvent.ShowError -> Unit
             }
         }
     }
