@@ -13,37 +13,23 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.nazam.instaclone.feature.auth.presentation.viewmodel.LoginViewModel
-import org.koin.compose.koinInject
+import com.nazam.instaclone.feature.auth.presentation.model.LoginUiState
 
+/**
+ * Ecran pur (UI only).
+ * Il ne connaît pas Koin et ne connaît pas les events.
+ */
 @Composable
 fun LoginScreen(
-    onNavigateToSignup: () -> Unit,
-    onNavigateToHome: () -> Unit
+    ui: LoginUiState,
+    onEmailChange: (String) -> Unit,
+    onPasswordChange: (String) -> Unit,
+    onLoginClick: () -> Unit,
+    onSignupClick: () -> Unit
 ) {
-    // ✅ ViewModel via Koin
-    val viewModel: LoginViewModel = koinInject()
-
-    // ✅ ui est directement LoginUiState grâce à "by"
-    val ui by viewModel.uiState.collectAsState()
-
-    // ✅ Nettoyage quand on quitte l’écran
-    DisposableEffect(Unit) {
-        onDispose { viewModel.clear() }
-    }
-
-    // ✅ Navigation quand connecté
-    LaunchedEffect(ui.isLoggedIn) {
-        if (ui.isLoggedIn) onNavigateToHome()
-    }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -51,14 +37,13 @@ fun LoginScreen(
             .padding(24.dp),
         verticalArrangement = Arrangement.Center
     ) {
-
         Text(text = "Connexion")
 
         Spacer(modifier = Modifier.height(16.dp))
 
         TextField(
             value = ui.email,
-            onValueChange = viewModel::onEmailChanged,
+            onValueChange = onEmailChange,
             modifier = Modifier.fillMaxWidth(),
             placeholder = { Text("Email") },
             singleLine = true
@@ -68,7 +53,7 @@ fun LoginScreen(
 
         TextField(
             value = ui.password,
-            onValueChange = viewModel::onPasswordChanged,
+            onValueChange = onPasswordChange,
             modifier = Modifier.fillMaxWidth(),
             placeholder = { Text("Mot de passe") },
             singleLine = true
@@ -77,7 +62,7 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(20.dp))
 
         Button(
-            onClick = viewModel::login,
+            onClick = onLoginClick,
             modifier = Modifier.fillMaxWidth(),
             enabled = !ui.isLoading
         ) {
@@ -91,7 +76,7 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         Button(
-            onClick = onNavigateToSignup,
+            onClick = onSignupClick,
             modifier = Modifier.fillMaxWidth(),
             enabled = !ui.isLoading
         ) {
