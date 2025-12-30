@@ -1,43 +1,64 @@
 package com.nazam.instaclone.feature.home.presentation.ui
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import com.nazam.instaclone.core.navigation.Screen
+import com.nazam.instaclone.feature.home.presentation.viewmodel.HomeUiEvent
 import com.nazam.instaclone.feature.home.presentation.viewmodel.HomeViewModel
+import kotlinx.coroutines.flow.collectLatest
+import org.koin.compose.koinInject
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+/**
+ * Route = colle l'UI au ViewModel.
+ * Elle écoute les events (navigation + messages one-shot).
+ */
 @Composable
 fun HomeRoute(
-    onNavigateToCreatePost: () -> Unit,
-    onNavigateToLogin: () -> Unit,
-    onNavigateToSignup: () -> Unit
+    onNavigate: (Screen) -> Unit
 ) {
-    val viewModel = remember { HomeViewModel() }
+    val viewModel: HomeViewModel = koinInject()
+    val ui by viewModel.uiState.collectAsState()
+
+    val snackbarHostState = SnackbarHostState()
 
     DisposableEffect(Unit) {
         onDispose { viewModel.clear() }
     }
 
-    val ui by viewModel.uiState.collectAsState()
+    LaunchedEffect(Unit) {
+        viewModel.events.collectLatest { event ->
+            when (event) {
+                HomeUiEvent.NavigateToLogin -> onNavigate(Screen.Login)
+                HomeUiEvent.NavigateToSignup -> onNavigate(Screen.Signup)
+                HomeUiEvent.NavigateToCreatePost -> onNavigate(Screen.CreatePost)
+                is HomeUiEvent.ShowMessage -> snackbarHostState.showSnackbar(event.message)
+            }
+        }
+    }
 
     HomeScreen(
         ui = ui,
-        onNavigateToCreatePost = onNavigateToCreatePost,
-        onNavigateToLogin = onNavigateToLogin,
-        onNavigateToSignup = onNavigateToSignup,
+        snackbarHostState = snackbarHostState,
+
         onCreatePostClick = viewModel::onCreatePostClicked,
+        onLoginClick = viewModel::onLoginClicked,
         onLogoutClick = viewModel::logout,
+
         onVoteLeft = viewModel::voteLeft,
         onVoteRight = viewModel::voteRight,
         onOpenComments = viewModel::openComments,
         onCloseComments = viewModel::closeComments,
+
         onNewCommentChange = viewModel::onNewCommentChange,
         onSendCommentClick = viewModel::onSendCommentClicked,
         onCommentInputRequested = viewModel::onCommentInputRequested,
-        onConsumeDialog = viewModel::consumeDialog
+
+        onConsumeDialog = viewModel::consumeDialog,
+        onDialogConfirm = viewModel::onDialogConfirmClicked,
+        onDialogSecondary = viewModel::onDialogSecondaryClicked
     )
 }

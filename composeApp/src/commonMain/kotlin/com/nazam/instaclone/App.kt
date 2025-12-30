@@ -11,47 +11,32 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import com.nazam.instaclone.core.navigation.Screen
-import com.nazam.instaclone.feature.auth.presentation.ui.LoginScreen
-import com.nazam.instaclone.feature.auth.presentation.ui.SignupScreen
+import com.nazam.instaclone.feature.auth.presentation.ui.LoginRoute
+import com.nazam.instaclone.feature.auth.presentation.ui.SignupRoute
 import com.nazam.instaclone.feature.home.presentation.ui.CreatePostRoute
 import com.nazam.instaclone.feature.home.presentation.ui.HomeRoute
-import com.nazam.instaclone.feature.home.presentation.ui.HomeScreen
 
 @Composable
 fun App() {
-
     var currentScreen by remember { mutableStateOf(Screen.Home) }
 
+    fun navigateTo(screen: Screen) {
+        currentScreen = screen
+    }
+
     MaterialTheme {
-        // ✅ SUPER IMPORTANT KMP:
-        // Applique la "safe area" / "system bars" à toute l'app (Android + iOS)
         Box(
-            modifier = androidx.compose.ui.Modifier
+            modifier = Modifier
                 .fillMaxSize()
                 .windowInsetsPadding(WindowInsets.safeDrawing)
         ) {
             when (currentScreen) {
-
-                Screen.Home -> HomeRoute(
-                    onNavigateToCreatePost = { currentScreen = Screen.CreatePost },
-                    onNavigateToLogin = { currentScreen = Screen.Login },
-                    onNavigateToSignup = { currentScreen = Screen.Signup }
-                )
-
-                Screen.Login -> LoginScreen(
-                    onNavigateToSignup = { currentScreen = Screen.Signup },
-                    onNavigateToHome = { currentScreen = Screen.Home }
-                )
-
-                Screen.Signup -> SignupScreen(
-                    onNavigateToLogin = { currentScreen = Screen.Login }
-                )
-
-                Screen.CreatePost -> CreatePostRoute(
-                    onBack = { currentScreen = Screen.Home },
-                    onPostCreated = { currentScreen = Screen.Home }
-                )
+                Screen.Home -> HomeRoute(onNavigate = ::navigateTo)
+                Screen.Login -> LoginRoute(onNavigate = ::navigateTo)
+                Screen.Signup -> SignupRoute(onNavigate = ::navigateTo)
+                Screen.CreatePost -> CreatePostRoute(onNavigate = ::navigateTo)
             }
         }
     }
