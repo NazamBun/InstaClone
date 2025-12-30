@@ -13,47 +13,47 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * ✅ ViewModel KMP "pur"
- * - pas de KoinComponent
- * - dépendances via constructeur (SOLID)
+ * ✅ ViewModel KMP pur
+ * - Pas de KoinComponent
+ * - Dépendances injectées par constructeur
+ * - Compatible Android & iOS
  */
 class LoginViewModel(
     private val dispatchers: AppDispatchers,
     private val loginUseCase: LoginUseCase,
     private val getCurrentUserUseCase: GetCurrentUserUseCase
 ) {
+
     private val job = Job()
     private val scope = CoroutineScope(dispatchers.main + job)
 
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState
 
-    /** ✅ Quand l’email change */
-    fun onEmailChanged(newEmail: String) {
-        _uiState.update { it.copy(email = newEmail, errorMessage = null) }
+    /** Quand l’email change */
+    fun onEmailChanged(value: String) {
+        _uiState.update { it.copy(email = value, errorMessage = null) }
     }
 
-    /** ✅ Quand le mot de passe change */
-    fun onPasswordChanged(newPassword: String) {
-        _uiState.update { it.copy(password = newPassword, errorMessage = null) }
+    /** Quand le mot de passe change */
+    fun onPasswordChanged(value: String) {
+        _uiState.update { it.copy(password = value, errorMessage = null) }
     }
 
-    /** ✅ Clique sur "Connexion" */
+    /** Clique sur "Se connecter" */
     fun login() {
-        val email = _uiState.value.email.trim()
-        val password = _uiState.value.password
+        val state = _uiState.value
 
-        // ✅ mini validation
-        if (email.isBlank() || password.isBlank()) {
+        if (state.email.isBlank() || state.password.isBlank()) {
             _uiState.update { it.copy(errorMessage = "Email et mot de passe requis") }
             return
         }
 
         scope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            _uiState.update { it.copy(isLoading = true) }
 
             val result = withContext(dispatchers.default) {
-                loginUseCase.execute(email, password)
+                loginUseCase.execute(state.email, state.password)
             }
 
             result
@@ -64,30 +64,28 @@ class LoginViewModel(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            errorMessage = error.message ?: "Erreur inconnue"
+                            errorMessage = error.message ?: "Erreur de connexion"
                         )
                     }
                 }
         }
     }
 
-    /** ✅ Vérifie si déjà connecté (utile au démarrage) */
-    fun checkIfAlreadyLoggedIn() {
+    /** Vérifie si l’utilisateur est déjà connecté */
+    fun checkSession() {
         scope.launch {
             val user = withContext(dispatchers.default) {
                 getCurrentUserUseCase.execute()
             }
+
             if (user != null) {
                 _uiState.update { it.copy(isLoggedIn = true) }
             }
         }
     }
 
-    /** ✅ Stoppe les coroutines */
+    /** Stoppe les coroutines */
     fun clear() {
         job.cancel()
     }
-
-    // ✅ Compat (si tu l’appelles déjà dans l’UI)
-    fun onClear() = clear()
 }

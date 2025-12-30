@@ -12,51 +12,52 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * ✅ ViewModel KMP "pur"
- * - pas de KoinComponent
- * - dépendances via constructeur (SOLID)
+ * ✅ ViewModel KMP pur
+ * - Pas de KoinComponent
+ * - Injection par constructeur
+ * - Testable et multiplateforme
  */
 class SignupViewModel(
     private val dispatchers: AppDispatchers,
     private val signupUseCase: SignupUseCase
 ) {
+
     private val job = Job()
     private val scope = CoroutineScope(dispatchers.main + job)
 
     private val _uiState = MutableStateFlow(SignupUiState())
     val uiState: StateFlow<SignupUiState> = _uiState
 
-    /** ✅ Quand l’email change */
-    fun onEmailChanged(newEmail: String) {
-        _uiState.update { it.copy(email = newEmail, errorMessage = null) }
+    fun onEmailChanged(value: String) {
+        _uiState.update { it.copy(email = value, errorMessage = null) }
     }
 
-    /** ✅ Quand le mot de passe change */
-    fun onPasswordChanged(newPassword: String) {
-        _uiState.update { it.copy(password = newPassword, errorMessage = null) }
+    fun onPasswordChanged(value: String) {
+        _uiState.update { it.copy(password = value, errorMessage = null) }
     }
 
-    /** ✅ Quand le pseudo change */
-    fun onDisplayNameChanged(newName: String) {
-        _uiState.update { it.copy(displayName = newName, errorMessage = null) }
+    fun onDisplayNameChanged(value: String) {
+        _uiState.update { it.copy(displayName = value, errorMessage = null) }
     }
 
-    /** ✅ Clique sur "Créer un compte" */
+    /** Clique sur "Créer un compte" */
     fun signup() {
-        val email = _uiState.value.email.trim()
-        val password = _uiState.value.password
-        val displayName = _uiState.value.displayName.trim()
+        val state = _uiState.value
 
-        if (email.isBlank() || password.isBlank()) {
+        if (state.email.isBlank() || state.password.isBlank()) {
             _uiState.update { it.copy(errorMessage = "Email et mot de passe requis") }
             return
         }
 
         scope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            _uiState.update { it.copy(isLoading = true) }
 
             val result = withContext(dispatchers.default) {
-                signupUseCase.execute(email, password, displayName)
+                signupUseCase.execute(
+                    email = state.email,
+                    password = state.password,
+                    displayName = state.displayName
+                )
             }
 
             result
@@ -67,18 +68,14 @@ class SignupViewModel(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            errorMessage = error.message ?: "Erreur inconnue"
+                            errorMessage = error.message ?: "Erreur d’inscription"
                         )
                     }
                 }
         }
     }
 
-    /** ✅ Stoppe les coroutines */
     fun clear() {
         job.cancel()
     }
-
-    // ✅ Compat
-    fun onClear() = clear()
 }
