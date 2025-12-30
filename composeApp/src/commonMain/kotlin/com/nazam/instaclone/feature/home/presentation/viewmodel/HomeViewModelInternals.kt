@@ -11,10 +11,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/**
- * Logique longue séparée:
- * HomeViewModel reste simple.
- */
 internal fun HomeViewModel.loadFeedInternal(
     dispatchers: AppDispatchers,
     getFeedUseCase: GetFeedUseCase
@@ -89,8 +85,6 @@ internal fun HomeViewModel.openCommentsInternal(
     }
 
     scope.launch {
-        _uiState.update { it.copy(isCommentsLoading = true) }
-
         val result = withContext(dispatchers.default) { getCommentsUseCase.execute(postId) }
 
         result

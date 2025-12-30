@@ -21,9 +21,8 @@ import kotlinx.coroutines.withContext
 
 /**
  * ViewModel KMP pur:
- * - pas de code Android/iOS
- * - UiState = état durable
- * - events = navigation + messages one-shot
+ * - UiState: état durable
+ * - events: navigation + message (one-shot)
  */
 class HomeViewModel(
     private val dispatchers: AppDispatchers,
@@ -63,32 +62,12 @@ class HomeViewModel(
         }
     }
 
-    fun loadFeed() = loadFeedInternal(
-        dispatchers = dispatchers,
-        getFeedUseCase = getFeedUseCase
-    )
+    fun loadFeed() = loadFeedInternal(dispatchers, getFeedUseCase)
 
-    fun voteLeft(postId: String) = voteInternal(
-        dispatchers = dispatchers,
-        postId = postId,
-        isLeft = true,
-        voteLeftUseCase = voteLeftUseCase,
-        voteRightUseCase = voteRightUseCase
-    )
+    fun voteLeft(postId: String) = voteInternal(dispatchers, postId, true, voteLeftUseCase, voteRightUseCase)
 
-    fun voteRight(postId: String) = voteInternal(
-        dispatchers = dispatchers,
-        postId = postId,
-        isLeft = false,
-        voteLeftUseCase = voteLeftUseCase,
-        voteRightUseCase = voteRightUseCase
-    )
+    fun voteRight(postId: String) = voteInternal(dispatchers, postId, false, voteLeftUseCase, voteRightUseCase)
 
-    /**
-     * Le bouton "Créer post":
-     * - si connecté -> event navigation
-     * - sinon -> dialog (2 boutons)
-     */
     fun onCreatePostClicked() {
         if (uiState.value.isLoggedIn) {
             _events.tryEmit(HomeUiEvent.NavigateToCreatePost)
@@ -97,18 +76,11 @@ class HomeViewModel(
         }
     }
 
-    /**
-     * Quand l'utilisateur clique "Se connecter" depuis le bas (HomeBottomBar).
-     */
     fun onLoginClicked() {
         _events.tryEmit(HomeUiEvent.NavigateToLogin)
     }
 
-    fun openComments(postId: String) = openCommentsInternal(
-        dispatchers = dispatchers,
-        postId = postId,
-        getCommentsUseCase = getCommentsUseCase
-    )
+    fun openComments(postId: String) = openCommentsInternal(dispatchers, postId, getCommentsUseCase)
 
     fun closeComments() = closeCommentsInternal()
 
@@ -116,10 +88,7 @@ class HomeViewModel(
         _uiState.update { it.copy(newCommentText = value.take(500)) }
     }
 
-    fun onSendCommentClicked() = sendCommentInternal(
-        dispatchers = dispatchers,
-        addCommentUseCase = addCommentUseCase
-    )
+    fun onSendCommentClicked() = sendCommentInternal(dispatchers, addCommentUseCase)
 
     fun onCommentInputRequested() {
         if (!uiState.value.isLoggedIn) {
@@ -127,25 +96,18 @@ class HomeViewModel(
         }
     }
 
-    fun logout() = logoutInternal(
-        dispatchers = dispatchers,
-        logoutUseCase = logoutUseCase
-    )
+    fun logout() = logoutInternal(dispatchers, logoutUseCase)
 
-    /**
-     * Dialog (2 boutons) -> l'UI appelle ça.
-     * On garde la logique ici, l'UI ne décide pas où naviguer.
-     */
     fun onDialogConfirmClicked() {
-        val shouldGoLogin = uiState.value.dialogShouldOpenLogin
+        val goLogin = uiState.value.dialogShouldOpenLogin
         consumeDialog()
-        if (shouldGoLogin) _events.tryEmit(HomeUiEvent.NavigateToLogin)
+        if (goLogin) _events.tryEmit(HomeUiEvent.NavigateToLogin)
     }
 
     fun onDialogSecondaryClicked() {
-        val shouldGoSignup = uiState.value.dialogShouldOpenSignup
+        val goSignup = uiState.value.dialogShouldOpenSignup
         consumeDialog()
-        if (shouldGoSignup) _events.tryEmit(HomeUiEvent.NavigateToSignup)
+        if (goSignup) _events.tryEmit(HomeUiEvent.NavigateToSignup)
     }
 
     fun consumeDialog() {
