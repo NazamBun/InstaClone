@@ -1,6 +1,8 @@
 package com.nazam.instaclone.feature.auth.presentation.viewmodel
 
 import com.nazam.instaclone.core.dispatchers.AppDispatchers
+import com.nazam.instaclone.core.navigation.NavigationStore
+import com.nazam.instaclone.core.navigation.Screen
 import com.nazam.instaclone.feature.auth.domain.usecase.SignupUseCase
 import com.nazam.instaclone.feature.auth.presentation.model.SignupUiState
 import kotlinx.coroutines.CoroutineScope
@@ -15,8 +17,8 @@ import kotlinx.coroutines.withContext
 
 /**
  * ViewModel KMP pur.
- * - UiState garde les champs, loading, erreur, succès
- * - Events gèrent la navigation
+ * - UiState = état durable
+ * - Events = actions one-shot (navigation)
  */
 class SignupViewModel(
     private val dispatchers: AppDispatchers,
@@ -61,7 +63,11 @@ class SignupViewModel(
             result
                 .onSuccess {
                     _uiState.update { it.copy(isLoading = false, isSignedUp = true) }
-                    _events.tryEmit(AuthUiEvent.NavigateBack)
+
+                    // Important : après signup, on va où il faut.
+                    // Home par défaut, ou CreatePost si demandé avant.
+                    val target = NavigationStore.consumeAfterLogin() ?: Screen.Home
+                    _events.tryEmit(AuthUiEvent.Navigate(target))
                 }
                 .onFailure { error ->
                     _uiState.update {
