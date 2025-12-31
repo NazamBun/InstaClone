@@ -1,6 +1,8 @@
 package com.nazam.instaclone.feature.home.presentation.viewmodel
 
 import com.nazam.instaclone.core.dispatchers.AppDispatchers
+import com.nazam.instaclone.core.navigation.NavigationStore
+import com.nazam.instaclone.core.navigation.Screen
 import com.nazam.instaclone.feature.auth.domain.usecase.GetCurrentUserUseCase
 import com.nazam.instaclone.feature.auth.domain.usecase.LogoutUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.AddCommentUseCase
@@ -72,7 +74,12 @@ class HomeViewModel(
         if (uiState.value.isLoggedIn) {
             _events.tryEmit(HomeUiEvent.NavigateToCreatePost)
         } else {
-            showAuthRequiredDialogInternal("Tu dois être connecté pour créer un post.")
+            // IMPORTANT : on mémorise l’intention
+            NavigationStore.setAfterLogin(Screen.CreatePost)
+
+            showAuthRequiredDialogInternal(
+                "Tu dois être connecté pour créer un post."
+            )
         }
     }
 

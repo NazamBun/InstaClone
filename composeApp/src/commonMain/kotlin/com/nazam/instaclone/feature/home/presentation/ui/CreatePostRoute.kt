@@ -1,5 +1,6 @@
 package com.nazam.instaclone.feature.home.presentation.ui
 
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -18,16 +19,21 @@ fun CreatePostRoute(
     val viewModel: CreatePostViewModel = koinInject()
     val ui by viewModel.uiState.collectAsState()
 
+    val snackbarHostState = SnackbarHostState()
+
     DisposableEffect(Unit) {
         onDispose { viewModel.clear() }
     }
 
     LaunchedEffect(Unit) {
+        viewModel.checkAccess()
+
         viewModel.events.collectLatest { event ->
             when (event) {
                 CreatePostUiEvent.PostCreated -> onNavigate(Screen.Home)
                 CreatePostUiEvent.NavigateBack -> onNavigate(Screen.Home)
-                is CreatePostUiEvent.ShowMessage -> Unit
+                CreatePostUiEvent.NavigateToLogin -> onNavigate(Screen.Login)
+                is CreatePostUiEvent.ShowMessage -> snackbarHostState.showSnackbar(event.message)
             }
         }
     }

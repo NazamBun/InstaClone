@@ -73,7 +73,8 @@ val appModule = module {
     factory {
         CreatePostViewModel(
             dispatchers = get(),
-            createPostUseCase = get()
+            createPostUseCase = get(),
+            getCurrentUserUseCase = get()
         )
     }
 
