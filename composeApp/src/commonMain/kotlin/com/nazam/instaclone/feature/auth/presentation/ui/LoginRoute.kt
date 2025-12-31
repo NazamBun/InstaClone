@@ -23,11 +23,11 @@ fun LoginRoute(
     }
 
     LaunchedEffect(Unit) {
+        viewModel.checkSession()
+
         viewModel.events.collectLatest { event ->
             when (event) {
-                AuthUiEvent.NavigateToHome -> onNavigate(Screen.Home)
-                AuthUiEvent.NavigateToSignup -> onNavigate(Screen.Signup)
-                AuthUiEvent.NavigateToLogin -> onNavigate(Screen.Login)
+                is AuthUiEvent.Navigate -> onNavigate(event.screen)
                 AuthUiEvent.NavigateBack -> Unit
             }
         }
