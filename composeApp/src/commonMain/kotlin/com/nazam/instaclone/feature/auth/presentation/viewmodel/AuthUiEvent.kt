@@ -1,12 +1,14 @@
 package com.nazam.instaclone.feature.auth.presentation.viewmodel
 
+import com.nazam.instaclone.core.navigation.Screen
+
 /**
- * Events one-shot: seulement navigation.
- * Les erreurs restent dans UiState (ex: ui.errorMessage).
+ * Events one-shot: navigation uniquement.
+ * On envoie directement la destination.
  */
 sealed interface AuthUiEvent {
-    data object NavigateToHome : AuthUiEvent
-    data object NavigateToLogin : AuthUiEvent
-    data object NavigateToSignup : AuthUiEvent
+
+    data class Navigate(val screen: Screen) : AuthUiEvent
+
     data object NavigateBack : AuthUiEvent
 }
