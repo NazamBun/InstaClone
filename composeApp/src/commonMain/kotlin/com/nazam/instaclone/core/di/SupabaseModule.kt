@@ -23,6 +23,7 @@ import com.nazam.instaclone.feature.home.presentation.viewmodel.CreatePostViewMo
 import com.nazam.instaclone.feature.home.presentation.viewmodel.HomeViewModel
 import kotlinx.serialization.json.Json
 import org.koin.dsl.module
+import com.nazam.instaclone.feature.home.presentation.ui.categories.CategoriesViewModel
 
 val appModule = module {
 
@@ -92,4 +93,6 @@ val appModule = module {
             signupUseCase = get()
         )
     }
+
+    factory { CategoriesViewModel() }
 }

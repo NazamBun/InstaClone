@@ -32,7 +32,7 @@ fun CreatePostScreen(
     onRightLabelChange: (String) -> Unit,
     onLeftImageUrlChange: (String) -> Unit,
     onRightImageUrlChange: (String) -> Unit,
-    onCategoryChange: (String) -> Unit,
+    onChooseCategoryClick: () -> Unit,
     onSubmitClick: () -> Unit,
     onCancelClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -101,13 +101,23 @@ fun CreatePostScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
-                value = ui.category,
-                onValueChange = onCategoryChange,
+                value = if (ui.category.isBlank()) "" else ui.category,
+                onValueChange = { },
+                readOnly = true,
                 label = { Text("Catégorie") },
+                placeholder = { Text("Choisir une catégorie") },
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Button(
+                onClick = onChooseCategoryClick,
+                enabled = !ui.isLoading,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Choisir la catégorie")
+            }
 
             ui.errorMessage?.let { msg ->
                 Text(

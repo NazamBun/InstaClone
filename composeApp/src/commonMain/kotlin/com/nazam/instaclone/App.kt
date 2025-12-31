@@ -17,6 +17,7 @@ import com.nazam.instaclone.feature.auth.presentation.ui.LoginRoute
 import com.nazam.instaclone.feature.auth.presentation.ui.SignupRoute
 import com.nazam.instaclone.feature.home.presentation.ui.CreatePostRoute
 import com.nazam.instaclone.feature.home.presentation.ui.HomeRoute
+import com.nazam.instaclone.feature.home.presentation.ui.categories.CategoriesRoute
 
 @Composable
 fun App() {
@@ -37,6 +38,7 @@ fun App() {
                 Screen.Login -> LoginRoute(onNavigate = ::navigateTo)
                 Screen.Signup -> SignupRoute(onNavigate = ::navigateTo)
                 Screen.CreatePost -> CreatePostRoute(onNavigate = ::navigateTo)
+                Screen.Categories -> CategoriesRoute(onNavigate = ::navigateTo)
             }
         }
     }

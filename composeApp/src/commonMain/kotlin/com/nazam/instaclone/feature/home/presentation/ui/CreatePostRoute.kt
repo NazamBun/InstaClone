@@ -6,6 +6,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nazam.instaclone.core.navigation.Screen
 import com.nazam.instaclone.feature.home.presentation.viewmodel.CreatePostUiEvent
 import com.nazam.instaclone.feature.home.presentation.viewmodel.CreatePostViewModel
@@ -14,7 +15,8 @@ import org.koin.compose.koinInject
 
 @Composable
 fun CreatePostRoute(
-    onNavigate: (Screen) -> Unit
+    onNavigate: (Screen) -> Unit,
+
 ) {
     val viewModel: CreatePostViewModel = koinInject()
     val ui by viewModel.uiState.collectAsState()
@@ -28,11 +30,15 @@ fun CreatePostRoute(
     LaunchedEffect(Unit) {
         viewModel.checkAccess()
 
+        // Important : quand on revient de CategoriesScreen, on recharge le draft
+        viewModel.refreshFromDraft()
+
         viewModel.events.collectLatest { event ->
             when (event) {
                 CreatePostUiEvent.PostCreated -> onNavigate(Screen.Home)
                 CreatePostUiEvent.NavigateBack -> onNavigate(Screen.Home)
                 CreatePostUiEvent.NavigateToLogin -> onNavigate(Screen.Login)
+                CreatePostUiEvent.NavigateToCategories -> onNavigate(Screen.Categories)
                 is CreatePostUiEvent.ShowMessage -> snackbarHostState.showSnackbar(event.message)
             }
         }
@@ -45,7 +51,10 @@ fun CreatePostRoute(
         onRightLabelChange = viewModel::onRightLabelChange,
         onLeftImageUrlChange = viewModel::onLeftImageUrlChange,
         onRightImageUrlChange = viewModel::onRightImageUrlChange,
-        onCategoryChange = viewModel::onCategoryChange,
+
+        // IMPORTANT : on supprime onCategoryChange (on ne tape plus la catégorie)
+        onChooseCategoryClick = viewModel::onChooseCategoryClicked,
+
         onSubmitClick = viewModel::submitPost,
         onCancelClick = viewModel::onCancelClicked
     )

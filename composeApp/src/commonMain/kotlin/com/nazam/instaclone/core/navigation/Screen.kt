@@ -4,5 +4,6 @@ enum class Screen {
     Login,
     Signup,
     Home,
-    CreatePost
+    CreatePost,
+    Categories
 }
