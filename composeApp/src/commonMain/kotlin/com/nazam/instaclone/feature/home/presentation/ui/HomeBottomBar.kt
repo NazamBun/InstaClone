@@ -2,9 +2,13 @@ package com.nazam.instaclone.feature.home.presentation.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,14 +33,25 @@ fun HomeBottomBar(
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = "Accueil",
-            color = Color.White,
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.weight(1f)
-        )
+        // Accueil (avec icône)
+        Column(
+            modifier = Modifier.weight(1f),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Home,
+                contentDescription = "Accueil",
+                tint = Color.White
+            )
+            Text(
+                text = "Accueil",
+                color = Color.White,
+                style = MaterialTheme.typography.bodySmall,
+                textAlign = TextAlign.Center
+            )
+        }
 
+        // Créer
         Text(
             text = "Créer",
             color = Color(0xFFFF4EB8),
@@ -47,6 +62,7 @@ fun HomeBottomBar(
                 .clickable { onCreatePostClick() }
         )
 
+        // Login / Logout
         if (isLoggedIn) {
             Text(
                 text = "Déco",
