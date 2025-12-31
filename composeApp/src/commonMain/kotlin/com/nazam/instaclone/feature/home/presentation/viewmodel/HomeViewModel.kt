@@ -72,19 +72,15 @@ class HomeViewModel(
 
     fun onCreatePostClicked() {
         if (uiState.value.isLoggedIn) {
-            _events.tryEmit(HomeUiEvent.NavigateToCreatePost)
+            navigateTo(Screen.CreatePost)
         } else {
-            // IMPORTANT : on mémorise l’intention
             NavigationStore.setAfterLogin(Screen.CreatePost)
-
-            showAuthRequiredDialogInternal(
-                "Tu dois être connecté pour créer un post."
-            )
+            showAuthRequiredDialogInternal("Tu dois être connecté pour créer un post.")
         }
     }
 
     fun onLoginClicked() {
-        _events.tryEmit(HomeUiEvent.NavigateToLogin)
+        navigateTo(Screen.Login)
     }
 
     fun openComments(postId: String) = openCommentsInternal(dispatchers, postId, getCommentsUseCase)
@@ -103,18 +99,24 @@ class HomeViewModel(
         }
     }
 
+    /**
+     * Logout "intelligent" :
+     * - on déconnecte
+     * - on nettoie NavigationStore (pour éviter une redirection bizarre après)
+     * - on redirige vers Login
+     */
     fun logout() = logoutInternal(dispatchers, logoutUseCase)
 
     fun onDialogConfirmClicked() {
         val goLogin = uiState.value.dialogShouldOpenLogin
         consumeDialog()
-        if (goLogin) _events.tryEmit(HomeUiEvent.NavigateToLogin)
+        if (goLogin) navigateTo(Screen.Login)
     }
 
     fun onDialogSecondaryClicked() {
         val goSignup = uiState.value.dialogShouldOpenSignup
         consumeDialog()
-        if (goSignup) _events.tryEmit(HomeUiEvent.NavigateToSignup)
+        if (goSignup) navigateTo(Screen.Signup)
     }
 
     fun consumeDialog() {
@@ -131,6 +133,10 @@ class HomeViewModel(
 
     internal fun emitMessage(message: String) {
         _events.tryEmit(HomeUiEvent.ShowMessage(message))
+    }
+
+    internal fun navigateTo(screen: Screen) {
+        _events.tryEmit(HomeUiEvent.Navigate(screen))
     }
 
     fun clear() {

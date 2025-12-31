@@ -32,9 +32,7 @@ fun HomeRoute(
     LaunchedEffect(Unit) {
         viewModel.events.collectLatest { event ->
             when (event) {
-                HomeUiEvent.NavigateToLogin -> onNavigate(Screen.Login)
-                HomeUiEvent.NavigateToSignup -> onNavigate(Screen.Signup)
-                HomeUiEvent.NavigateToCreatePost -> onNavigate(Screen.CreatePost)
+                is HomeUiEvent.Navigate -> onNavigate(event.screen)
                 is HomeUiEvent.ShowMessage -> snackbarHostState.showSnackbar(event.message)
             }
         }
