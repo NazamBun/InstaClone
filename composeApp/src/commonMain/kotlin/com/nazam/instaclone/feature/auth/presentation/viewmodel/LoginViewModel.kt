@@ -13,12 +13,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import com.nazam.instaclone.core.navigation.NavigationStore
-import com.nazam.instaclone.core.navigation.Screen
+
 /**
  * ViewModel KMP pur.
- * - StateFlow = état durable (champs, loading, erreur)
- * - SharedFlow = events (navigation)
+ * - StateFlow = état durable
+ * - SharedFlow = events (navigation simple)
  */
 class LoginViewModel(
     private val dispatchers: AppDispatchers,
@@ -43,19 +42,14 @@ class LoginViewModel(
     }
 
     /**
-     * Optionnel : si déjà connecté, on part direct Home.
-     * A appeler une fois depuis la Route (LaunchedEffect).
+     * Si déjà connecté -> on part sur Home.
+     * La Route décidera si elle doit rediriger ailleurs (CreatePost) via NavigationStore.
      */
     fun checkSession() {
         scope.launch {
             val user = withContext(dispatchers.default) { getCurrentUserUseCase.execute() }
             if (user != null) {
-                val target = NavigationStore.consumeAfterLogin()
-                if (target == Screen.CreatePost) {
-                    _events.tryEmit(AuthUiEvent.NavigateToCreatePost)
-                } else {
-                    _events.tryEmit(AuthUiEvent.NavigateToHome)
-                }
+                _events.tryEmit(AuthUiEvent.NavigateToHome)
             }
         }
     }
@@ -78,13 +72,7 @@ class LoginViewModel(
             result
                 .onSuccess {
                     _uiState.update { it.copy(isLoading = false) }
-
-                    val target = NavigationStore.consumeAfterLogin()
-                    if (target == Screen.CreatePost) {
-                        _events.tryEmit(AuthUiEvent.NavigateToCreatePost)
-                    } else {
-                        _events.tryEmit(AuthUiEvent.NavigateToHome)
-                    }
+                    _events.tryEmit(AuthUiEvent.NavigateToHome)
                 }
                 .onFailure { error ->
                     _uiState.update {

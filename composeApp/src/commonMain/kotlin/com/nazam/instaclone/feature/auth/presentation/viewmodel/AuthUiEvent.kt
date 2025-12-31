@@ -9,5 +9,4 @@ sealed interface AuthUiEvent {
     data object NavigateToLogin : AuthUiEvent
     data object NavigateToSignup : AuthUiEvent
     data object NavigateBack : AuthUiEvent
-    data object NavigateToCreatePost : AuthUiEvent
 }

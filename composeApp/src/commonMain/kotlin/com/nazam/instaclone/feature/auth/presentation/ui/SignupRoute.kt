@@ -29,7 +29,6 @@ fun SignupRoute(
                 AuthUiEvent.NavigateToLogin -> onNavigate(Screen.Login)
                 AuthUiEvent.NavigateToHome -> onNavigate(Screen.Home)
                 AuthUiEvent.NavigateToSignup -> onNavigate(Screen.Signup)
-                AuthUiEvent.NavigateToCreatePost -> onNavigate(Screen.CreatePost)
             }
         }
     }
