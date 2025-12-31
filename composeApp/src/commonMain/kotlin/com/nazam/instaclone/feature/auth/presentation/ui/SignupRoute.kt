@@ -25,10 +25,8 @@ fun SignupRoute(
     LaunchedEffect(Unit) {
         viewModel.events.collectLatest { event ->
             when (event) {
+                is AuthUiEvent.Navigate -> onNavigate(event.screen)
                 AuthUiEvent.NavigateBack -> onNavigate(Screen.Login)
-                AuthUiEvent.NavigateToLogin -> onNavigate(Screen.Login)
-                AuthUiEvent.NavigateToHome -> onNavigate(Screen.Home)
-                AuthUiEvent.NavigateToSignup -> onNavigate(Screen.Signup)
             }
         }
     }

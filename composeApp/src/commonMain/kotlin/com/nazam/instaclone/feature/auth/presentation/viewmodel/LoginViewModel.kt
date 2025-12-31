@@ -1,6 +1,8 @@
 package com.nazam.instaclone.feature.auth.presentation.viewmodel
 
 import com.nazam.instaclone.core.dispatchers.AppDispatchers
+import com.nazam.instaclone.core.navigation.NavigationStore
+import com.nazam.instaclone.core.navigation.Screen
 import com.nazam.instaclone.feature.auth.domain.usecase.GetCurrentUserUseCase
 import com.nazam.instaclone.feature.auth.domain.usecase.LoginUseCase
 import com.nazam.instaclone.feature.auth.presentation.model.LoginUiState
@@ -17,7 +19,7 @@ import kotlinx.coroutines.withContext
 /**
  * ViewModel KMP pur.
  * - StateFlow = état durable
- * - SharedFlow = events (navigation simple)
+ * - SharedFlow = events one-shot (navigation)
  */
 class LoginViewModel(
     private val dispatchers: AppDispatchers,
@@ -42,14 +44,14 @@ class LoginViewModel(
     }
 
     /**
-     * Si déjà connecté -> on part sur Home.
-     * La Route décidera si elle doit rediriger ailleurs (CreatePost) via NavigationStore.
+     * Si déjà connecté -> on navigue vers la bonne destination
+     * (Home par défaut, ou CreatePost si demandé avant).
      */
     fun checkSession() {
         scope.launch {
             val user = withContext(dispatchers.default) { getCurrentUserUseCase.execute() }
             if (user != null) {
-                _events.tryEmit(AuthUiEvent.NavigateToHome)
+                navigateAfterLogin()
             }
         }
     }
@@ -72,7 +74,7 @@ class LoginViewModel(
             result
                 .onSuccess {
                     _uiState.update { it.copy(isLoading = false) }
-                    _events.tryEmit(AuthUiEvent.NavigateToHome)
+                    navigateAfterLogin()
                 }
                 .onFailure { error ->
                     _uiState.update {
@@ -86,7 +88,12 @@ class LoginViewModel(
     }
 
     fun goToSignup() {
-        _events.tryEmit(AuthUiEvent.NavigateToSignup)
+        _events.tryEmit(AuthUiEvent.Navigate(Screen.Signup))
+    }
+
+    private fun navigateAfterLogin() {
+        val target = NavigationStore.consumeAfterLogin() ?: Screen.Home
+        _events.tryEmit(AuthUiEvent.Navigate(target))
     }
 
     fun clear() {
