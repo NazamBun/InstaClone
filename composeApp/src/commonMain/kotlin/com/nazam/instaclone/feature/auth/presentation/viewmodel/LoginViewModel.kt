@@ -13,7 +13,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-
+import com.nazam.instaclone.core.navigation.NavigationStore
+import com.nazam.instaclone.core.navigation.Screen
 /**
  * ViewModel KMP pur.
  * - StateFlow = état durable (champs, loading, erreur)
@@ -49,7 +50,12 @@ class LoginViewModel(
         scope.launch {
             val user = withContext(dispatchers.default) { getCurrentUserUseCase.execute() }
             if (user != null) {
-                _events.tryEmit(AuthUiEvent.NavigateToHome)
+                val target = NavigationStore.consumeAfterLogin()
+                if (target == Screen.CreatePost) {
+                    _events.tryEmit(AuthUiEvent.NavigateToCreatePost)
+                } else {
+                    _events.tryEmit(AuthUiEvent.NavigateToHome)
+                }
             }
         }
     }
@@ -72,7 +78,13 @@ class LoginViewModel(
             result
                 .onSuccess {
                     _uiState.update { it.copy(isLoading = false) }
-                    _events.tryEmit(AuthUiEvent.NavigateToHome)
+
+                    val target = NavigationStore.consumeAfterLogin()
+                    if (target == Screen.CreatePost) {
+                        _events.tryEmit(AuthUiEvent.NavigateToCreatePost)
+                    } else {
+                        _events.tryEmit(AuthUiEvent.NavigateToHome)
+                    }
                 }
                 .onFailure { error ->
                     _uiState.update {

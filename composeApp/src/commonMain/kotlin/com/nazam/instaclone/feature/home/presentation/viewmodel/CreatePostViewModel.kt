@@ -13,6 +13,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.nazam.instaclone.core.navigation.NavigationStore
+import com.nazam.instaclone.core.navigation.Screen
 
 /**
  * ViewModel KMP pur:
@@ -44,6 +46,9 @@ class CreatePostViewModel(
             }
 
             if (user == null) {
+                // On veut revenir sur CreatePost après login
+                NavigationStore.setAfterLogin(Screen.CreatePost)
+
                 _events.tryEmit(CreatePostUiEvent.ShowMessage("Tu dois être connecté pour créer un post."))
                 _events.tryEmit(CreatePostUiEvent.NavigateToLogin)
             }
@@ -115,6 +120,10 @@ class CreatePostViewModel(
                     // Si le backend dit "AUTH_REQUIRED", on force un retour login
                     if (error is IllegalStateException && error.message == "AUTH_REQUIRED") {
                         _uiState.update { it.copy(isLoading = false) }
+
+                        // On veut revenir sur CreatePost après login
+                        NavigationStore.setAfterLogin(Screen.CreatePost)
+
                         _events.tryEmit(CreatePostUiEvent.ShowMessage("Tu dois être connecté pour créer un post."))
                         _events.tryEmit(CreatePostUiEvent.NavigateToLogin)
                         return@onFailure

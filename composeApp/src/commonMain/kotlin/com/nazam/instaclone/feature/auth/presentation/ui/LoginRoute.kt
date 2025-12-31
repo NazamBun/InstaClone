@@ -23,11 +23,15 @@ fun LoginRoute(
     }
 
     LaunchedEffect(Unit) {
+        // Important : si déjà connecté, on redirige tout de suite
+        viewModel.checkSession()
+
         viewModel.events.collectLatest { event ->
             when (event) {
                 AuthUiEvent.NavigateToHome -> onNavigate(Screen.Home)
                 AuthUiEvent.NavigateToSignup -> onNavigate(Screen.Signup)
                 AuthUiEvent.NavigateToLogin -> onNavigate(Screen.Login)
+                AuthUiEvent.NavigateToCreatePost -> onNavigate(Screen.CreatePost)
                 AuthUiEvent.NavigateBack -> Unit
             }
         }
