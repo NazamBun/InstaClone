@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.nazam.instaclone.feature.home.presentation.model.CreatePostUiState
+import com.nazam.instaclone.feature.home.domain.model.VoteCategories
 
 /**
  * Ecran UI only.
@@ -100,8 +101,10 @@ fun CreatePostScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            val categoryLabel = VoteCategories.labelFor(ui.category)
+
             OutlinedTextField(
-                value = if (ui.category.isBlank()) "" else ui.category,
+                value = if (ui.category.isBlank()) "" else categoryLabel,
                 onValueChange = { },
                 readOnly = true,
                 label = { Text("Catégorie") },

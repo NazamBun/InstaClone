@@ -2,7 +2,7 @@ package com.nazam.instaclone.feature.home.domain.model
 
 /**
  * Catégories possibles pour un vote.
- * On garde un "id" stable + un "label" pour afficher.
+ * On garde un "id" stable (pour la DB) + un "label" (pour l'affichage).
  */
 data class VoteCategory(
     val id: String,
@@ -10,6 +10,7 @@ data class VoteCategory(
 )
 
 object VoteCategories {
+
     val all: List<VoteCategory> = listOf(
         VoteCategory(id = "sport", label = "Sport"),
         VoteCategory(id = "politique", label = "Politique"),
@@ -22,4 +23,14 @@ object VoteCategories {
         VoteCategory(id = "food", label = "Food"),
         VoteCategory(id = "jeux", label = "Jeux")
     )
+
+    /**
+     * Transforme un id (ex: "sport") en label (ex: "Sport").
+     * Si l'id est inconnu ou vide, on affiche un texte par défaut.
+     */
+    fun labelFor(id: String): String {
+        val safeId = id.trim()
+        if (safeId.isBlank()) return "Sans catégorie"
+        return all.firstOrNull { it.id == safeId }?.label ?: "Sans catégorie"
+    }
 }
