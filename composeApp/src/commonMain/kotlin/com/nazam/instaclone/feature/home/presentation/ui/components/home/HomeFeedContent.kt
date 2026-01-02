@@ -25,6 +25,11 @@ fun HomeFeedContent(
     onVoteRight: (String) -> Unit,
     onOpenComments: (String) -> Unit
 ) {
+    // ✅ IMPORTANT : on utilise vraiment la liste filtrée
+    val visiblePosts =
+        if (ui.selectedCategoryId.isBlank()) ui.posts
+        else ui.posts.filter { it.category == ui.selectedCategoryId }
+
     Box(modifier = Modifier.fillMaxSize()) {
         when {
             ui.isLoading -> {
@@ -34,22 +39,26 @@ fun HomeFeedContent(
                 )
             }
 
-            ui.posts.isEmpty() -> {
+            visiblePosts.isEmpty() -> {
+                val label = if (ui.selectedCategoryId.isBlank()) "Aucun post"
+                else "Aucun post dans ce filtre"
+
                 Text(
-                    text = "Aucun post",
+                    text = label,
                     color = Color.White,
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
 
             else -> {
-                val pagerState = rememberPagerState(pageCount = { ui.posts.size })
+                val pagerState = rememberPagerState(pageCount = { visiblePosts.size })
 
                 VerticalPager(
                     state = pagerState,
                     modifier = Modifier.fillMaxSize()
                 ) { index ->
-                    val post = ui.posts[index]
+                    val post = visiblePosts[index]
+
                     val rawOffset =
                         (pagerState.currentPage - index) + pagerState.currentPageOffsetFraction
                     val pageOffset = abs(rawOffset)

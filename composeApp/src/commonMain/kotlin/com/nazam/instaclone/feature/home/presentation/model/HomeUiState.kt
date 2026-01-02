@@ -27,5 +27,6 @@ data class HomeUiState(
     val commentsPostId: String? = null,
     val isCommentsLoading: Boolean = false,
     val comments: List<Comment> = emptyList(),
-    val newCommentText: String = ""
+    val newCommentText: String = "",
+    val selectedCategoryId: String = "",
 )

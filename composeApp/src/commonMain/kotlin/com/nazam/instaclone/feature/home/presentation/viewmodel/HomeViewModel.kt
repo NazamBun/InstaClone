@@ -20,6 +20,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.nazam.instaclone.feature.home.presentation.categories.CategorySelectionStore
+import com.nazam.instaclone.feature.home.presentation.categories.HomeFilterStore
 
 /**
  * ViewModel KMP pur:
@@ -46,6 +48,7 @@ class HomeViewModel(
     val events: SharedFlow<HomeUiEvent> = _events
 
     init {
+        refreshFilter()
         refreshSession()
         loadFeed()
     }
@@ -141,5 +144,20 @@ class HomeViewModel(
 
     fun clear() {
         job.cancel()
+    }
+    fun refreshFilter() {
+        val selected = HomeFilterStore.getCategory()
+        _uiState.update { it.copy(selectedCategoryId = selected) }
+    }
+
+    fun onChooseCategoryFilterClicked() {
+        CategorySelectionStore.setTarget(CategorySelectionStore.Target.HOME_FILTER)
+        navigateTo(Screen.Categories)
+    }
+
+    fun onHomeClicked() {
+        // ✅ Accueil = enlever le filtre
+        HomeFilterStore.clear()
+        refreshFilter()
     }
 }

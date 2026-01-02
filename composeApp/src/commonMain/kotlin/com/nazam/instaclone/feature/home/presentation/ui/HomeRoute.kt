@@ -30,6 +30,7 @@ fun HomeRoute(
     }
 
     LaunchedEffect(Unit) {
+        viewModel.refreshFilter()
         viewModel.events.collectLatest { event ->
             when (event) {
                 is HomeUiEvent.Navigate -> onNavigate(event.screen)
@@ -41,22 +42,20 @@ fun HomeRoute(
     HomeScreen(
         ui = ui,
         snackbarHostState = snackbarHostState,
-
         onCreatePostClick = viewModel::onCreatePostClicked,
         onLoginClick = viewModel::onLoginClicked,
         onLogoutClick = viewModel::logout,
-
         onVoteLeft = viewModel::voteLeft,
         onVoteRight = viewModel::voteRight,
         onOpenComments = viewModel::openComments,
         onCloseComments = viewModel::closeComments,
-
         onNewCommentChange = viewModel::onNewCommentChange,
         onSendCommentClick = viewModel::onSendCommentClicked,
         onCommentInputRequested = viewModel::onCommentInputRequested,
-
         onConsumeDialog = viewModel::consumeDialog,
         onDialogConfirm = viewModel::onDialogConfirmClicked,
-        onDialogSecondary = viewModel::onDialogSecondaryClicked
+        onDialogSecondary = viewModel::onDialogSecondaryClicked,
+        onHomeClick = viewModel::onHomeClicked,
+        onFilterClick = viewModel::onChooseCategoryFilterClicked
     )
 }

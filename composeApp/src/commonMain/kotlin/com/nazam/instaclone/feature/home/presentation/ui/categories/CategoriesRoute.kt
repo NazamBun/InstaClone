@@ -23,7 +23,7 @@ fun CategoriesRoute(
     LaunchedEffect(Unit) {
         viewModel.events.collectLatest { event ->
             when (event) {
-                CategoriesUiEvent.NavigateBackToCreatePost -> onNavigate(Screen.CreatePost)
+                is CategoriesUiEvent.NavigateBack -> onNavigate(event.screen)
             }
         }
     }

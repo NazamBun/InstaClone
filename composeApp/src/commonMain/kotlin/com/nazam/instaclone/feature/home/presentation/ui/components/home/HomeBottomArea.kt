@@ -1,5 +1,6 @@
 package com.nazam.instaclone.feature.home.presentation.ui.components.home
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -8,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.graphics.Color
 import com.nazam.instaclone.feature.home.presentation.model.HomeUiState
 import com.nazam.instaclone.feature.home.presentation.ui.HomeBottomBar
 import com.nazam.instaclone.feature.home.presentation.ui.components.comments.CommentInputBar
@@ -23,13 +25,16 @@ fun HomeBottomArea(
     onNewCommentChange: (String) -> Unit,
     onSendCommentClick: () -> Unit,
     onCommentInputRequested: () -> Unit,
-    onBottomHeightChanged: (Dp) -> Unit
+    onBottomHeightChanged: (Dp) -> Unit,
+    onFilterClick: () -> Unit,
+    onHomeClick: () -> Unit,
 ) {
     val density = LocalDensity.current
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .background(Color(0xFF050509))
             .imePadding()
             .onSizeChanged { size ->
                 onBottomHeightChanged(with(density) { size.height.toDp() })
@@ -50,6 +55,8 @@ fun HomeBottomArea(
 
         HomeBottomBar(
             isLoggedIn = ui.isLoggedIn,
+            onHomeClick = onHomeClick,
+            onFilterClick = onFilterClick,
             onCreatePostClick = onCreatePostClick,
             onLoginClick = onLoginClick,
             onLogoutClick = onLogoutClick

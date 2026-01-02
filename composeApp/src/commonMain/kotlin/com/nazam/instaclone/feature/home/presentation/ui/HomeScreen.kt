@@ -3,21 +3,29 @@ package com.nazam.instaclone.feature.home.presentation.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.nazam.instaclone.feature.home.domain.model.VoteCategories
 import com.nazam.instaclone.feature.home.presentation.model.HomeUiState
 import com.nazam.instaclone.feature.home.presentation.ui.components.comments.CommentsPanel
 import com.nazam.instaclone.feature.home.presentation.ui.components.dialogs.InfoDialog
@@ -45,7 +53,10 @@ fun HomeScreen(
 
     onConsumeDialog: () -> Unit,
     onDialogConfirm: () -> Unit,
-    onDialogSecondary: () -> Unit
+    onDialogSecondary: () -> Unit,
+    onHomeClick: () -> Unit,
+    onFilterClick: () -> Unit,
+
 ) {
     var bottomBlockHeightDp by remember { mutableStateOf(0.dp) }
     val panelHeight = 320.dp
@@ -64,8 +75,30 @@ fun HomeScreen(
         )
     }
 
+    val filterLabel = VoteCategories.labelFor(ui.selectedCategoryId)
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
+
+        // ✅ TOP BAR : filtre visible et propre
+        topBar = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth() // ✅ IMPORTANT : pas fillMaxSize()
+                    .background(Color(0xFF050509))
+                    .statusBarsPadding()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Filtre : $filterLabel",
+                    color = Color.White,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.clickable { onFilterClick() }
+                )
+            }
+        },
+
         bottomBar = {
             HomeBottomArea(
                 ui = ui,
@@ -75,7 +108,9 @@ fun HomeScreen(
                 onNewCommentChange = onNewCommentChange,
                 onSendCommentClick = onSendCommentClick,
                 onCommentInputRequested = onCommentInputRequested,
-                onBottomHeightChanged = { newHeight -> bottomBlockHeightDp = newHeight }
+                onBottomHeightChanged = { newHeight -> bottomBlockHeightDp = newHeight },
+                onHomeClick = onHomeClick,
+                onFilterClick = onFilterClick
             )
         }
     ) { padding ->
