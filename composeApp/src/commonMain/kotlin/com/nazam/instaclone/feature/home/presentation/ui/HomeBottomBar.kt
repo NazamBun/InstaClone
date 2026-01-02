@@ -16,17 +16,18 @@ import androidx.compose.ui.unit.dp
 
 /**
  * Bottom bar simple (KMP friendly) :
- * - Accueil : enlève le filtre
- * - Filtrer : ouvre Categories
- * - Créer : va vers CreatePost
+ * - Accueil
+ * - Filtrer
+ * - Créer
  * - Se connecter / Déco
  *
  * ✅ Pas d'icônes
- * ✅ 4 zones égales (propre)
+ * ✅ La surbrillance dépend de selectedItem
  */
 @Composable
 fun HomeBottomBar(
     isLoggedIn: Boolean,
+    selectedItem: String, // "home" | "filter" | "create" | "auth"
     onHomeClick: () -> Unit,
     onFilterClick: () -> Unit,
     onCreatePostClick: () -> Unit,
@@ -34,6 +35,14 @@ fun HomeBottomBar(
     onLogoutClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val accent = Color(0xFFFF4EB8)
+    val normal = Color.White
+    val muted = Color(0xFFBBBBBB)
+
+    fun colorFor(item: String, inactiveColor: Color = normal): Color {
+        return if (selectedItem == item) accent else inactiveColor
+    }
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -42,8 +51,9 @@ fun HomeBottomBar(
     ) {
         Text(
             text = "Accueil",
-            color = Color.White,
+            color = colorFor("home"),
             style = MaterialTheme.typography.bodyMedium,
+            fontWeight = if (selectedItem == "home") FontWeight.Bold else FontWeight.Normal,
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .weight(1f)
@@ -52,8 +62,9 @@ fun HomeBottomBar(
 
         Text(
             text = "Filtrer",
-            color = Color.White,
+            color = colorFor("filter"),
             style = MaterialTheme.typography.bodyMedium,
+            fontWeight = if (selectedItem == "filter") FontWeight.Bold else FontWeight.Normal,
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .weight(1f)
@@ -62,9 +73,9 @@ fun HomeBottomBar(
 
         Text(
             text = "Créer",
-            color = Color(0xFFFF4EB8),
-            fontWeight = FontWeight.Bold,
+            color = colorFor("create"),
             style = MaterialTheme.typography.bodyMedium,
+            fontWeight = if (selectedItem == "create") FontWeight.Bold else FontWeight.Normal,
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .weight(1f)
@@ -73,19 +84,21 @@ fun HomeBottomBar(
 
         if (isLoggedIn) {
             Text(
-                text = "Déco",
-                color = Color(0xFFBBBBBB),
+                text = "Profil", // tu voulais remplacer "Connexion" par "Profil" plus tard
+                color = colorFor("auth", inactiveColor = muted),
                 style = MaterialTheme.typography.bodyMedium,
+                fontWeight = if (selectedItem == "auth") FontWeight.Bold else FontWeight.Normal,
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .weight(1f)
-                    .clickable { onLogoutClick() }
+                    .clickable { onLogoutClick() } // pour l’instant tu gardes logout ici
             )
         } else {
             Text(
-                text = "Se connecter",
-                color = Color(0xFFBBBBBB),
+                text = "Profil",
+                color = colorFor("auth", inactiveColor = muted),
                 style = MaterialTheme.typography.bodyMedium,
+                fontWeight = if (selectedItem == "auth") FontWeight.Bold else FontWeight.Normal,
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .weight(1f)

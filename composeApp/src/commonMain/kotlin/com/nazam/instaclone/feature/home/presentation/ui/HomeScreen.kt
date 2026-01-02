@@ -80,28 +80,12 @@ fun HomeScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
 
-        // ✅ TOP BAR : filtre visible et propre
-        topBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth() // ✅ IMPORTANT : pas fillMaxSize()
-                    .background(Color(0xFF050509))
-                    .statusBarsPadding()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Filtre : $filterLabel",
-                    color = Color.White,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.clickable { onFilterClick() }
-                )
-            }
-        },
+
 
         bottomBar = {
             HomeBottomArea(
                 ui = ui,
+                selectedItem = "home",
                 onCreatePostClick = onCreatePostClick,
                 onLoginClick = onLoginClick,
                 onLogoutClick = onLogoutClick,
