@@ -22,6 +22,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.nazam.instaclone.feature.home.presentation.categories.CategorySelectionStore
 import com.nazam.instaclone.feature.home.presentation.categories.HomeFilterStore
+import com.nazam.instaclone.feature.home.domain.model.VoteCategory
 
 /**
  * ViewModel KMP pur:
@@ -151,12 +152,21 @@ class HomeViewModel(
     }
 
     fun onChooseCategoryFilterClicked() {
-        CategorySelectionStore.setTarget(CategorySelectionStore.Target.HOME_FILTER)
-        navigateTo(Screen.Categories)
+        navigateTo(Screen.Explore)
     }
 
     fun onHomeClicked() {
         // ✅ Accueil = enlever le filtre
+        HomeFilterStore.clear()
+        refreshFilter()
+    }
+
+    fun onExploreCategoryClicked(category: VoteCategory) {
+        HomeFilterStore.setCategory(category.id)
+        refreshFilter()
+    }
+
+    fun onExploreClearCategory() {
         HomeFilterStore.clear()
         refreshFilter()
     }
