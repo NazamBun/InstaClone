@@ -6,5 +6,7 @@ enum class Screen {
     Home,
     Explore,
     CreatePost,
-    Categories
+    Categories,
+    Notifications,
+    Profile
 }

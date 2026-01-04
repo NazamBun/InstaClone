@@ -1,5 +1,6 @@
 package com.nazam.instaclone.feature.home.presentation.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,47 +14,50 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.nazam.instaclone.core.navigation.Screen
 
 /**
- * Bottom bar simple (KMP friendly) :
+ * Bottom bar (KMP friendly) :
  * - Accueil
- * - Filtrer
+ * - Explorer
  * - Créer
- * - Se connecter / Déco
+ * - Notifications
+ * - Profil
  *
  * ✅ Pas d'icônes
- * ✅ La surbrillance dépend de selectedItem
+ * ✅ Surbrillance = selectedScreen
+ * ✅ Fond noir partout (même rendu sur tous les écrans)
  */
 @Composable
 fun HomeBottomBar(
-    isLoggedIn: Boolean,
-    selectedItem: String, // "home" | "filter" | "create" | "auth"
+    selectedScreen: Screen,
     onHomeClick: () -> Unit,
-    onFilterClick: () -> Unit,
+    onExploreClick: () -> Unit,
     onCreatePostClick: () -> Unit,
-    onLoginClick: () -> Unit,
-    onLogoutClick: () -> Unit,
+    onNotificationsClick: () -> Unit,
+    onProfileClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val background = Color(0xFF050509)
     val accent = Color(0xFFFF4EB8)
     val normal = Color.White
-    val muted = Color(0xFFBBBBBB)
 
-    fun colorFor(item: String, inactiveColor: Color = normal): Color {
-        return if (selectedItem == item) accent else inactiveColor
-    }
+    fun colorFor(screen: Screen): Color = if (selectedScreen == screen) accent else normal
+    fun weightFor(screen: Screen): FontWeight =
+        if (selectedScreen == screen) FontWeight.Bold else FontWeight.Normal
 
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .background(background) // ✅ fond noir sur tous les écrans
             .heightIn(min = 56.dp)
-            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .padding(horizontal = 10.dp, vertical = 12.dp)
     ) {
         Text(
             text = "Accueil",
-            color = colorFor("home"),
+            color = colorFor(Screen.Home),
             style = MaterialTheme.typography.bodyMedium,
-            fontWeight = if (selectedItem == "home") FontWeight.Bold else FontWeight.Normal,
+            fontWeight = weightFor(Screen.Home),
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .weight(1f)
@@ -61,49 +65,47 @@ fun HomeBottomBar(
         )
 
         Text(
-            text = "Filtrer",
-            color = colorFor("filter"),
+            text = "Explorer",
+            color = colorFor(Screen.Explore),
             style = MaterialTheme.typography.bodyMedium,
-            fontWeight = if (selectedItem == "filter") FontWeight.Bold else FontWeight.Normal,
+            fontWeight = weightFor(Screen.Explore),
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .weight(1f)
-                .clickable { onFilterClick() }
+                .clickable { onExploreClick() }
         )
 
         Text(
             text = "Créer",
-            color = colorFor("create"),
+            color = colorFor(Screen.CreatePost),
             style = MaterialTheme.typography.bodyMedium,
-            fontWeight = if (selectedItem == "create") FontWeight.Bold else FontWeight.Normal,
+            fontWeight = weightFor(Screen.CreatePost),
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .weight(1f)
                 .clickable { onCreatePostClick() }
         )
 
-        if (isLoggedIn) {
-            Text(
-                text = "Profil", // tu voulais remplacer "Connexion" par "Profil" plus tard
-                color = colorFor("auth", inactiveColor = muted),
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = if (selectedItem == "auth") FontWeight.Bold else FontWeight.Normal,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .weight(1f)
-                    .clickable { onLogoutClick() } // pour l’instant tu gardes logout ici
-            )
-        } else {
-            Text(
-                text = "Profil",
-                color = colorFor("auth", inactiveColor = muted),
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = if (selectedItem == "auth") FontWeight.Bold else FontWeight.Normal,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .weight(1f)
-                    .clickable { onLoginClick() }
-            )
-        }
+        Text(
+            text = "Notifs",
+            color = colorFor(Screen.Notifications),
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = weightFor(Screen.Notifications),
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .weight(1f)
+                .clickable { onNotificationsClick() }
+        )
+
+        Text(
+            text = "Profil",
+            color = colorFor(Screen.Profile),
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = weightFor(Screen.Profile),
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .weight(1f)
+                .clickable { onProfileClick() }
+        )
     }
 }

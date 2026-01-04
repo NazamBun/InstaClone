@@ -3,17 +3,12 @@ package com.nazam.instaclone.feature.home.presentation.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,25 +17,32 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.nazam.instaclone.feature.home.domain.model.VoteCategories
 import com.nazam.instaclone.feature.home.presentation.model.HomeUiState
 import com.nazam.instaclone.feature.home.presentation.ui.components.comments.CommentsPanel
 import com.nazam.instaclone.feature.home.presentation.ui.components.dialogs.InfoDialog
 import com.nazam.instaclone.feature.home.presentation.ui.components.home.HomeBottomArea
 import com.nazam.instaclone.feature.home.presentation.ui.components.home.HomeFeedContent
 
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * HomeScreen :
+ * - Le Scaffold est dans App.kt (donc ici : juste le contenu)
+ * - La bottom bar doit rester dans App.kt
+ * - Ici on affiche seulement :
+ *   1) Le feed
+ *   2) Le panel commentaires
+ *   3) La zone d'input commentaires (au-dessus de la bottom bar)
+ */
 @Composable
 fun HomeScreen(
     ui: HomeUiState,
     snackbarHostState: SnackbarHostState,
+    contentPadding: PaddingValues,
 
-    onCreatePostClick: () -> Unit,
-    onLoginClick: () -> Unit,
-    onLogoutClick: () -> Unit,
+    onCreatePostClick: () -> Unit, // (pas utilisé ici pour l’instant, mais on le garde)
 
     onVoteLeft: (String) -> Unit,
     onVoteRight: (String) -> Unit,
@@ -53,14 +55,15 @@ fun HomeScreen(
 
     onConsumeDialog: () -> Unit,
     onDialogConfirm: () -> Unit,
-    onDialogSecondary: () -> Unit,
-    onHomeClick: () -> Unit,
-    onFilterClick: () -> Unit,
-
+    onDialogSecondary: () -> Unit
 ) {
+    val density = LocalDensity.current
+
     var bottomBlockHeightDp by remember { mutableStateOf(0.dp) }
     val panelHeight = 320.dp
 
+    // ✅ On laisse toujours un espace pour que le contenu ne soit pas caché
+    // quand le panel commentaires + l'input du bas sont ouverts.
     val extraBottomPadding: Dp =
         if (ui.isCommentsSheetOpen) panelHeight + bottomBlockHeightDp else 0.dp
 
@@ -75,59 +78,56 @@ fun HomeScreen(
         )
     }
 
-    val filterLabel = VoteCategories.labelFor(ui.selectedCategoryId)
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF050509))
+            // ✅ Important : padding du Scaffold (App.kt) => évite que la bottom bar cache le contenu
+            .padding(contentPadding)
+    ) {
+        // Snackbars (puisque le Scaffold est dans App.kt)
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.TopCenter)
+        )
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        HomeFeedContent(
+            ui = ui,
+            extraBottomPadding = extraBottomPadding,
+            onVoteLeft = onVoteLeft,
+            onVoteRight = onVoteRight,
+            onOpenComments = onOpenComments
+        )
 
-
-
-        bottomBar = {
-            HomeBottomArea(
-                ui = ui,
-                selectedItem = "home",
-                onCreatePostClick = onCreatePostClick,
-                onLoginClick = onLoginClick,
-                onLogoutClick = onLogoutClick,
-                onNewCommentChange = onNewCommentChange,
-                onSendCommentClick = onSendCommentClick,
-                onCommentInputRequested = onCommentInputRequested,
-                onBottomHeightChanged = { newHeight -> bottomBlockHeightDp = newHeight },
-                onHomeClick = onHomeClick,
-                onFilterClick = onFilterClick
-            )
-        }
-    ) { padding ->
-        Box(
+        // ✅ Zone d'input commentaires (au-dessus de la bottom bar de App.kt)
+        HomeBottomArea(
+            ui = ui,
+            onNewCommentChange = onNewCommentChange,
+            onSendCommentClick = onSendCommentClick,
+            onCommentInputRequested = onCommentInputRequested,
             modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0xFF050509))
-                .padding(padding)
-        ) {
-            HomeFeedContent(
-                ui = ui,
-                extraBottomPadding = extraBottomPadding,
-                onVoteLeft = onVoteLeft,
-                onVoteRight = onVoteRight,
-                onOpenComments = onOpenComments
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .onSizeChanged { size ->
+                    bottomBlockHeightDp = with(density) { size.height.toDp() }
+                }
+        )
+
+        if (ui.isCommentsSheetOpen) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0x88000000))
+                    .clickable { onCloseComments() }
             )
 
-            if (ui.isCommentsSheetOpen) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color(0x88000000))
-                        .clickable { onCloseComments() }
-                )
-
-                CommentsPanel(
-                    bottomOffset = bottomBlockHeightDp,
-                    height = panelHeight,
-                    isLoading = ui.isCommentsLoading,
-                    comments = ui.comments,
-                    onClose = onCloseComments
-                )
-            }
+            CommentsPanel(
+                bottomOffset = bottomBlockHeightDp,
+                height = panelHeight,
+                isLoading = ui.isCommentsLoading,
+                comments = ui.comments,
+                onClose = onCloseComments
+            )
         }
     }
 }

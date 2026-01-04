@@ -23,24 +23,16 @@ import com.nazam.instaclone.feature.home.domain.model.VoteCategory
 import com.nazam.instaclone.feature.home.domain.model.VsPost
 import com.nazam.instaclone.feature.home.presentation.model.HomeUiState
 
-/**
- * ExploreScreen :
- * - En haut : catégories (chips)
- * - En bas : posts "Hot" (tri votes) ou filtrés par catégorie
- *
- * ✅ Pas d'icônes
- */
 @Composable
 fun ExploreScreen(
     ui: HomeUiState,
-    onBackHome: () -> Unit,
+    contentPadding: PaddingValues,
     onCategoryClick: (VoteCategory) -> Unit,
     onClearCategory: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val selectedId = ui.selectedCategoryId
 
-    // Hot = tri par votes (plus grand -> plus petit)
     val hotPosts: List<VsPost> = ui.posts.sortedByDescending { it.totalVotesCount }
 
     val visiblePosts: List<VsPost> =
@@ -49,6 +41,7 @@ fun ExploreScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
+            .padding(contentPadding)
             .padding(16.dp)
     ) {
         Text(
@@ -58,12 +51,10 @@ fun ExploreScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Chips catégories
         LazyRow(
             contentPadding = PaddingValues(end = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Un chip "Tout"
             item {
                 ExploreChip(
                     label = "Tout",
@@ -83,8 +74,9 @@ fun ExploreScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        val title = if (selectedId.isBlank()) "Hot (plus de votes)"
-        else "Catégorie : ${VoteCategories.labelFor(selectedId)}"
+        val title =
+            if (selectedId.isBlank()) "Hot (plus de votes)"
+            else "Catégorie : ${VoteCategories.labelFor(selectedId)}"
 
         Text(
             text = title,
@@ -104,9 +96,6 @@ fun ExploreScreen(
     }
 }
 
-/**
- * Chip simple (style pro sans icônes).
- */
 @Composable
 private fun ExploreChip(
     label: String,
@@ -131,12 +120,6 @@ private fun ExploreChip(
     }
 }
 
-/**
- * Carte post simple :
- * - question
- * - catégorie
- * - votes
- */
 @Composable
 private fun ExplorePostCard(
     post: VsPost
