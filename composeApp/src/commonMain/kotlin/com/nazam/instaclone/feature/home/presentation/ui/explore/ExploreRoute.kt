@@ -25,6 +25,10 @@ fun ExploreRoute(
         ui = ui,
         contentPadding = contentPadding,
         onCategoryClick = viewModel::onExploreCategoryClicked,
-        onClearCategory = viewModel::onExploreClearCategory
+        onClearCategory = viewModel::onExploreClearCategory,
+
+        // V1 : quand on clique une tuile -> on revient au feed
+        // (plus tard : ouvrir directement le post et swiper dans la catégorie)
+        onPostClick = { onNavigate(Screen.Home) }
     )
 }
