@@ -88,7 +88,7 @@ fun HomeScreen(
         // Snackbars (puisque le Scaffold est dans App.kt)
         SnackbarHost(
             hostState = snackbarHostState,
-            modifier = Modifier.align(Alignment.TopCenter)
+            modifier = Modifier.align(Alignment.BottomCenter)
         )
 
         HomeFeedContent(

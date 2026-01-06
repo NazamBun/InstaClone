@@ -26,10 +26,6 @@ fun HomeRoute(
 
     val snackbarHostState = SnackbarHostState()
 
-    DisposableEffect(Unit) {
-        onDispose { viewModel.clear() }
-    }
-
     LaunchedEffect(Unit) {
         viewModel.events.collectLatest { event ->
             when (event) {

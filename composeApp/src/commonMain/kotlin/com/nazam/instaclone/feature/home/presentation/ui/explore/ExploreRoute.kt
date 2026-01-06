@@ -17,18 +17,19 @@ fun ExploreRoute(
     val viewModel: HomeViewModel = koinInject()
     val ui by viewModel.uiState.collectAsState()
 
-    DisposableEffect(Unit) {
-        onDispose { viewModel.clear() }
-    }
-
     ExploreScreen(
         ui = ui,
         contentPadding = contentPadding,
         onCategoryClick = viewModel::onExploreCategoryClicked,
         onClearCategory = viewModel::onExploreClearCategory,
 
-        // V1 : quand on clique une tuile -> on revient au feed
-        // (plus tard : ouvrir directement le post et swiper dans la catégorie)
-        onPostClick = { onNavigate(Screen.Home) }
+        // ✅ Maintenant : clic -> ouvre le swipe horizontal dans la catégorie
+        onPostClick = { post ->
+            ExplorePagerStore.open(
+                categoryId = post.category,
+                startPostId = post.id
+            )
+            onNavigate(Screen.ExplorePager)
+        }
     )
 }

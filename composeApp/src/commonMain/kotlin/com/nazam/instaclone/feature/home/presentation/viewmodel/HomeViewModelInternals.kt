@@ -25,10 +25,11 @@ internal fun HomeViewModel.loadFeedInternal(
         result
             .onSuccess { posts ->
                 _uiState.update { it.copy(isLoading = false, posts = posts) }
+                emitMessage("Feed chargé : ${posts.size} posts")
             }
             .onFailure { error ->
                 _uiState.update { it.copy(isLoading = false) }
-                emitMessage(error.toUiMessage("Erreur de chargement"))
+                emitMessage("Feed erreur : ${error.message}")
             }
     }
 }

@@ -5,6 +5,10 @@ enum class Screen {
     Signup,
     Home,
     Explore,
+
+    // ✅ Nouveau : swipe horizontal dans une catégorie
+    ExplorePager,
+
     CreatePost,
     Categories,
     Notifications,

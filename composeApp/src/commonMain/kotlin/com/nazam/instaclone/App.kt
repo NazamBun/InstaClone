@@ -22,6 +22,7 @@ import com.nazam.instaclone.feature.home.presentation.ui.CreatePostRoute
 import com.nazam.instaclone.feature.home.presentation.ui.HomeBottomBar
 import com.nazam.instaclone.feature.home.presentation.ui.HomeRoute
 import com.nazam.instaclone.feature.home.presentation.ui.categories.CategoriesRoute
+import com.nazam.instaclone.feature.home.presentation.ui.explore.ExplorePagerRoute
 import com.nazam.instaclone.feature.home.presentation.ui.explore.ExploreRoute
 
 @Composable
@@ -37,8 +38,6 @@ fun App() {
             modifier = Modifier
                 .fillMaxSize()
                 .windowInsetsPadding(WindowInsets.safeDrawing),
-
-            // ✅ BottomBar toujours visible
             bottomBar = {
                 HomeBottomBar(
                     selectedScreen = currentScreen,
@@ -54,6 +53,9 @@ fun App() {
                 when (currentScreen) {
                     Screen.Home -> HomeRoute(onNavigate = ::navigateTo, contentPadding = padding)
                     Screen.Explore -> ExploreRoute(onNavigate = ::navigateTo, contentPadding = padding)
+
+                    // ✅ Nouveau : swipe horizontal
+                    Screen.ExplorePager -> ExplorePagerRoute(onNavigate = ::navigateTo, contentPadding = padding)
 
                     Screen.CreatePost -> CreatePostRoute(onNavigate = ::navigateTo)
                     Screen.Categories -> CategoriesRoute(onNavigate = ::navigateTo)
