@@ -19,11 +19,12 @@ import com.nazam.instaclone.feature.home.domain.usecase.GetCommentsUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.GetFeedUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.VoteLeftUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.VoteRightUseCase
+import com.nazam.instaclone.feature.home.presentation.ui.categories.CategoriesViewModel
 import com.nazam.instaclone.feature.home.presentation.viewmodel.CreatePostViewModel
+import com.nazam.instaclone.feature.home.presentation.viewmodel.ExploreViewModel
 import com.nazam.instaclone.feature.home.presentation.viewmodel.HomeViewModel
 import kotlinx.serialization.json.Json
 import org.koin.dsl.module
-import com.nazam.instaclone.feature.home.presentation.ui.categories.CategoriesViewModel
 
 val appModule = module {
 
@@ -56,8 +57,7 @@ val appModule = module {
     factory { GetCommentsUseCase(get()) }
     factory { AddCommentUseCase(get()) }
 
-    // ✅ ViewModels (via constructeur)
-    // ✅ ViewModels (via constructeur)
+    // ✅ ViewModels
     factory {
         HomeViewModel(
             dispatchers = get(),
@@ -95,4 +95,8 @@ val appModule = module {
     }
 
     factory { CategoriesViewModel() }
+
+    // ✅ Explore (V2): state de tri dans un ViewModel dédié
+    // single => garde la valeur choisie même si tu changes d'écran puis reviens
+    single { ExploreViewModel() }
 }

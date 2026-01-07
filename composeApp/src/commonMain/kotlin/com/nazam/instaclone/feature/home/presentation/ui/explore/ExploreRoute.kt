@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import com.nazam.instaclone.core.navigation.Screen
+import com.nazam.instaclone.feature.home.presentation.viewmodel.ExploreViewModel
 import com.nazam.instaclone.feature.home.presentation.viewmodel.HomeViewModel
 import org.koin.compose.koinInject
 
@@ -13,16 +14,19 @@ fun ExploreRoute(
     onNavigate: (Screen) -> Unit,
     contentPadding: PaddingValues
 ) {
-    val viewModel: HomeViewModel = koinInject()
-    val ui by viewModel.uiState.collectAsState()
+    val homeViewModel: HomeViewModel = koinInject()
+    val homeUi by homeViewModel.uiState.collectAsState()
+
+    val exploreViewModel: ExploreViewModel = koinInject()
+    val exploreUi by exploreViewModel.uiState.collectAsState()
 
     ExploreScreen(
-        ui = ui,
+        homeUi = homeUi,
+        exploreUi = exploreUi,
         contentPadding = contentPadding,
-        onCategoryClick = viewModel::onExploreCategoryClicked,
-        onClearCategory = viewModel::onExploreClearCategory,
-
-        // ✅ Maintenant : clic -> ouvre le swipe horizontal dans la catégorie
+        onCategoryClick = homeViewModel::onExploreCategoryClicked,
+        onClearCategory = homeViewModel::onExploreClearCategory,
+        onSortSelected = exploreViewModel::onSortModeSelected,
         onPostClick = { post ->
             ExplorePagerStore.open(
                 categoryId = post.category,

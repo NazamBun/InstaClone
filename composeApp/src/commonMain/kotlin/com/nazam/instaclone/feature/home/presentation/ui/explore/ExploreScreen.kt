@@ -17,15 +17,12 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.nazam.instaclone.feature.home.domain.model.VoteCategories
 import com.nazam.instaclone.feature.home.domain.model.VoteCategory
 import com.nazam.instaclone.feature.home.domain.model.VsPost
+import com.nazam.instaclone.feature.home.presentation.model.ExploreUiState
 import com.nazam.instaclone.feature.home.presentation.model.HomeUiState
 import com.nazam.instaclone.feature.home.presentation.ui.explore.components.ExploreCategoryChip
 import com.nazam.instaclone.feature.home.presentation.ui.explore.components.ExplorePostTile
@@ -35,7 +32,7 @@ import com.nazam.instaclone.feature.home.presentation.ui.explore.components.Expl
 /**
  * ExploreScreen (Découvrir)
  * - Catégories (chips)
- * - Tri (Hot / Recent / Controversé) en state local (V1)
+ * - Tri (Hot / Recent / Controversé) via ExploreUiState (V2)
  * - Grid 3 colonnes
  *
  * ✅ KMP friendly
@@ -43,25 +40,23 @@ import com.nazam.instaclone.feature.home.presentation.ui.explore.components.Expl
  */
 @Composable
 fun ExploreScreen(
-    ui: HomeUiState,
+    homeUi: HomeUiState,
+    exploreUi: ExploreUiState,
     contentPadding: PaddingValues,
     onCategoryClick: (VoteCategory) -> Unit,
     onClearCategory: () -> Unit,
+    onSortSelected: (ExploreSortMode) -> Unit,
     onPostClick: (VsPost) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val selectedId = ui.selectedCategoryId
+    val selectedId = homeUi.selectedCategoryId
+    val sortMode = exploreUi.sortMode
 
-    // ✅ V1 : state local
-    var sortMode by remember { mutableStateOf(ExploreSortMode.HOT) }
-
-    // ✅ Tri (pur)
     val sortedPosts: List<VsPost> = sortExplorePosts(
-        posts = ui.posts,
+        posts = homeUi.posts,
         mode = sortMode
     )
 
-    // ✅ Filtre catégorie
     val visiblePosts: List<VsPost> =
         if (selectedId.isBlank()) sortedPosts
         else sortedPosts.filter { it.category == selectedId }
@@ -85,7 +80,6 @@ fun ExploreScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // ✅ Catégories
             LazyRow(
                 contentPadding = PaddingValues(end = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -109,10 +103,9 @@ fun ExploreScreen(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // ✅ Choix de tri
             ExploreSortSelector(
                 selected = sortMode,
-                onSelected = { sortMode = it }
+                onSelected = onSortSelected
             )
 
             Spacer(modifier = Modifier.height(14.dp))
