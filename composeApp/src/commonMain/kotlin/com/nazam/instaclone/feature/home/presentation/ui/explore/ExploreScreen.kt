@@ -17,6 +17,10 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.nazam.instaclone.feature.home.domain.model.VoteCategories
@@ -25,11 +29,13 @@ import com.nazam.instaclone.feature.home.domain.model.VsPost
 import com.nazam.instaclone.feature.home.presentation.model.HomeUiState
 import com.nazam.instaclone.feature.home.presentation.ui.explore.components.ExploreCategoryChip
 import com.nazam.instaclone.feature.home.presentation.ui.explore.components.ExplorePostTile
+import com.nazam.instaclone.feature.home.presentation.ui.explore.components.ExploreSortSelector
 import com.nazam.instaclone.feature.home.presentation.ui.explore.components.ExploreUiTokens
 
 /**
  * ExploreScreen (Découvrir)
  * - Catégories (chips)
+ * - Tri (Hot / Recent / Controversé) en state local (V1)
  * - Grid 3 colonnes
  *
  * ✅ KMP friendly
@@ -46,12 +52,19 @@ fun ExploreScreen(
 ) {
     val selectedId = ui.selectedCategoryId
 
-    val hotPosts: List<VsPost> = sortExplorePosts(
+    // ✅ V1 : state local
+    var sortMode by remember { mutableStateOf(ExploreSortMode.HOT) }
+
+    // ✅ Tri (pur)
+    val sortedPosts: List<VsPost> = sortExplorePosts(
         posts = ui.posts,
-        mode = ExploreSortMode.HOT
+        mode = sortMode
     )
+
+    // ✅ Filtre catégorie
     val visiblePosts: List<VsPost> =
-        if (selectedId.isBlank()) hotPosts else hotPosts.filter { it.category == selectedId }
+        if (selectedId.isBlank()) sortedPosts
+        else sortedPosts.filter { it.category == selectedId }
 
     Box(
         modifier = modifier
@@ -72,6 +85,7 @@ fun ExploreScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            // ✅ Catégories
             LazyRow(
                 contentPadding = PaddingValues(end = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -93,11 +107,26 @@ fun ExploreScreen(
                 }
             }
 
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // ✅ Choix de tri
+            ExploreSortSelector(
+                selected = sortMode,
+                onSelected = { sortMode = it }
+            )
+
             Spacer(modifier = Modifier.height(14.dp))
 
             val title =
-                if (selectedId.isBlank()) "Hot (plus de votes)"
-                else "Catégorie : ${VoteCategories.labelFor(selectedId)}"
+                if (selectedId.isBlank()) {
+                    when (sortMode) {
+                        ExploreSortMode.HOT -> "Hot (plus de votes)"
+                        ExploreSortMode.RECENT -> "Recent (les plus récents)"
+                        ExploreSortMode.CONTROVERSIAL -> "Controversé (votes serrés)"
+                    }
+                } else {
+                    "Catégorie : ${VoteCategories.labelFor(selectedId)}"
+                }
 
             Text(
                 text = title,
