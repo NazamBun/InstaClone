@@ -46,8 +46,10 @@ fun ExploreScreen(
 ) {
     val selectedId = ui.selectedCategoryId
 
-    val hotPosts: List<VsPost> = ui.posts.sortedByDescending { it.totalVotesCount }
-
+    val hotPosts: List<VsPost> = sortExplorePosts(
+        posts = ui.posts,
+        mode = ExploreSortMode.HOT
+    )
     val visiblePosts: List<VsPost> =
         if (selectedId.isBlank()) hotPosts else hotPosts.filter { it.category == selectedId }
 
