@@ -2,7 +2,6 @@ package com.nazam.instaclone.feature.home.presentation.ui.explore
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import com.nazam.instaclone.core.navigation.Screen
