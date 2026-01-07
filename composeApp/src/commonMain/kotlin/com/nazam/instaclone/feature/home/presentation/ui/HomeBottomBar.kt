@@ -25,8 +25,8 @@ import com.nazam.instaclone.core.navigation.Screen
  * - Profil
  *
  * ✅ Pas d'icônes
- * ✅ Surbrillance = selectedScreen
- * ✅ Fond noir partout (même rendu sur tous les écrans)
+ * ✅ Fond noir partout
+ * ✅ Surbrillance : si on est dans ExplorePager => on surligne Explorer (pro)
  */
 @Composable
 fun HomeBottomBar(
@@ -42,14 +42,21 @@ fun HomeBottomBar(
     val accent = Color(0xFFFF4EB8)
     val normal = Color.White
 
-    fun colorFor(screen: Screen): Color = if (selectedScreen == screen) accent else normal
+    // ✅ Très important pour l’UX :
+    // ExplorePager est un "sous-écran" de Explore => on garde Explorer en surbrillance
+    val normalizedSelectedScreen: Screen =
+        if (selectedScreen == Screen.ExplorePager) Screen.Explore else selectedScreen
+
+    fun colorFor(screen: Screen): Color =
+        if (normalizedSelectedScreen == screen) accent else normal
+
     fun weightFor(screen: Screen): FontWeight =
-        if (selectedScreen == screen) FontWeight.Bold else FontWeight.Normal
+        if (normalizedSelectedScreen == screen) FontWeight.Bold else FontWeight.Normal
 
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(background) // ✅ fond noir sur tous les écrans
+            .background(background)
             .heightIn(min = 56.dp)
             .padding(horizontal = 10.dp, vertical = 12.dp)
     ) {
@@ -59,9 +66,7 @@ fun HomeBottomBar(
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = weightFor(Screen.Home),
             textAlign = TextAlign.Center,
-            modifier = Modifier
-                .weight(1f)
-                .clickable { onHomeClick() }
+            modifier = Modifier.weight(1f).clickable { onHomeClick() }
         )
 
         Text(
@@ -70,9 +75,7 @@ fun HomeBottomBar(
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = weightFor(Screen.Explore),
             textAlign = TextAlign.Center,
-            modifier = Modifier
-                .weight(1f)
-                .clickable { onExploreClick() }
+            modifier = Modifier.weight(1f).clickable { onExploreClick() }
         )
 
         Text(
@@ -81,9 +84,7 @@ fun HomeBottomBar(
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = weightFor(Screen.CreatePost),
             textAlign = TextAlign.Center,
-            modifier = Modifier
-                .weight(1f)
-                .clickable { onCreatePostClick() }
+            modifier = Modifier.weight(1f).clickable { onCreatePostClick() }
         )
 
         Text(
@@ -92,9 +93,7 @@ fun HomeBottomBar(
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = weightFor(Screen.Notifications),
             textAlign = TextAlign.Center,
-            modifier = Modifier
-                .weight(1f)
-                .clickable { onNotificationsClick() }
+            modifier = Modifier.weight(1f).clickable { onNotificationsClick() }
         )
 
         Text(
@@ -103,9 +102,7 @@ fun HomeBottomBar(
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = weightFor(Screen.Profile),
             textAlign = TextAlign.Center,
-            modifier = Modifier
-                .weight(1f)
-                .clickable { onProfileClick() }
+            modifier = Modifier.weight(1f).clickable { onProfileClick() }
         )
     }
 }
