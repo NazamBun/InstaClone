@@ -12,6 +12,7 @@ object CreatePostDraftStore {
         val question: String = "",
         val leftLabel: String = "",
         val rightLabel: String = "",
+        // ✅ maintenant : URI locale (content://...) ou URL plus tard
         val leftImageUrl: String = "",
         val rightImageUrl: String = "",
         val categoryId: String = ""

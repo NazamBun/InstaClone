@@ -17,13 +17,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.nazam.instaclone.feature.home.presentation.model.CreatePostUiState
 import com.nazam.instaclone.feature.home.domain.model.VoteCategories
+import com.nazam.instaclone.feature.home.presentation.model.CreatePostUiState
+import com.nazam.instaclone.feature.home.presentation.ui.components.NetworkImage
 
 /**
- * Ecran UI only.
- * Il ne connaît pas le ViewModel.
- * Il reçoit juste l'état + les callbacks.
+ * UI only.
+ * Pas de ViewModel ici : juste état + callbacks.
  */
 @Composable
 fun CreatePostScreen(
@@ -31,8 +31,11 @@ fun CreatePostScreen(
     onQuestionChange: (String) -> Unit,
     onLeftLabelChange: (String) -> Unit,
     onRightLabelChange: (String) -> Unit,
-    onLeftImageUrlChange: (String) -> Unit,
-    onRightImageUrlChange: (String) -> Unit,
+
+    // ✅ nouveau : ouvrir la galerie
+    onPickLeftImageClick: () -> Unit,
+    onPickRightImageClick: () -> Unit,
+
     onChooseCategoryClick: () -> Unit,
     onSubmitClick: () -> Unit,
     onCancelClick: () -> Unit,
@@ -81,25 +84,51 @@ fun CreatePostScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            OutlinedTextField(
-                value = ui.leftImageUrl,
-                onValueChange = onLeftImageUrlChange,
-                label = { Text("URL image gauche") },
+            // ✅ Image gauche
+            Button(
+                onClick = onPickLeftImageClick,
+                enabled = !ui.isLoading,
                 modifier = Modifier.fillMaxWidth()
-            )
+            ) {
+                Text(if (ui.leftImageUrl.isBlank()) "Choisir image gauche" else "Changer image gauche")
+            }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            if (ui.leftImageUrl.isNotBlank()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                NetworkImage(
+                    url = ui.leftImageUrl,
+                    contentDescription = "Image gauche",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                )
+            }
 
-            OutlinedTextField(
-                value = ui.rightImageUrl,
-                onValueChange = onRightImageUrlChange,
-                label = { Text("URL image droite") },
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // ✅ Image droite
+            Button(
+                onClick = onPickRightImageClick,
+                enabled = !ui.isLoading,
                 modifier = Modifier.fillMaxWidth()
-            )
+            ) {
+                Text(if (ui.rightImageUrl.isBlank()) "Choisir image droite" else "Changer image droite")
+            }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            if (ui.rightImageUrl.isNotBlank()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                NetworkImage(
+                    url = ui.rightImageUrl,
+                    contentDescription = "Image droite",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
 
             val categoryLabel = VoteCategories.labelFor(ui.category)
 
@@ -123,14 +152,16 @@ fun CreatePostScreen(
             }
 
             ui.errorMessage?.let { msg ->
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = msg,
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.fillMaxWidth()
                 )
-                Spacer(modifier = Modifier.height(8.dp))
             }
+
+            Spacer(modifier = Modifier.height(12.dp))
 
             Button(
                 onClick = onSubmitClick,

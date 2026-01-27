@@ -82,28 +82,22 @@ class CreatePostViewModel(
         saveToDraft(_uiState.value)
     }
 
-    fun onLeftImageUrlChange(value: String) {
-        _uiState.update { it.copy(leftImageUrl = value, errorMessage = null) }
+    // ✅ NOUVEAU : sélection depuis galerie
+    fun onLeftImageSelected(uri: String) {
+        _uiState.update { it.copy(leftImageUrl = uri, errorMessage = null) }
         saveToDraft(_uiState.value)
     }
 
-    fun onRightImageUrlChange(value: String) {
-        _uiState.update { it.copy(rightImageUrl = value, errorMessage = null) }
+    // ✅ NOUVEAU : sélection depuis galerie
+    fun onRightImageSelected(uri: String) {
+        _uiState.update { it.copy(rightImageUrl = uri, errorMessage = null) }
         saveToDraft(_uiState.value)
     }
 
-    /**
-     * Ici on ne laisse plus l'utilisateur taper une catégorie librement.
-     * C'est CategoriesScreen qui la choisit.
-     */
     fun onChooseCategoryClicked() {
         _events.tryEmit(CreatePostUiEvent.NavigateToCategories)
     }
 
-    /**
-     * Quand on revient de CategoriesScreen, le draft contient la nouvelle categoryId.
-     * On recharge l'UiState.
-     */
     fun refreshFromDraft() {
         _uiState.value = loadFromDraft()
     }
