@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -24,6 +26,8 @@ import com.nazam.instaclone.feature.home.presentation.ui.components.NetworkImage
 /**
  * UI only.
  * Pas de ViewModel ici : juste état + callbacks.
+ *
+ * ✅ Scrollable : quand les images sont affichées, on peut scroller pour voir les boutons.
  */
 @Composable
 fun CreatePostScreen(
@@ -31,16 +35,15 @@ fun CreatePostScreen(
     onQuestionChange: (String) -> Unit,
     onLeftLabelChange: (String) -> Unit,
     onRightLabelChange: (String) -> Unit,
-
-    // ✅ nouveau : ouvrir la galerie
     onPickLeftImageClick: () -> Unit,
     onPickRightImageClick: () -> Unit,
-
     onChooseCategoryClick: () -> Unit,
     onSubmitClick: () -> Unit,
     onCancelClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val scrollState = rememberScrollState()
+
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -50,6 +53,7 @@ fun CreatePostScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .align(Alignment.TopCenter)
+                .verticalScroll(scrollState) // ✅ scroll
         ) {
             Text(
                 text = "Créer un nouveau VS",
@@ -180,6 +184,9 @@ fun CreatePostScreen(
             ) {
                 Text("Annuler")
             }
+
+            // ✅ petit espace pour être sûr de voir les derniers boutons
+            Spacer(modifier = Modifier.height(24.dp))
         }
 
         if (ui.isLoading) {
