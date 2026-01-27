@@ -25,6 +25,12 @@ import com.nazam.instaclone.feature.home.presentation.viewmodel.ExploreViewModel
 import com.nazam.instaclone.feature.home.presentation.viewmodel.HomeViewModel
 import kotlinx.serialization.json.Json
 import org.koin.dsl.module
+import com.nazam.instaclone.core.media.ImageBytesReader
+import com.nazam.instaclone.core.media.DefaultImageBytesReader
+import com.nazam.instaclone.feature.home.data.repository.PostMediaRepositoryImpl
+import com.nazam.instaclone.feature.home.domain.repository.PostMediaRepository
+import com.nazam.instaclone.feature.home.domain.usecase.UploadPostImageUseCase
+import com.nazam.instaclone.feature.home.domain.usecase.UploadPostImagesUseCase
 
 val appModule = module {
 
@@ -38,6 +44,15 @@ val appModule = module {
 
     // ✅ Dispatchers (KMP)
     single<AppDispatchers> { DefaultAppDispatchers() }
+
+    // ✅ ImageBytesReader (iOS stub)
+    // Android va le remplacer avec un module Android (voir étape 6)
+    single<ImageBytesReader> { DefaultImageBytesReader() }
+
+    // ✅ Post media upload
+    single<PostMediaRepository> { PostMediaRepositoryImpl(client = get(), bytesReader = get()) }
+    factory { UploadPostImageUseCase(get()) }
+    factory { UploadPostImagesUseCase(get()) }
 
     // ✅ Auth
     single<AuthRepository> { AuthRepositoryImpl(get()) }
@@ -74,6 +89,7 @@ val appModule = module {
     factory {
         CreatePostViewModel(
             dispatchers = get(),
+            uploadPostImagesUseCase = get(), // ✅ new
             createPostUseCase = get(),
             getCurrentUserUseCase = get()
         )
