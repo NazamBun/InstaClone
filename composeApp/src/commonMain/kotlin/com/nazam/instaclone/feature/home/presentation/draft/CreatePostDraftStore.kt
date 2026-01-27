@@ -12,10 +12,15 @@ object CreatePostDraftStore {
         val question: String = "",
         val leftLabel: String = "",
         val rightLabel: String = "",
-        // ✅ maintenant : URI locale (content://...) ou URL plus tard
-        val leftImageUrl: String = "",
-        val rightImageUrl: String = "",
-        val categoryId: String = ""
+        val categoryId: String = "",
+
+        // ✅ URIs locales (content://...)
+        val leftLocalUri: String = "",
+        val rightLocalUri: String = "",
+
+        // ✅ URLs après upload
+        val leftUploadedUrl: String = "",
+        val rightUploadedUrl: String = ""
     )
 
     private var draft: Draft = Draft()

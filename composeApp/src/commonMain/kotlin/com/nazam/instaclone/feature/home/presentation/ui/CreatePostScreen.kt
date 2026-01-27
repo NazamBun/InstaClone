@@ -2,6 +2,7 @@ package com.nazam.instaclone.feature.home.presentation.ui
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,6 +29,7 @@ import com.nazam.instaclone.feature.home.presentation.ui.components.NetworkImage
  * Pas de ViewModel ici : juste état + callbacks.
  *
  * ✅ Scrollable : quand les images sont affichées, on peut scroller pour voir les boutons.
+ * ✅ Upload direct : on montre un état "upload en cours".
  */
 @Composable
 fun CreatePostScreen(
@@ -44,6 +46,21 @@ fun CreatePostScreen(
 ) {
     val scrollState = rememberScrollState()
 
+    // ✅ Preview : si URL uploadée existe, on l’affiche, sinon on affiche l’URI locale
+    val leftPreview = if (ui.leftUploadedUrl.isNotBlank()) ui.leftUploadedUrl else ui.leftLocalUri
+    val rightPreview = if (ui.rightUploadedUrl.isNotBlank()) ui.rightUploadedUrl else ui.rightLocalUri
+
+    val canSubmit =
+        !ui.isLoading &&
+                !ui.isUploadingLeft &&
+                !ui.isUploadingRight &&
+                ui.question.isNotBlank() &&
+                ui.leftLabel.isNotBlank() &&
+                ui.rightLabel.isNotBlank() &&
+                ui.category.isNotBlank() &&
+                ui.leftUploadedUrl.isNotBlank() &&
+                ui.rightUploadedUrl.isNotBlank()
+
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -53,10 +70,10 @@ fun CreatePostScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .align(Alignment.TopCenter)
-                .verticalScroll(scrollState) // ✅ scroll
+                .verticalScroll(scrollState)
         ) {
             Text(
-                text = "Créer un nouveau VS",
+                text = Strings.title,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
@@ -66,7 +83,7 @@ fun CreatePostScreen(
             OutlinedTextField(
                 value = ui.question,
                 onValueChange = onQuestionChange,
-                label = { Text("Question") },
+                label = { Text(Strings.question) },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -75,7 +92,7 @@ fun CreatePostScreen(
             OutlinedTextField(
                 value = ui.leftLabel,
                 onValueChange = onLeftLabelChange,
-                label = { Text("Label gauche") },
+                label = { Text(Strings.leftLabel) },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -84,7 +101,7 @@ fun CreatePostScreen(
             OutlinedTextField(
                 value = ui.rightLabel,
                 onValueChange = onRightLabelChange,
-                label = { Text("Label droite") },
+                label = { Text(Strings.rightLabel) },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -93,17 +110,26 @@ fun CreatePostScreen(
             // ✅ Image gauche
             Button(
                 onClick = onPickLeftImageClick,
-                enabled = !ui.isLoading,
+                enabled = !ui.isLoading && !ui.isUploadingLeft,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(if (ui.leftImageUrl.isBlank()) "Choisir image gauche" else "Changer image gauche")
+                Text(if (ui.leftLocalUri.isBlank()) Strings.pickLeft else Strings.changeLeft)
             }
 
-            if (ui.leftImageUrl.isNotBlank()) {
+            if (ui.isUploadingLeft) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    CircularProgressIndicator(modifier = Modifier.height(18.dp))
+                    Spacer(modifier = Modifier.padding(horizontal = 8.dp))
+                    Text(Strings.uploadingLeft, style = MaterialTheme.typography.bodySmall)
+                }
+            }
+
+            if (leftPreview.isNotBlank()) {
                 Spacer(modifier = Modifier.height(8.dp))
                 NetworkImage(
-                    url = ui.leftImageUrl,
-                    contentDescription = "Image gauche",
+                    url = leftPreview,
+                    contentDescription = Strings.leftImage,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(180.dp)
@@ -115,17 +141,26 @@ fun CreatePostScreen(
             // ✅ Image droite
             Button(
                 onClick = onPickRightImageClick,
-                enabled = !ui.isLoading,
+                enabled = !ui.isLoading && !ui.isUploadingRight,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(if (ui.rightImageUrl.isBlank()) "Choisir image droite" else "Changer image droite")
+                Text(if (ui.rightLocalUri.isBlank()) Strings.pickRight else Strings.changeRight)
             }
 
-            if (ui.rightImageUrl.isNotBlank()) {
+            if (ui.isUploadingRight) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    CircularProgressIndicator(modifier = Modifier.height(18.dp))
+                    Spacer(modifier = Modifier.padding(horizontal = 8.dp))
+                    Text(Strings.uploadingRight, style = MaterialTheme.typography.bodySmall)
+                }
+            }
+
+            if (rightPreview.isNotBlank()) {
                 Spacer(modifier = Modifier.height(8.dp))
                 NetworkImage(
-                    url = ui.rightImageUrl,
-                    contentDescription = "Image droite",
+                    url = rightPreview,
+                    contentDescription = Strings.rightImage,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(180.dp)
@@ -140,8 +175,8 @@ fun CreatePostScreen(
                 value = if (ui.category.isBlank()) "" else categoryLabel,
                 onValueChange = { },
                 readOnly = true,
-                label = { Text("Catégorie") },
-                placeholder = { Text("Choisir une catégorie") },
+                label = { Text(Strings.category) },
+                placeholder = { Text(Strings.chooseCategoryPlaceholder) },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -152,7 +187,7 @@ fun CreatePostScreen(
                 enabled = !ui.isLoading,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Choisir la catégorie")
+                Text(Strings.chooseCategory)
             }
 
             ui.errorMessage?.let { msg ->
@@ -169,10 +204,10 @@ fun CreatePostScreen(
 
             Button(
                 onClick = onSubmitClick,
-                enabled = !ui.isLoading,
+                enabled = canSubmit,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Publier le VS")
+                Text(Strings.submit)
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -182,10 +217,9 @@ fun CreatePostScreen(
                 enabled = !ui.isLoading,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Annuler")
+                Text(Strings.cancel)
             }
 
-            // ✅ petit espace pour être sûr de voir les derniers boutons
             Spacer(modifier = Modifier.height(24.dp))
         }
 
@@ -193,4 +227,29 @@ fun CreatePostScreen(
             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
         }
     }
+}
+
+private object Strings {
+    const val title = "Créer un nouveau VS"
+    const val question = "Question"
+    const val leftLabel = "Label gauche"
+    const val rightLabel = "Label droite"
+
+    const val pickLeft = "Choisir image gauche"
+    const val changeLeft = "Changer image gauche"
+    const val pickRight = "Choisir image droite"
+    const val changeRight = "Changer image droite"
+
+    const val uploadingLeft = "Upload image gauche..."
+    const val uploadingRight = "Upload image droite..."
+
+    const val leftImage = "Image gauche"
+    const val rightImage = "Image droite"
+
+    const val category = "Catégorie"
+    const val chooseCategoryPlaceholder = "Choisir une catégorie"
+    const val chooseCategory = "Choisir la catégorie"
+
+    const val submit = "Publier le VS"
+    const val cancel = "Annuler"
 }

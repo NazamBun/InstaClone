@@ -19,7 +19,7 @@ class PostMediaRepositoryImpl(
 ) : PostMediaRepository {
 
     companion object {
-        private const val BUCKET = "post-images" // ⚠️ à créer dans Supabase
+        private const val BUCKET = "posts-images" // ⚠️ à créer dans Supabase
     }
 
     override suspend fun uploadPostImage(localUri: String): Result<String> = runCatching {
@@ -35,9 +35,7 @@ class PostMediaRepositoryImpl(
         client.storage.from(BUCKET).upload(
             path = fileName,
             data = bytes
-        ) {
-            upsert = true
-        }
+        )
 
         // URL publique
         client.storage.from(BUCKET).publicUrl(fileName)

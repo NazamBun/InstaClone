@@ -2,6 +2,8 @@ package com.nazam.instaclone.core.di
 
 import com.nazam.instaclone.core.dispatchers.AppDispatchers
 import com.nazam.instaclone.core.dispatchers.DefaultAppDispatchers
+import com.nazam.instaclone.core.media.DefaultImageBytesReader
+import com.nazam.instaclone.core.media.ImageBytesReader
 import com.nazam.instaclone.core.supabase.SupabaseClientProvider
 import com.nazam.instaclone.feature.auth.data.repository.AuthRepositoryImpl
 import com.nazam.instaclone.feature.auth.domain.repository.AuthRepository
@@ -12,11 +14,14 @@ import com.nazam.instaclone.feature.auth.domain.usecase.SignupUseCase
 import com.nazam.instaclone.feature.auth.presentation.viewmodel.LoginViewModel
 import com.nazam.instaclone.feature.auth.presentation.viewmodel.SignupViewModel
 import com.nazam.instaclone.feature.home.data.repository.HomeRepositoryImpl
+import com.nazam.instaclone.feature.home.data.repository.PostMediaRepositoryImpl
 import com.nazam.instaclone.feature.home.domain.repository.HomeRepository
+import com.nazam.instaclone.feature.home.domain.repository.PostMediaRepository
 import com.nazam.instaclone.feature.home.domain.usecase.AddCommentUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.CreatePostUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.GetCommentsUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.GetFeedUseCase
+import com.nazam.instaclone.feature.home.domain.usecase.UploadPostImageUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.VoteLeftUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.VoteRightUseCase
 import com.nazam.instaclone.feature.home.presentation.ui.categories.CategoriesViewModel
@@ -25,12 +30,6 @@ import com.nazam.instaclone.feature.home.presentation.viewmodel.ExploreViewModel
 import com.nazam.instaclone.feature.home.presentation.viewmodel.HomeViewModel
 import kotlinx.serialization.json.Json
 import org.koin.dsl.module
-import com.nazam.instaclone.core.media.ImageBytesReader
-import com.nazam.instaclone.core.media.DefaultImageBytesReader
-import com.nazam.instaclone.feature.home.data.repository.PostMediaRepositoryImpl
-import com.nazam.instaclone.feature.home.domain.repository.PostMediaRepository
-import com.nazam.instaclone.feature.home.domain.usecase.UploadPostImageUseCase
-import com.nazam.instaclone.feature.home.domain.usecase.UploadPostImagesUseCase
 
 val appModule = module {
 
@@ -45,14 +44,13 @@ val appModule = module {
     // ✅ Dispatchers (KMP)
     single<AppDispatchers> { DefaultAppDispatchers() }
 
-    // ✅ ImageBytesReader (iOS stub)
-    // Android va le remplacer avec un module Android (voir étape 6)
+    // ✅ ImageBytesReader (fallback KMP)
+    // Android le remplace via AndroidPlatformModule.
     single<ImageBytesReader> { DefaultImageBytesReader() }
 
     // ✅ Post media upload
     single<PostMediaRepository> { PostMediaRepositoryImpl(client = get(), bytesReader = get()) }
     factory { UploadPostImageUseCase(get()) }
-    factory { UploadPostImagesUseCase(get()) }
 
     // ✅ Auth
     single<AuthRepository> { AuthRepositoryImpl(get()) }
@@ -89,7 +87,7 @@ val appModule = module {
     factory {
         CreatePostViewModel(
             dispatchers = get(),
-            uploadPostImagesUseCase = get(), // ✅ new
+            uploadPostImageUseCase = get(), // ✅ upload direct à la sélection
             createPostUseCase = get(),
             getCurrentUserUseCase = get()
         )
@@ -112,7 +110,6 @@ val appModule = module {
 
     factory { CategoriesViewModel() }
 
-    // ✅ Explore (V2): state de tri dans un ViewModel dédié
-    // single => garde la valeur choisie même si tu changes d'écran puis reviens
+    // ✅ Explore : on garde la valeur même si on change d'écran
     single { ExploreViewModel() }
 }
