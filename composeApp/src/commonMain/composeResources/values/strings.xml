@@ -8,4 +8,12 @@
     <string name="login_password_placeholder">Mot de passe</string>
     <string name="login_button">Connexion</string>
     <string name="login_go_to_signup_button">Créer un compte</string>
+
+    <!-- Auth - Signup -->
+    <string name="signup_title">Créer un compte</string>
+    <string name="signup_email_placeholder">Email</string>
+    <string name="signup_password_placeholder">Mot de passe</string>
+    <string name="signup_display_name_placeholder">Nom d'utilisateur</string>
+    <string name="signup_button">Créer un compte</string>
+    <string name="signup_go_to_login_button">Déjà un compte ? Se connecter</string>
 </resources>
