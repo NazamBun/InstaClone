@@ -101,7 +101,7 @@ class CreatePostViewModel(
         _events.tryEmit(CreatePostUiEvent.NavigateBack)
     }
 
-    // ✅ 1) sélection gauche -> upload direct
+    // ✅ sélection gauche -> upload direct
     fun onLeftImageSelected(uri: String) {
         _uiState.update {
             it.copy(
@@ -123,7 +123,8 @@ class CreatePostViewModel(
                     _uiState.update {
                         it.copy(
                             leftUploadedUrl = url,
-                            isUploadingLeft = false
+                            isUploadingLeft = false,
+                            errorMessage = null
                         )
                     }
                     saveToDraft(_uiState.value)
@@ -143,11 +144,12 @@ class CreatePostViewModel(
                             errorMessage = error.message ?: "Upload image gauche impossible."
                         )
                     }
+                    saveToDraft(_uiState.value)
                 }
         }
     }
 
-    // ✅ 1) sélection droite -> upload direct
+    // ✅ sélection droite -> upload direct
     fun onRightImageSelected(uri: String) {
         _uiState.update {
             it.copy(
@@ -169,7 +171,8 @@ class CreatePostViewModel(
                     _uiState.update {
                         it.copy(
                             rightUploadedUrl = url,
-                            isUploadingRight = false
+                            isUploadingRight = false,
+                            errorMessage = null
                         )
                     }
                     saveToDraft(_uiState.value)
@@ -189,6 +192,7 @@ class CreatePostViewModel(
                             errorMessage = error.message ?: "Upload image droite impossible."
                         )
                     }
+                    saveToDraft(_uiState.value)
                 }
         }
     }
@@ -196,7 +200,6 @@ class CreatePostViewModel(
     fun submitPost() {
         val state = _uiState.value
 
-        // ✅ On exige les URLs uploadées (pas juste les URIs locales)
         val missing =
             state.question.isBlank() ||
                     state.leftLabel.isBlank() ||

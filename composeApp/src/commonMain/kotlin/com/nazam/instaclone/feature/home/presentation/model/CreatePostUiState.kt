@@ -4,9 +4,9 @@ package com.nazam.instaclone.feature.home.presentation.model
  * Etat UI pour CreatePost.
  *
  * IMPORTANT :
- * - On garde les URIs locales (content://...) pour afficher l'aperçu.
- * - On garde les URLs uploadées (https://...) pour envoyer au backend.
- * - On a 2 flags d'upload (gauche / droite).
+ * - URIs locales (content://...) : pour afficher l'aperçu
+ * - URLs uploadées (https://...) : pour envoyer au backend
+ * - 2 flags d'upload (gauche / droite)
  */
 data class CreatePostUiState(
     val question: String = "",

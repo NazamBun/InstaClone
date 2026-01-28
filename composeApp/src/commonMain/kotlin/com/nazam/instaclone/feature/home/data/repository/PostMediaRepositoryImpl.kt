@@ -5,13 +5,15 @@ import com.nazam.instaclone.feature.home.domain.repository.PostMediaRepository
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.storage.storage
+import kotlin.random.Random
+import kotlin.time.Clock
 
 /**
  * Upload vers Supabase Storage.
  *
  * IMPORTANT :
- * - Il faut créer un bucket dans Supabase (ex: "post-images")
- * - Le bucket doit permettre la lecture publique OU tu génères des URLs signées
+ * - Bucket : "posts-images"
+ * - Policies : INSERT/SELECT OK
  */
 class PostMediaRepositoryImpl(
     private val client: SupabaseClient,
@@ -19,7 +21,7 @@ class PostMediaRepositoryImpl(
 ) : PostMediaRepository {
 
     companion object {
-        private const val BUCKET = "posts-images" // ⚠️ à créer dans Supabase
+        private const val BUCKET = "posts-images"
     }
 
     override suspend fun uploadPostImage(localUri: String): Result<String> = runCatching {
@@ -28,16 +30,15 @@ class PostMediaRepositoryImpl(
 
         val bytes = bytesReader.readBytes(localUri)
 
-        // Nom de fichier unique, simple
-        val fileName = "posts/${user.id}/${kotlin.random.Random.nextInt()}.jpg"
-
-        // Upload
+        // ✅ nom unique simple
+        val fileName = "posts/${user.id}/${Clock.System.currentTimeMillis()}-${Random.nextInt(0, 999999)}.jpg"
         client.storage.from(BUCKET).upload(
             path = fileName,
             data = bytes
-        )
+        ) {
+            upsert = true
+        }
 
-        // URL publique
         client.storage.from(BUCKET).publicUrl(fileName)
     }
 }

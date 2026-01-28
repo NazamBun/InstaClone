@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -26,10 +28,9 @@ import com.nazam.instaclone.feature.home.presentation.ui.components.NetworkImage
 
 /**
  * UI only.
- * Pas de ViewModel ici : juste état + callbacks.
  *
- * ✅ Scrollable : quand les images sont affichées, on peut scroller pour voir les boutons.
- * ✅ Upload direct : on montre un état "upload en cours".
+ * ✅ Scrollable : on peut scroller et voir les boutons
+ * ✅ Upload direct : on montre "upload en cours"
  */
 @Composable
 fun CreatePostScreen(
@@ -46,7 +47,7 @@ fun CreatePostScreen(
 ) {
     val scrollState = rememberScrollState()
 
-    // ✅ Preview : si URL uploadée existe, on l’affiche, sinon on affiche l’URI locale
+    // ✅ preview : si URL uploadée existe -> on affiche ça, sinon URI locale
     val leftPreview = if (ui.leftUploadedUrl.isNotBlank()) ui.leftUploadedUrl else ui.leftLocalUri
     val rightPreview = if (ui.rightUploadedUrl.isNotBlank()) ui.rightUploadedUrl else ui.rightLocalUri
 
@@ -119,8 +120,8 @@ fun CreatePostScreen(
             if (ui.isUploadingLeft) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    CircularProgressIndicator(modifier = Modifier.height(18.dp))
-                    Spacer(modifier = Modifier.padding(horizontal = 8.dp))
+                    CircularProgressIndicator(modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(Strings.uploadingLeft, style = MaterialTheme.typography.bodySmall)
                 }
             }
@@ -150,8 +151,8 @@ fun CreatePostScreen(
             if (ui.isUploadingRight) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    CircularProgressIndicator(modifier = Modifier.height(18.dp))
-                    Spacer(modifier = Modifier.padding(horizontal = 8.dp))
+                    CircularProgressIndicator(modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(Strings.uploadingRight, style = MaterialTheme.typography.bodySmall)
                 }
             }
