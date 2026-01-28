@@ -27,7 +27,7 @@ class CreatePostViewModel(
     private val job = Job()
     private val scope = CoroutineScope(dispatchers.main + job)
 
-    private val _uiState = MutableStateFlow(loadFromDraft())
+    private val _uiState = MutableStateFlow(enrich(loadFromDraft()))
     val uiState: StateFlow<CreatePostUiState> = _uiState
 
     private val _events = MutableSharedFlow<CreatePostUiEvent>(extraBufferCapacity = 1)
@@ -62,6 +62,53 @@ class CreatePostViewModel(
         )
     }
 
+    /**
+     * ✅ Etape 2 : une seule porte d’entrée pour modifier l’état
+     * - met à jour l’état
+     * - recalcule les champs dérivés (submit)
+     * - sauvegarde le draft
+     */
+    private fun updateState(reducer: (CreatePostUiState) -> CreatePostUiState) {
+        _uiState.update { current ->
+            val updated = reducer(current)
+            val enriched = enrich(updated)
+            saveToDraft(enriched)
+            enriched
+        }
+    }
+
+    /**
+     * Recalcule isSubmitEnabled + submitBlockedReason.
+     * UI = bête, ViewModel = intelligent.
+     */
+    private fun enrich(state: CreatePostUiState): CreatePostUiState {
+        val reason = computeSubmitBlockedReason(state)
+        val enabled = reason == null && !state.isLoading
+        return state.copy(
+            isSubmitEnabled = enabled,
+            submitBlockedReason = reason
+        )
+    }
+
+    private fun computeSubmitBlockedReason(state: CreatePostUiState): String? {
+        if (state.isLoading) return "Patiente..."
+        if (state.isUploadingLeft || state.isUploadingRight) return "Upload des images en cours..."
+
+        if (state.question.isBlank()) return "Écris une question."
+        if (state.leftLabel.isBlank()) return "Écris le label gauche."
+        if (state.rightLabel.isBlank()) return "Écris le label droite."
+        if (state.category.isBlank()) return "Choisis une catégorie."
+
+        if (state.leftLocalUri.isBlank()) return "Choisis l’image gauche."
+        if (state.rightLocalUri.isBlank()) return "Choisis l’image droite."
+
+        // Important : on exige les URL uploadées
+        if (state.leftUploadedUrl.isBlank()) return "Attends l’upload de l’image gauche."
+        if (state.rightUploadedUrl.isBlank()) return "Attends l’upload de l’image droite."
+
+        return null
+    }
+
     fun checkAccess() {
         scope.launch {
             val user = withContext(dispatchers.default) { getCurrentUserUseCase.execute() }
@@ -74,18 +121,15 @@ class CreatePostViewModel(
     }
 
     fun onQuestionChange(value: String) {
-        _uiState.update { it.copy(question = value, errorMessage = null) }
-        saveToDraft(_uiState.value)
+        updateState { it.copy(question = value, errorMessage = null) }
     }
 
     fun onLeftLabelChange(value: String) {
-        _uiState.update { it.copy(leftLabel = value, errorMessage = null) }
-        saveToDraft(_uiState.value)
+        updateState { it.copy(leftLabel = value, errorMessage = null) }
     }
 
     fun onRightLabelChange(value: String) {
-        _uiState.update { it.copy(rightLabel = value, errorMessage = null) }
-        saveToDraft(_uiState.value)
+        updateState { it.copy(rightLabel = value, errorMessage = null) }
     }
 
     fun onChooseCategoryClicked() {
@@ -93,7 +137,7 @@ class CreatePostViewModel(
     }
 
     fun refreshFromDraft() {
-        _uiState.value = loadFromDraft()
+        _uiState.value = enrich(loadFromDraft())
     }
 
     fun onCancelClicked() {
@@ -103,7 +147,7 @@ class CreatePostViewModel(
 
     // ✅ sélection gauche -> upload direct
     fun onLeftImageSelected(uri: String) {
-        _uiState.update {
+        updateState {
             it.copy(
                 leftLocalUri = uri,
                 leftUploadedUrl = "",
@@ -111,7 +155,6 @@ class CreatePostViewModel(
                 errorMessage = null
             )
         }
-        saveToDraft(_uiState.value)
 
         scope.launch {
             val result = withContext(dispatchers.default) {
@@ -120,38 +163,36 @@ class CreatePostViewModel(
 
             result
                 .onSuccess { url ->
-                    _uiState.update {
+                    updateState {
                         it.copy(
                             leftUploadedUrl = url,
                             isUploadingLeft = false,
                             errorMessage = null
                         )
                     }
-                    saveToDraft(_uiState.value)
                 }
                 .onFailure { error ->
                     if (error is IllegalStateException && error.message == "AUTH_REQUIRED") {
-                        _uiState.update { it.copy(isUploadingLeft = false) }
+                        updateState { it.copy(isUploadingLeft = false) }
                         NavigationStore.setAfterLogin(Screen.CreatePost)
                         _events.tryEmit(CreatePostUiEvent.ShowMessage("Tu dois être connecté pour créer un post."))
                         _events.tryEmit(CreatePostUiEvent.NavigateToLogin)
                         return@onFailure
                     }
 
-                    _uiState.update {
+                    updateState {
                         it.copy(
                             isUploadingLeft = false,
                             errorMessage = error.message ?: "Upload image gauche impossible."
                         )
                     }
-                    saveToDraft(_uiState.value)
                 }
         }
     }
 
     // ✅ sélection droite -> upload direct
     fun onRightImageSelected(uri: String) {
-        _uiState.update {
+        updateState {
             it.copy(
                 rightLocalUri = uri,
                 rightUploadedUrl = "",
@@ -159,7 +200,6 @@ class CreatePostViewModel(
                 errorMessage = null
             )
         }
-        saveToDraft(_uiState.value)
 
         scope.launch {
             val result = withContext(dispatchers.default) {
@@ -168,31 +208,29 @@ class CreatePostViewModel(
 
             result
                 .onSuccess { url ->
-                    _uiState.update {
+                    updateState {
                         it.copy(
                             rightUploadedUrl = url,
                             isUploadingRight = false,
                             errorMessage = null
                         )
                     }
-                    saveToDraft(_uiState.value)
                 }
                 .onFailure { error ->
                     if (error is IllegalStateException && error.message == "AUTH_REQUIRED") {
-                        _uiState.update { it.copy(isUploadingRight = false) }
+                        updateState { it.copy(isUploadingRight = false) }
                         NavigationStore.setAfterLogin(Screen.CreatePost)
                         _events.tryEmit(CreatePostUiEvent.ShowMessage("Tu dois être connecté pour créer un post."))
                         _events.tryEmit(CreatePostUiEvent.NavigateToLogin)
                         return@onFailure
                     }
 
-                    _uiState.update {
+                    updateState {
                         it.copy(
                             isUploadingRight = false,
                             errorMessage = error.message ?: "Upload image droite impossible."
                         )
                     }
-                    saveToDraft(_uiState.value)
                 }
         }
     }
@@ -200,30 +238,14 @@ class CreatePostViewModel(
     fun submitPost() {
         val state = _uiState.value
 
-        val missing =
-            state.question.isBlank() ||
-                    state.leftLabel.isBlank() ||
-                    state.rightLabel.isBlank() ||
-                    state.category.isBlank() ||
-                    state.leftLocalUri.isBlank() ||
-                    state.rightLocalUri.isBlank() ||
-                    state.leftUploadedUrl.isBlank() ||
-                    state.rightUploadedUrl.isBlank()
-
-        val uploading = state.isUploadingLeft || state.isUploadingRight
-
-        if (missing) {
-            _uiState.update { it.copy(errorMessage = "Tous les champs sont obligatoires (images incluses).") }
-            return
-        }
-
-        if (uploading) {
-            _uiState.update { it.copy(errorMessage = "Attends la fin de l’upload des images.") }
+        // ✅ Ici on s'appuie sur la règle unique
+        if (!state.isSubmitEnabled) {
+            updateState { it.copy(errorMessage = state.submitBlockedReason ?: "Impossible de publier.") }
             return
         }
 
         scope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            updateState { it.copy(isLoading = true, errorMessage = null) }
 
             val result = withContext(dispatchers.default) {
                 createPostUseCase.execute(
@@ -238,20 +260,20 @@ class CreatePostViewModel(
 
             result
                 .onSuccess {
-                    _uiState.update { it.copy(isLoading = false) }
+                    updateState { it.copy(isLoading = false) }
                     CreatePostDraftStore.clear()
                     _events.tryEmit(CreatePostUiEvent.PostCreated)
                 }
                 .onFailure { error ->
                     if (error is IllegalStateException && error.message == "AUTH_REQUIRED") {
-                        _uiState.update { it.copy(isLoading = false) }
+                        updateState { it.copy(isLoading = false) }
                         NavigationStore.setAfterLogin(Screen.CreatePost)
                         _events.tryEmit(CreatePostUiEvent.ShowMessage("Tu dois être connecté pour créer un post."))
                         _events.tryEmit(CreatePostUiEvent.NavigateToLogin)
                         return@onFailure
                     }
 
-                    _uiState.update {
+                    updateState {
                         it.copy(
                             isLoading = false,
                             errorMessage = error.message ?: "Erreur lors de la création du post."

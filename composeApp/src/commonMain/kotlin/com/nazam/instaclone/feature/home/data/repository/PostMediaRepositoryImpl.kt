@@ -6,7 +6,6 @@ import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.storage.storage
 import kotlin.random.Random
-import kotlin.time.Clock
 
 /**
  * Upload vers Supabase Storage.
@@ -30,8 +29,10 @@ class PostMediaRepositoryImpl(
 
         val bytes = bytesReader.readBytes(localUri)
 
-        // ✅ nom unique simple
-        val fileName = "posts/${user.id}/${Clock.System.currentTimeMillis()}-${Random.nextInt(0, 999999)}.jpg"
+        // ✅ nom unique 100% KMP (pas de time, pas de datetime)
+        val unique = Random.nextLong().toString().replace("-", "")
+        val fileName = "posts/${user.id}/$unique.jpg"
+
         client.storage.from(BUCKET).upload(
             path = fileName,
             data = bytes

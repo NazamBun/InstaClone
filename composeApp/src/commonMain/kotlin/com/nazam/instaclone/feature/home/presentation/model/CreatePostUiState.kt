@@ -7,6 +7,10 @@ package com.nazam.instaclone.feature.home.presentation.model
  * - URIs locales (content://...) : pour afficher l'aperçu
  * - URLs uploadées (https://...) : pour envoyer au backend
  * - 2 flags d'upload (gauche / droite)
+ *
+ * ✅ Etape 2 :
+ * - isSubmitEnabled : le bouton "Publier" doit-il être cliquable ?
+ * - submitBlockedReason : si bloqué, on affiche pourquoi (message simple)
  */
 data class CreatePostUiState(
     val question: String = "",
@@ -28,5 +32,9 @@ data class CreatePostUiState(
 
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
-    val isPostCreated: Boolean = false
+    val isPostCreated: Boolean = false,
+
+    // ✅ Dérivés (calculés par le ViewModel)
+    val isSubmitEnabled: Boolean = false,
+    val submitBlockedReason: String? = null
 )

@@ -31,6 +31,7 @@ import com.nazam.instaclone.feature.home.presentation.ui.components.NetworkImage
  *
  * ✅ Scrollable : on peut scroller et voir les boutons
  * ✅ Upload direct : on montre "upload en cours"
+ * ✅ Etape 2 : le ViewModel nous dit si on peut publier + pourquoi sinon
  */
 @Composable
 fun CreatePostScreen(
@@ -50,17 +51,6 @@ fun CreatePostScreen(
     // ✅ preview : si URL uploadée existe -> on affiche ça, sinon URI locale
     val leftPreview = if (ui.leftUploadedUrl.isNotBlank()) ui.leftUploadedUrl else ui.leftLocalUri
     val rightPreview = if (ui.rightUploadedUrl.isNotBlank()) ui.rightUploadedUrl else ui.rightLocalUri
-
-    val canSubmit =
-        !ui.isLoading &&
-                !ui.isUploadingLeft &&
-                !ui.isUploadingRight &&
-                ui.question.isNotBlank() &&
-                ui.leftLabel.isNotBlank() &&
-                ui.rightLabel.isNotBlank() &&
-                ui.category.isNotBlank() &&
-                ui.leftUploadedUrl.isNotBlank() &&
-                ui.rightUploadedUrl.isNotBlank()
 
     Box(
         modifier = modifier
@@ -191,6 +181,7 @@ fun CreatePostScreen(
                 Text(Strings.chooseCategory)
             }
 
+            // ✅ Erreur (vraie erreur)
             ui.errorMessage?.let { msg ->
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
@@ -205,10 +196,20 @@ fun CreatePostScreen(
 
             Button(
                 onClick = onSubmitClick,
-                enabled = canSubmit,
+                enabled = ui.isSubmitEnabled,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(Strings.submit)
+            }
+
+            // ✅ Info si bouton bloqué (raison simple)
+            if (!ui.isSubmitEnabled && ui.submitBlockedReason != null && ui.errorMessage == null) {
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = ui.submitBlockedReason,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
 
             Spacer(modifier = Modifier.height(8.dp))
