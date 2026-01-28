@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">InstaClone</string>
+
+    <!-- Auth - Login -->
+    <string name="login_title">Connexion</string>
+    <string name="login_email_placeholder">Email</string>
+    <string name="login_password_placeholder">Mot de passe</string>
+    <string name="login_button">Connexion</string>
+    <string name="login_go_to_signup_button">Créer un compte</string>
 </resources>
