@@ -16,4 +16,7 @@
     <string name="signup_display_name_placeholder">Nom d'utilisateur</string>
     <string name="signup_button">Créer un compte</string>
     <string name="signup_go_to_login_button">Déjà un compte ? Se connecter</string>
+
+    <!-- Comments -->
+    <string name="comment_placeholder">Commenter…</string>
 </resources>

@@ -1,11 +1,20 @@
 package com.nazam.instaclone.feature.home.presentation.ui.components.comments
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material3.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -13,7 +22,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import instaclone.composeapp.generated.resources.Res
+import instaclone.composeapp.generated.resources.comment_placeholder
+import org.jetbrains.compose.resources.stringResource
 
+/**
+ * Barre d'input commentaire.
+ * ✅ KMP friendly : strings via composeResources
+ */
 @Composable
 fun CommentInputBar(
     letter: String,
@@ -39,21 +55,27 @@ fun CommentInputBar(
                 ),
             contentAlignment = Alignment.Center
         ) {
-            Text(letter, color = Color.White)
+            Text(text = letter, color = Color.White)
         }
 
-        Spacer(Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(8.dp))
 
         TextField(
             value = text,
             onValueChange = onTextChange,
             modifier = Modifier.weight(1f),
-            placeholder = { Text("Commenter…") },
+            placeholder = { Text(stringResource(Res.string.comment_placeholder)) },
             singleLine = true
         )
 
-        IconButton(onClick = onSend, enabled = text.isNotBlank()) {
-            Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null)
+        IconButton(
+            onClick = onSend,
+            enabled = text.isNotBlank()
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.Send,
+                contentDescription = null
+            )
         }
     }
 }
