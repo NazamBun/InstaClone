@@ -24,6 +24,10 @@ import com.nazam.instaclone.feature.home.presentation.ui.HomeRoute
 import com.nazam.instaclone.feature.home.presentation.ui.categories.CategoriesRoute
 import com.nazam.instaclone.feature.home.presentation.ui.explore.ExplorePagerRoute
 import com.nazam.instaclone.feature.home.presentation.ui.explore.ExploreRoute
+import instaclone.composeapp.generated.resources.Res
+import instaclone.composeapp.generated.resources.placeholder_notifications_soon
+import instaclone.composeapp.generated.resources.placeholder_profile_soon
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun App() {
@@ -54,7 +58,7 @@ fun App() {
                     Screen.Home -> HomeRoute(onNavigate = ::navigateTo, contentPadding = padding)
                     Screen.Explore -> ExploreRoute(onNavigate = ::navigateTo, contentPadding = padding)
 
-                    // ✅ Nouveau : swipe horizontal
+                    // Swipe horizontal
                     Screen.ExplorePager -> ExplorePagerRoute(onNavigate = ::navigateTo, contentPadding = padding)
 
                     Screen.CreatePost -> CreatePostRoute(onNavigate = ::navigateTo)
@@ -63,8 +67,15 @@ fun App() {
                     Screen.Login -> LoginRoute(onNavigate = ::navigateTo)
                     Screen.Signup -> SignupRoute(onNavigate = ::navigateTo)
 
-                    Screen.Notifications -> SimplePlaceholder(title = "Notifications (bientôt)", contentPadding = padding)
-                    Screen.Profile -> SimplePlaceholder(title = "Profil (bientôt)", contentPadding = padding)
+                    Screen.Notifications -> SimplePlaceholder(
+                        title = stringResource(Res.string.placeholder_notifications_soon),
+                        contentPadding = padding
+                    )
+
+                    Screen.Profile -> SimplePlaceholder(
+                        title = stringResource(Res.string.placeholder_profile_soon),
+                        contentPadding = padding
+                    )
                 }
             }
         }
@@ -76,7 +87,7 @@ private fun SimplePlaceholder(
     title: String,
     contentPadding: PaddingValues
 ) {
-    androidx.compose.foundation.layout.Box(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(contentPadding)

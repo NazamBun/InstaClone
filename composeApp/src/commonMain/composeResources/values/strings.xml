@@ -31,4 +31,35 @@
     <string name="bottom_create">Créer</string>
     <string name="bottom_notifications">Notifs</string>
     <string name="bottom_profile">Profil</string>
+
+    <!-- Create post -->
+    <string name="create_post_title">Créer un nouveau VS</string>
+    <string name="create_post_question_label">Question</string>
+    <string name="create_post_left_label">Label gauche</string>
+    <string name="create_post_right_label">Label droite</string>
+
+    <string name="create_post_pick_left_image">Choisir image gauche</string>
+    <string name="create_post_change_left_image">Changer image gauche</string>
+    <string name="create_post_pick_right_image">Choisir image droite</string>
+    <string name="create_post_change_right_image">Changer image droite</string>
+
+    <string name="create_post_uploading_left">Upload image gauche...</string>
+    <string name="create_post_uploading_right">Upload image droite...</string>
+
+    <string name="create_post_left_image_cd">Image gauche</string>
+    <string name="create_post_right_image_cd">Image droite</string>
+
+    <string name="create_post_category_label">Catégorie</string>
+    <string name="create_post_choose_category_placeholder">Choisir une catégorie</string>
+    <string name="create_post_choose_category_button">Choisir la catégorie</string>
+
+    <string name="create_post_submit">Publier le VS</string>
+    <string name="create_post_cancel">Annuler</string>
+
+    <!-- Categories -->
+    <string name="categories_title">Choisir une catégorie</string>
+
+    <!-- Placeholders -->
+    <string name="placeholder_notifications_soon">Notifications (bientôt)</string>
+    <string name="placeholder_profile_soon">Profil (bientôt)</string>
 </resources>

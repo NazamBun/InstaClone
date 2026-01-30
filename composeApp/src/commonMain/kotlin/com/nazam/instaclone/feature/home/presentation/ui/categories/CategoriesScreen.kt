@@ -13,6 +13,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.nazam.instaclone.feature.home.domain.model.VoteCategory
+import instaclone.composeapp.generated.resources.Res
+import instaclone.composeapp.generated.resources.categories_title
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun CategoriesScreen(
@@ -26,7 +29,7 @@ fun CategoriesScreen(
             .padding(16.dp)
     ) {
         Text(
-            text = "Choisir une catégorie",
+            text = stringResource(Res.string.categories_title),
             style = MaterialTheme.typography.titleLarge
         )
 
