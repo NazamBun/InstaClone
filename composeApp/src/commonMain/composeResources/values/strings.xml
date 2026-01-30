@@ -19,4 +19,9 @@
 
     <!-- Comments -->
     <string name="comment_placeholder">Commenter…</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_info_title">Information</string>
+    <string name="dialog_ok">OK</string>
+    <string name="dialog_cancel">Annuler</string>
 </resources>
