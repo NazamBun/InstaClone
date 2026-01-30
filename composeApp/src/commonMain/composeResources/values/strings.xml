@@ -24,4 +24,11 @@
     <string name="dialog_info_title">Information</string>
     <string name="dialog_ok">OK</string>
     <string name="dialog_cancel">Annuler</string>
+
+    <!-- Bottom bar -->
+    <string name="bottom_home">Accueil</string>
+    <string name="bottom_explore">Explorer</string>
+    <string name="bottom_create">Créer</string>
+    <string name="bottom_notifications">Notifs</string>
+    <string name="bottom_profile">Profil</string>
 </resources>

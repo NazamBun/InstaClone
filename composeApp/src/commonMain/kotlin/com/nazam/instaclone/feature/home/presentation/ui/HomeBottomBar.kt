@@ -15,19 +15,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.nazam.instaclone.core.navigation.Screen
+import instaclone.composeapp.generated.resources.Res
+import instaclone.composeapp.generated.resources.bottom_create
+import instaclone.composeapp.generated.resources.bottom_explore
+import instaclone.composeapp.generated.resources.bottom_home
+import instaclone.composeapp.generated.resources.bottom_notifications
+import instaclone.composeapp.generated.resources.bottom_profile
+import org.jetbrains.compose.resources.stringResource
 
-/**
- * Bottom bar (KMP friendly) :
- * - Accueil
- * - Explorer
- * - Créer
- * - Notifications
- * - Profil
- *
- * ✅ Pas d'icônes
- * ✅ Fond noir partout
- * ✅ Surbrillance : si on est dans ExplorePager => on surligne Explorer (pro)
- */
 @Composable
 fun HomeBottomBar(
     selectedScreen: Screen,
@@ -42,9 +37,7 @@ fun HomeBottomBar(
     val accent = Color(0xFFFF4EB8)
     val normal = Color.White
 
-    // ✅ Très important pour l’UX :
-    // ExplorePager est un "sous-écran" de Explore => on garde Explorer en surbrillance
-    val normalizedSelectedScreen: Screen =
+    val normalizedSelectedScreen =
         if (selectedScreen == Screen.ExplorePager) Screen.Explore else selectedScreen
 
     fun colorFor(screen: Screen): Color =
@@ -53,6 +46,24 @@ fun HomeBottomBar(
     fun weightFor(screen: Screen): FontWeight =
         if (normalizedSelectedScreen == screen) FontWeight.Bold else FontWeight.Normal
 
+    @Composable
+    fun BottomItem(
+        label: String,
+        screen: Screen,
+        onClick: () -> Unit
+    ) {
+        Text(
+            text = label,
+            color = colorFor(screen),
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = weightFor(screen),
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .weight(1f)
+                .clickable(onClick = onClick)
+        )
+    }
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -60,49 +71,34 @@ fun HomeBottomBar(
             .heightIn(min = 56.dp)
             .padding(horizontal = 10.dp, vertical = 12.dp)
     ) {
-        Text(
-            text = "Accueil",
-            color = colorFor(Screen.Home),
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = weightFor(Screen.Home),
-            textAlign = TextAlign.Center,
-            modifier = Modifier.weight(1f).clickable { onHomeClick() }
+        BottomItem(
+            label = stringResource(Res.string.bottom_home),
+            screen = Screen.Home,
+            onClick = onHomeClick
         )
 
-        Text(
-            text = "Explorer",
-            color = colorFor(Screen.Explore),
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = weightFor(Screen.Explore),
-            textAlign = TextAlign.Center,
-            modifier = Modifier.weight(1f).clickable { onExploreClick() }
+        BottomItem(
+            label = stringResource(Res.string.bottom_explore),
+            screen = Screen.Explore,
+            onClick = onExploreClick
         )
 
-        Text(
-            text = "Créer",
-            color = colorFor(Screen.CreatePost),
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = weightFor(Screen.CreatePost),
-            textAlign = TextAlign.Center,
-            modifier = Modifier.weight(1f).clickable { onCreatePostClick() }
+        BottomItem(
+            label = stringResource(Res.string.bottom_create),
+            screen = Screen.CreatePost,
+            onClick = onCreatePostClick
         )
 
-        Text(
-            text = "Notifs",
-            color = colorFor(Screen.Notifications),
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = weightFor(Screen.Notifications),
-            textAlign = TextAlign.Center,
-            modifier = Modifier.weight(1f).clickable { onNotificationsClick() }
+        BottomItem(
+            label = stringResource(Res.string.bottom_notifications),
+            screen = Screen.Notifications,
+            onClick = onNotificationsClick
         )
 
-        Text(
-            text = "Profil",
-            color = colorFor(Screen.Profile),
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = weightFor(Screen.Profile),
-            textAlign = TextAlign.Center,
-            modifier = Modifier.weight(1f).clickable { onProfileClick() }
+        BottomItem(
+            label = stringResource(Res.string.bottom_profile),
+            screen = Screen.Profile,
+            onClick = onProfileClick
         )
     }
 }
