@@ -2,7 +2,12 @@ package com.nazam.instaclone.feature.home.presentation.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.weight
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -13,11 +18,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.nazam.instaclone.core.navigation.Screen
 import instaclone.composeapp.generated.resources.Res
-import instaclone.composeapp.generated.resources.bottom_create
-import instaclone.composeapp.generated.resources.bottom_explore
-import instaclone.composeapp.generated.resources.bottom_home
-import instaclone.composeapp.generated.resources.bottom_notifications
-import instaclone.composeapp.generated.resources.bottom_profile
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -34,6 +34,7 @@ fun HomeBottomBar(
     val accent = Color(0xFFFF4EB8)
     val normal = Color.White
 
+    // ExplorePager est un sous-écran de Explore
     val normalizedSelectedScreen =
         if (selectedScreen == Screen.ExplorePager) Screen.Explore else selectedScreen
 
@@ -68,34 +69,10 @@ fun HomeBottomBar(
             .heightIn(min = 56.dp)
             .padding(horizontal = 10.dp, vertical = 12.dp)
     ) {
-        BottomItem(
-            label = stringResource(Res.string.bottom_home),
-            screen = Screen.Home,
-            onClick = onHomeClick
-        )
-
-        BottomItem(
-            label = stringResource(Res.string.bottom_explore),
-            screen = Screen.Explore,
-            onClick = onExploreClick
-        )
-
-        BottomItem(
-            label = stringResource(Res.string.bottom_create),
-            screen = Screen.CreatePost,
-            onClick = onCreatePostClick
-        )
-
-        BottomItem(
-            label = stringResource(Res.string.bottom_notifications),
-            screen = Screen.Notifications,
-            onClick = onNotificationsClick
-        )
-
-        BottomItem(
-            label = stringResource(Res.string.bottom_profile),
-            screen = Screen.Profile,
-            onClick = onProfileClick
-        )
+        BottomItem(stringResource(Res.string.bottom_home), Screen.Home, onHomeClick)
+        BottomItem(stringResource(Res.string.bottom_explore), Screen.Explore, onExploreClick)
+        BottomItem(stringResource(Res.string.bottom_create), Screen.CreatePost, onCreatePostClick)
+        BottomItem(stringResource(Res.string.bottom_notifications), Screen.Notifications, onNotificationsClick)
+        BottomItem(stringResource(Res.string.bottom_profile), Screen.Profile, onProfileClick)
     }
 }

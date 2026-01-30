@@ -25,8 +25,6 @@ import com.nazam.instaclone.feature.home.presentation.ui.categories.CategoriesRo
 import com.nazam.instaclone.feature.home.presentation.ui.explore.ExplorePagerRoute
 import com.nazam.instaclone.feature.home.presentation.ui.explore.ExploreRoute
 import instaclone.composeapp.generated.resources.Res
-import instaclone.composeapp.generated.resources.placeholder_notifications_soon
-import instaclone.composeapp.generated.resources.placeholder_profile_soon
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
