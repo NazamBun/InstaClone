@@ -16,7 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.nazam.instaclone.feature.auth.presentation.model.SignupUiState
-import instaclone.composeapp.generated.resources.Res
+import instaclone.composeapp.generated.resources.*
 import org.jetbrains.compose.resources.stringResource
 
 /**

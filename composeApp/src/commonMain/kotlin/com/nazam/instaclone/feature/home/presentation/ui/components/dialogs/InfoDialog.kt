@@ -5,16 +5,9 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import instaclone.composeapp.generated.resources.Res
+import instaclone.composeapp.generated.resources.*
 import org.jetbrains.compose.resources.stringResource
 
-/**
- * Dialog simple (KMP friendly).
- *
- * - Le titre et les labels par défaut viennent des resources.
- * - Si confirmLabel est fourni, il remplace le "OK" par défaut.
- * - Si secondaryLabel est fourni, on affiche aussi "Annuler".
- */
 @Composable
 fun InfoDialog(
     message: String,
