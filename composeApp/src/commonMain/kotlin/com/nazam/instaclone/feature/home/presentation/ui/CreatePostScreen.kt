@@ -26,30 +26,13 @@ import com.nazam.instaclone.feature.home.domain.model.VoteCategories
 import com.nazam.instaclone.feature.home.presentation.model.CreatePostUiState
 import com.nazam.instaclone.feature.home.presentation.ui.components.NetworkImage
 import instaclone.composeapp.generated.resources.Res
-import instaclone.composeapp.generated.resources.create_post_cancel
-import instaclone.composeapp.generated.resources.create_post_category_label
-import instaclone.composeapp.generated.resources.create_post_change_left_image
-import instaclone.composeapp.generated.resources.create_post_change_right_image
-import instaclone.composeapp.generated.resources.create_post_choose_category_button
-import instaclone.composeapp.generated.resources.create_post_choose_category_placeholder
-import instaclone.composeapp.generated.resources.create_post_left_image_cd
-import instaclone.composeapp.generated.resources.create_post_left_label
-import instaclone.composeapp.generated.resources.create_post_pick_left_image
-import instaclone.composeapp.generated.resources.create_post_pick_right_image
-import instaclone.composeapp.generated.resources.create_post_question_label
-import instaclone.composeapp.generated.resources.create_post_right_image_cd
-import instaclone.composeapp.generated.resources.create_post_right_label
-import instaclone.composeapp.generated.resources.create_post_submit
-import instaclone.composeapp.generated.resources.create_post_title
-import instaclone.composeapp.generated.resources.create_post_uploading_left
-import instaclone.composeapp.generated.resources.create_post_uploading_right
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * UI only.
+ * UI only (KMP friendly).
  *
  * - Scrollable
- * - Upload direct : on montre "upload en cours"
+ * - Upload direct : affiche "upload en cours"
  * - Le ViewModel décide si on peut publier + pourquoi
  */
 @Composable
