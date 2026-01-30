@@ -62,4 +62,36 @@
     <!-- Placeholders -->
     <string name="placeholder_notifications_soon">Notifications (bientôt)</string>
     <string name="placeholder_profile_soon">Profil (bientôt)</string>
+
+    <!-- Explore -->
+    <string name="explore_back">Retour</string>
+    <string name="explore_empty_category">Aucun post dans cette catégorie</string>
+
+    <string name="explore_sort_hot">Hot</string>
+    <string name="explore_sort_recent">Recent</string>
+    <string name="explore_sort_controversial">Controversé</string>
+
+    <string name="explore_title">Découvrir</string>
+    <string name="explore_all">Tout</string>
+
+    <!-- Home -->
+    <string name="home_empty">Aucun post</string>
+    <string name="home_empty_filtered">Aucun post dans ce filtre</string>
+
+    <!-- Comments -->
+    <string name="comments_title">Commentaires</string>
+    <string name="comments_empty">Aucun commentaire</string>
+    <string name="comments_login_required">Connecte-toi pour commenter</string>
+    <string name="close">Fermer</string>
+
+    <!-- Accessibility -->
+    <string name="cd_comments">Commentaires</string>
+    <string name="cd_message">Message</string>
+    <string name="cd_share">Partager</string>
+    <string name="cd_poll_image">Image du sondage</string>
+
+    <string name="explore_sort_hot_title">Hot (plus de votes)</string>
+    <string name="explore_sort_recent_title">Recent (les plus récents)</string>
+    <string name="explore_sort_controversial_title">Controversé (votes serrés)</string>
+    <string name="explore_category_prefix">Catégorie :</string>
 </resources>

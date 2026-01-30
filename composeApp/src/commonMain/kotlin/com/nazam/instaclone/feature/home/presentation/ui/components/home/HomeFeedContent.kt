@@ -14,6 +14,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import com.nazam.instaclone.feature.home.presentation.model.HomeUiState
 import com.nazam.instaclone.feature.home.presentation.ui.VsPostItem
+import instaclone.composeapp.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 import kotlin.math.abs
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -25,7 +27,6 @@ fun HomeFeedContent(
     onVoteRight: (String) -> Unit,
     onOpenComments: (String) -> Unit
 ) {
-    // ✅ IMPORTANT : on utilise vraiment la liste filtrée
     val visiblePosts =
         if (ui.selectedCategoryId.isBlank()) ui.posts
         else ui.posts.filter { it.category == ui.selectedCategoryId }
@@ -40,11 +41,12 @@ fun HomeFeedContent(
             }
 
             visiblePosts.isEmpty() -> {
-                val label = if (ui.selectedCategoryId.isBlank()) "Aucun post"
-                else "Aucun post dans ce filtre"
+                val labelRes =
+                    if (ui.selectedCategoryId.isBlank()) Res.string.home_empty
+                    else Res.string.home_empty_filtered
 
                 Text(
-                    text = label,
+                    text = stringResource(labelRes),
                     color = Color.White,
                     modifier = Modifier.align(Alignment.Center)
                 )

@@ -21,17 +21,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.nazam.instaclone.feature.home.domain.model.VsPost
 import com.nazam.instaclone.feature.home.presentation.ui.components.NetworkImage
+import instaclone.composeapp.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 import kotlin.math.max
 
 /**
- * Tuile carrée (grid) :
- * - image gagnante
- * - titre "A vs B"
- * - 2 lignes label + % (petit)
- * - 2 barres de progression
- *
- * ✅ Pas d’icônes
- * ✅ KMP friendly
+ * Tuile carrée (grid).
+ * ✅ KMP friendly : strings via composeResources
  */
 @Composable
 internal fun ExplorePostTile(
@@ -61,10 +57,9 @@ internal fun ExplorePostTile(
             .clickable { onClick(post) }
     ) {
         androidx.compose.foundation.layout.Box(modifier = Modifier.fillMaxSize()) {
-
             NetworkImage(
                 url = winnerUrl,
-                contentDescription = "Image du sondage",
+                contentDescription = stringResource(Res.string.cd_poll_image),
                 modifier = Modifier.fillMaxSize()
             )
 
@@ -104,9 +99,6 @@ internal fun ExplorePostTile(
     }
 }
 
-/**
- * Petite ligne : "Messi 52%"
- */
 @Composable
 private fun LabelPercentRow(
     label: String,

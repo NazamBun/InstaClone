@@ -16,6 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import instaclone.composeapp.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun VsPostActionRail(
@@ -32,13 +34,25 @@ fun VsPostActionRail(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         IconButton(onClick = onCommentsClick) {
-            Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = "Commentaires", tint = Color.White)
+            Icon(
+                imageVector = Icons.Outlined.ChatBubbleOutline,
+                contentDescription = stringResource(Res.string.cd_comments),
+                tint = Color.White
+            )
         }
         IconButton(onClick = onMessageClick) {
-            Icon(Icons.AutoMirrored.Outlined.Send, contentDescription = "Message", tint = Color.White)
+            Icon(
+                imageVector = Icons.AutoMirrored.Outlined.Send,
+                contentDescription = stringResource(Res.string.cd_message),
+                tint = Color.White
+            )
         }
         IconButton(onClick = onShareClick) {
-            Icon(Icons.Outlined.Share, contentDescription = "Partager", tint = Color.White)
+            Icon(
+                imageVector = Icons.Outlined.Share,
+                contentDescription = stringResource(Res.string.cd_share),
+                tint = Color.White
+            )
         }
     }
 }

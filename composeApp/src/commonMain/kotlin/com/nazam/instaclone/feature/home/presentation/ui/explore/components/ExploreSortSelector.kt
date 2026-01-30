@@ -12,12 +12,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.nazam.instaclone.feature.home.presentation.ui.explore.ExploreSortMode
+import instaclone.composeapp.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * Petit choix de tri.
- * ✅ KMP friendly
- * ✅ Pas d'icônes
- * ✅ Réutilisable
+ * ✅ KMP friendly : strings via composeResources
  */
 @Composable
 fun ExploreSortSelector(
@@ -30,19 +30,19 @@ fun ExploreSortSelector(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         ExploreSortChip(
-            label = "Hot",
+            label = stringResource(Res.string.explore_sort_hot),
             selected = selected == ExploreSortMode.HOT,
             onClick = { onSelected(ExploreSortMode.HOT) }
         )
 
         ExploreSortChip(
-            label = "Recent",
+            label = stringResource(Res.string.explore_sort_recent),
             selected = selected == ExploreSortMode.RECENT,
             onClick = { onSelected(ExploreSortMode.RECENT) }
         )
 
         ExploreSortChip(
-            label = "Controversé",
+            label = stringResource(Res.string.explore_sort_controversial),
             selected = selected == ExploreSortMode.CONTROVERSIAL,
             onClick = { onSelected(ExploreSortMode.CONTROVERSIAL) }
         )

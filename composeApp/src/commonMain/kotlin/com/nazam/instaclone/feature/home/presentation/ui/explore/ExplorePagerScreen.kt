@@ -17,6 +17,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.nazam.instaclone.feature.home.presentation.model.HomeUiState
 import com.nazam.instaclone.feature.home.presentation.ui.VsPostItem
+import instaclone.composeapp.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * ExplorePagerScreen :
@@ -24,8 +26,7 @@ import com.nazam.instaclone.feature.home.presentation.ui.VsPostItem
  * - Uniquement les posts de la catégorie cliquée
  * - Démarre sur le post cliqué
  *
- * ✅ Réutilise VsPostItem => même rendu que le feed
- * ✅ Pas d’icônes
+ * ✅ KMP friendly : strings via composeResources
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -59,9 +60,9 @@ fun ExplorePagerScreen(
             .background(Color(0xFF050509))
             .padding(contentPadding)
     ) {
-        // Petit “Retour” texte, sans icône
+        // Retour (texte simple)
         Text(
-            text = "Retour",
+            text = stringResource(Res.string.explore_back),
             color = Color.White,
             modifier = Modifier
                 .align(Alignment.TopStart)
@@ -71,7 +72,7 @@ fun ExplorePagerScreen(
 
         if (postsInCategory.isEmpty()) {
             Text(
-                text = "Aucun post dans cette catégorie",
+                text = stringResource(Res.string.explore_empty_category),
                 color = Color.White,
                 modifier = Modifier.align(Alignment.Center)
             )
@@ -83,7 +84,6 @@ fun ExplorePagerScreen(
             modifier = Modifier.fillMaxSize()
         ) { index ->
             val post = postsInCategory[index]
-
             val isVoting = ui.votingPostId == post.id
 
             VsPostItem(

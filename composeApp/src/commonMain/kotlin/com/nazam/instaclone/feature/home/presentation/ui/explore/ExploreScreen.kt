@@ -10,10 +10,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,15 +28,12 @@ import com.nazam.instaclone.feature.home.presentation.ui.explore.components.Expl
 import com.nazam.instaclone.feature.home.presentation.ui.explore.components.ExplorePostTile
 import com.nazam.instaclone.feature.home.presentation.ui.explore.components.ExploreSortSelector
 import com.nazam.instaclone.feature.home.presentation.ui.explore.components.ExploreUiTokens
+import instaclone.composeapp.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 
 /**
- * ExploreScreen (Découvrir)
- * - Catégories (chips)
- * - Tri (Hot / Recent / Controversé) via ExploreUiState (V2)
- * - Grid 3 colonnes
- *
- * ✅ KMP friendly
- * ✅ Pas d’icônes
+ * ExploreScreen.
+ * ✅ KMP friendly : strings via composeResources
  */
 @Composable
 fun ExploreScreen(
@@ -73,7 +70,7 @@ fun ExploreScreen(
                 .padding(16.dp)
         ) {
             Text(
-                text = "Découvrir",
+                text = stringResource(Res.string.explore_title),
                 color = ExploreUiTokens.TitleColor,
                 style = MaterialTheme.typography.titleLarge
             )
@@ -86,7 +83,7 @@ fun ExploreScreen(
             ) {
                 item {
                     ExploreCategoryChip(
-                        label = "Tout",
+                        label = stringResource(Res.string.explore_all),
                         selected = selectedId.isBlank(),
                         onClick = onClearCategory
                     )
@@ -110,15 +107,16 @@ fun ExploreScreen(
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            val title =
+            val title: String =
                 if (selectedId.isBlank()) {
                     when (sortMode) {
-                        ExploreSortMode.HOT -> "Hot (plus de votes)"
-                        ExploreSortMode.RECENT -> "Recent (les plus récents)"
-                        ExploreSortMode.CONTROVERSIAL -> "Controversé (votes serrés)"
+                        ExploreSortMode.HOT -> stringResource(Res.string.explore_sort_hot_title)
+                        ExploreSortMode.RECENT -> stringResource(Res.string.explore_sort_recent_title)
+                        ExploreSortMode.CONTROVERSIAL -> stringResource(Res.string.explore_sort_controversial_title)
                     }
                 } else {
-                    "Catégorie : ${VoteCategories.labelFor(selectedId)}"
+                    // garder ce format simple, mais sans texte en dur
+                    stringResource(Res.string.explore_category_prefix) + " " + VoteCategories.labelFor(selectedId)
                 }
 
             Text(

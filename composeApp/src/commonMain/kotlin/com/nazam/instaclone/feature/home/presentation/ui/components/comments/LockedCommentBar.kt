@@ -9,6 +9,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import instaclone.composeapp.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun LockedCommentBar(onClick: () -> Unit) {
@@ -19,7 +21,7 @@ fun LockedCommentBar(onClick: () -> Unit) {
         color = Color(0xFF0B0B10)
     ) {
         Text(
-            "Connecte-toi pour commenter",
+            text = stringResource(Res.string.comments_login_required),
             color = Color(0xFFBBBBBB),
             modifier = Modifier.padding(16.dp)
         )
