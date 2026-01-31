@@ -3,8 +3,12 @@ package com.nazam.instaclone.feature.auth.presentation.viewmodel
 import com.nazam.instaclone.core.dispatchers.AppDispatchers
 import com.nazam.instaclone.core.navigation.NavigationStore
 import com.nazam.instaclone.core.navigation.Screen
+import com.nazam.instaclone.core.ui.UiText
 import com.nazam.instaclone.feature.auth.domain.usecase.SignupUseCase
 import com.nazam.instaclone.feature.auth.presentation.model.SignupUiState
+import instaclone.composeapp.generated.resources.Res
+import instaclone.composeapp.generated.resources.error_email_password_required
+import instaclone.composeapp.generated.resources.error_unknown
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -15,11 +19,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/**
- * ViewModel KMP pur.
- * - UiState = état durable
- * - Events = actions one-shot (navigation)
- */
 class SignupViewModel(
     private val dispatchers: AppDispatchers,
     private val signupUseCase: SignupUseCase
@@ -34,27 +33,29 @@ class SignupViewModel(
     val events: SharedFlow<AuthUiEvent> = _events
 
     fun onEmailChanged(value: String) {
-        _uiState.update { it.copy(email = value, errorMessage = null) }
+        _uiState.update { it.copy(email = value, error = null) }
     }
 
     fun onPasswordChanged(value: String) {
-        _uiState.update { it.copy(password = value, errorMessage = null) }
+        _uiState.update { it.copy(password = value, error = null) }
     }
 
     fun onDisplayNameChanged(value: String) {
-        _uiState.update { it.copy(displayName = value, errorMessage = null) }
+        _uiState.update { it.copy(displayName = value, error = null) }
     }
 
     fun signup() {
         val state = _uiState.value
 
         if (state.email.isBlank() || state.password.isBlank()) {
-            _uiState.update { it.copy(errorMessage = "Email et mot de passe requis") }
+            _uiState.update {
+                it.copy(error = UiText.Resource(Res.string.error_email_password_required))
+            }
             return
         }
 
         scope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            _uiState.update { it.copy(isLoading = true, error = null) }
 
             val result = withContext(dispatchers.default) {
                 signupUseCase.execute(state.email, state.password, state.displayName)
@@ -63,17 +64,16 @@ class SignupViewModel(
             result
                 .onSuccess {
                     _uiState.update { it.copy(isLoading = false, isSignedUp = true) }
-
-                    // Important : après signup, on va où il faut.
-                    // Home par défaut, ou CreatePost si demandé avant.
                     val target = NavigationStore.consumeAfterLogin() ?: Screen.Home
                     _events.tryEmit(AuthUiEvent.Navigate(target))
                 }
                 .onFailure { error ->
+                    val msg = error.message?.takeIf { it.isNotBlank() }
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            errorMessage = error.message ?: "Erreur inconnue"
+                            error = msg?.let { UiText.DynamicString(it) }
+                                ?: UiText.Resource(Res.string.error_unknown)
                         )
                     }
                 }

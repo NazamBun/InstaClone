@@ -94,4 +94,8 @@
     <string name="explore_sort_recent_title">Recent (les plus récents)</string>
     <string name="explore_sort_controversial_title">Controversé (votes serrés)</string>
     <string name="explore_category_prefix">Catégorie :</string>
+
+    <!-- Errors -->
+    <string name="error_email_password_required">Email et mot de passe requis</string>
+    <string name="error_unknown">Erreur inconnue</string>
 </resources>

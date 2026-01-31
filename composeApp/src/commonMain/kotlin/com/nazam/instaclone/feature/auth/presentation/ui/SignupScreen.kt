@@ -15,14 +15,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.nazam.instaclone.core.ui.asString
 import com.nazam.instaclone.feature.auth.presentation.model.SignupUiState
 import instaclone.composeapp.generated.resources.*
 import org.jetbrains.compose.resources.stringResource
 
-/**
- * Écran pur (UI only).
- * ✅ KMP friendly : strings via composeResources
- */
 @Composable
 fun SignupScreen(
     ui: SignupUiState,
@@ -91,9 +88,9 @@ fun SignupScreen(
             Text(stringResource(Res.string.signup_go_to_login_button))
         }
 
-        ui.errorMessage?.let { msg ->
+        ui.error?.let { err ->
             Spacer(modifier = Modifier.height(12.dp))
-            Text(text = msg, color = Color.Red)
+            Text(text = err.asString(), color = Color.Red)
         }
     }
 }
