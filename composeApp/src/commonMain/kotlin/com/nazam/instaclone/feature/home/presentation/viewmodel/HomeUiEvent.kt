@@ -1,6 +1,7 @@
 package com.nazam.instaclone.feature.home.presentation.viewmodel
 
 import com.nazam.instaclone.core.navigation.Screen
+import com.nazam.instaclone.core.ui.UiText
 
 /**
  * Events one-shot : navigation + message.
@@ -8,14 +9,10 @@ import com.nazam.instaclone.core.navigation.Screen
  */
 sealed interface HomeUiEvent {
 
-    /**
-     * Navigation simple : on envoie directement l'écran cible.
-     * (Comme AuthUiEvent.Navigate)
-     */
     data class Navigate(val screen: Screen) : HomeUiEvent
 
     /**
-     * Message one-shot (snackbar)
+     * ✅ UiText = KMP + traduisible
      */
-    data class ShowMessage(val message: String) : HomeUiEvent
+    data class ShowMessage(val message: UiText) : HomeUiEvent
 }
