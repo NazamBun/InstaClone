@@ -98,4 +98,29 @@
     <!-- Errors -->
     <string name="error_email_password_required">Email et mot de passe requis</string>
     <string name="error_unknown">Erreur inconnue</string>
+
+    <!-- Create post - validation / messages -->
+    <string name="create_post_wait">Patiente...</string>
+    <string name="create_post_upload_in_progress">Upload des images en cours...</string>
+
+    <string name="create_post_error_question">Écris une question.</string>
+    <string name="create_post_error_left_label">Écris le label gauche.</string>
+    <string name="create_post_error_right_label">Écris le label droite.</string>
+    <string name="create_post_error_category">Choisis une catégorie.</string>
+
+    <string name="create_post_error_pick_left_image">Choisis l’image gauche.</string>
+    <string name="create_post_error_pick_right_image">Choisis l’image droite.</string>
+
+    <string name="create_post_error_wait_left_upload">Attends l’upload de l’image gauche.</string>
+    <string name="create_post_error_wait_right_upload">Attends l’upload de l’image droite.</string>
+
+    <string name="create_post_auth_required">Tu dois être connecté pour créer un post.</string>
+    <string name="create_post_error_submit_blocked">Impossible de publier.</string>
+
+    <string name="create_post_error_upload_left_failed">Upload image gauche impossible.</string>
+    <string name="create_post_error_upload_right_failed">Upload image droite impossible.</string>
+    <string name="create_post_error_create_failed">Erreur lors de la création du post.</string>
+
+    <!-- Categories / labels -->
+    <string name="category_none">Sans catégorie</string>
 </resources>

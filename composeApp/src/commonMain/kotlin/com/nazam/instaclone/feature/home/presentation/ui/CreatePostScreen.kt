@@ -22,19 +22,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.nazam.instaclone.core.ui.asString
 import com.nazam.instaclone.feature.home.domain.model.VoteCategories
 import com.nazam.instaclone.feature.home.presentation.model.CreatePostUiState
 import com.nazam.instaclone.feature.home.presentation.ui.components.NetworkImage
 import instaclone.composeapp.generated.resources.Res
-import org.jetbrains.compose.resources.stringResource
 import instaclone.composeapp.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 
 /**
- * UI only (KMP friendly).
- *
- * - Scrollable
- * - Upload direct : affiche "upload en cours"
- * - Le ViewModel décide si on peut publier + pourquoi
+ * UI only.
+ * ✅ KMP friendly : strings via composeResources
  */
 @Composable
 fun CreatePostScreen(
@@ -51,7 +49,6 @@ fun CreatePostScreen(
 ) {
     val scrollState = rememberScrollState()
 
-    // Preview : si URL uploadée existe -> on affiche ça, sinon URI locale
     val leftPreview = if (ui.leftUploadedUrl.isNotBlank()) ui.leftUploadedUrl else ui.leftLocalUri
     val rightPreview = if (ui.rightUploadedUrl.isNotBlank()) ui.rightUploadedUrl else ui.rightLocalUri
 
@@ -101,7 +98,6 @@ fun CreatePostScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Image gauche
             Button(
                 onClick = onPickLeftImageClick,
                 enabled = !ui.isLoading && !ui.isUploadingLeft,
@@ -110,7 +106,6 @@ fun CreatePostScreen(
                 val labelRes =
                     if (ui.leftLocalUri.isBlank()) Res.string.create_post_pick_left_image
                     else Res.string.create_post_change_left_image
-
                 Text(stringResource(labelRes))
             }
 
@@ -139,7 +134,6 @@ fun CreatePostScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Image droite
             Button(
                 onClick = onPickRightImageClick,
                 enabled = !ui.isLoading && !ui.isUploadingRight,
@@ -148,7 +142,6 @@ fun CreatePostScreen(
                 val labelRes =
                     if (ui.rightLocalUri.isBlank()) Res.string.create_post_pick_right_image
                     else Res.string.create_post_change_right_image
-
                 Text(stringResource(labelRes))
             }
 
@@ -198,11 +191,11 @@ fun CreatePostScreen(
                 Text(stringResource(Res.string.create_post_choose_category_button))
             }
 
-            // Erreur (vraie erreur)
-            ui.errorMessage?.let { msg ->
+            // ✅ Erreur UI (UiText)
+            ui.error?.let { err ->
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = msg,
+                    text = err.asString(),
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.fillMaxWidth()
@@ -219,11 +212,11 @@ fun CreatePostScreen(
                 Text(stringResource(Res.string.create_post_submit))
             }
 
-            // Info si bouton bloqué (raison simple)
-            if (!ui.isSubmitEnabled && ui.submitBlockedReason != null && ui.errorMessage == null) {
+            // ✅ Message “pourquoi c’est bloqué”
+            if (!ui.isSubmitEnabled && ui.submitBlockedReason != null && ui.error == null) {
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = ui.submitBlockedReason,
+                    text = ui.submitBlockedReason.asString(),
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.fillMaxWidth()
                 )
