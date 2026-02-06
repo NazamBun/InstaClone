@@ -9,11 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -21,28 +17,20 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.nazam.instaclone.core.ui.asString
 import com.nazam.instaclone.feature.home.presentation.model.HomeUiState
 import com.nazam.instaclone.feature.home.presentation.ui.components.comments.CommentsPanel
 import com.nazam.instaclone.feature.home.presentation.ui.components.dialogs.InfoDialog
 import com.nazam.instaclone.feature.home.presentation.ui.components.home.HomeBottomArea
 import com.nazam.instaclone.feature.home.presentation.ui.components.home.HomeFeedContent
 
-/**
- * HomeScreen :
- * - Le Scaffold est dans App.kt (donc ici : juste le contenu)
- * - La bottom bar doit rester dans App.kt
- * - Ici on affiche seulement :
- *   1) Le feed
- *   2) Le panel commentaires
- *   3) La zone d'input commentaires (au-dessus de la bottom bar)
- */
 @Composable
 fun HomeScreen(
     ui: HomeUiState,
     snackbarHostState: SnackbarHostState,
     contentPadding: PaddingValues,
 
-    onCreatePostClick: () -> Unit, // (pas utilisé ici pour l’instant, mais on le garde)
+    onCreatePostClick: () -> Unit,
 
     onVoteLeft: (String) -> Unit,
     onVoteRight: (String) -> Unit,
@@ -62,16 +50,14 @@ fun HomeScreen(
     var bottomBlockHeightDp by remember { mutableStateOf(0.dp) }
     val panelHeight = 320.dp
 
-    // ✅ On laisse toujours un espace pour que le contenu ne soit pas caché
-    // quand le panel commentaires + l'input du bas sont ouverts.
     val extraBottomPadding: Dp =
         if (ui.isCommentsSheetOpen) panelHeight + bottomBlockHeightDp else 0.dp
 
-    if (ui.dialogMessage != null) {
+    ui.dialogMessage?.let { messageUiText ->
         InfoDialog(
-            message = ui.dialogMessage ?: "",
-            confirmLabel = ui.dialogConfirmLabel,
-            secondaryLabel = ui.dialogSecondaryLabel,
+            message = messageUiText.asString(),
+            confirmLabel = ui.dialogConfirmLabel?.asString(),
+            secondaryLabel = ui.dialogSecondaryLabel?.asString(),
             onDismiss = onConsumeDialog,
             onConfirm = onDialogConfirm,
             onSecondary = onDialogSecondary
@@ -82,10 +68,8 @@ fun HomeScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFF050509))
-            // ✅ Important : padding du Scaffold (App.kt) => évite que la bottom bar cache le contenu
             .padding(contentPadding)
     ) {
-        // Snackbars (puisque le Scaffold est dans App.kt)
         SnackbarHost(
             hostState = snackbarHostState,
             modifier = Modifier.align(Alignment.BottomCenter)
@@ -99,7 +83,6 @@ fun HomeScreen(
             onOpenComments = onOpenComments
         )
 
-        // ✅ Zone d'input commentaires (au-dessus de la bottom bar de App.kt)
         HomeBottomArea(
             ui = ui,
             onNewCommentChange = onNewCommentChange,

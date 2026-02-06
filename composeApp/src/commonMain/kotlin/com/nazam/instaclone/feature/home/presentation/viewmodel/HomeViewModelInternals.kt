@@ -10,6 +10,8 @@ import com.nazam.instaclone.feature.home.domain.usecase.GetCommentsUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.GetFeedUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.VoteLeftUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.VoteRightUseCase
+import instaclone.composeapp.generated.resources.Res
+import instaclone.composeapp.generated.resources.*
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -26,11 +28,11 @@ internal fun HomeViewModel.loadFeedInternal(
         result
             .onSuccess { posts ->
                 _uiState.update { it.copy(isLoading = false, posts = posts) }
-                emitMessage(UiText.DynamicString("Feed chargé : ${posts.size} posts"))
+                emitMessage(UiText.ResourceArgs(Res.string.home_feed_loaded, listOf(posts.size)))
             }
-            .onFailure { error ->
+            .onFailure {
                 _uiState.update { it.copy(isLoading = false) }
-                emitMessage(UiText.DynamicString("Feed erreur : ${error.message ?: "Erreur"}"))
+                emitMessage(UiText.Resource(Res.string.home_feed_error))
             }
     }
 }
@@ -45,7 +47,7 @@ internal fun HomeViewModel.voteInternal(
     val state = uiState.value
 
     if (!state.isLoggedIn) {
-        showAuthRequiredDialogInternal("Tu dois être connecté ou créer un compte pour voter.")
+        showAuthRequiredDialogInternal(UiText.Resource(Res.string.home_auth_required_vote))
         return
     }
     if (state.votingPostId == postId) return
@@ -95,9 +97,9 @@ internal fun HomeViewModel.openCommentsInternal(
             .onSuccess { list ->
                 _uiState.update { it.copy(isCommentsLoading = false, comments = list) }
             }
-            .onFailure { error ->
+            .onFailure {
                 _uiState.update { it.copy(isCommentsLoading = false) }
-                emitMessage(UiText.DynamicString(error.message ?: "Impossible de charger les commentaires"))
+                emitMessage(UiText.Resource(Res.string.home_comments_load_error))
             }
     }
 }
@@ -121,7 +123,7 @@ internal fun HomeViewModel.sendCommentInternal(
     val state = uiState.value
 
     if (!state.isLoggedIn) {
-        showAuthRequiredDialogInternal("Tu dois te connecter ou créer un compte pour commenter.")
+        showAuthRequiredDialogInternal(UiText.Resource(Res.string.home_auth_required_comment))
         return
     }
 
@@ -183,29 +185,29 @@ internal fun HomeViewModel.logoutInternal(
                     )
                 }
 
-                emitMessage(UiText.DynamicString("Déconnecté"))
+                emitMessage(UiText.Resource(Res.string.home_logged_out))
                 navigateTo(Screen.Login)
             }
-            .onFailure { error ->
-                emitMessage(UiText.DynamicString(error.message ?: "Erreur de déconnexion"))
+            .onFailure {
+                emitMessage(UiText.Resource(Res.string.home_logout_error))
             }
     }
 }
 
 internal fun HomeViewModel.handleAuthOrGenericErrorInternal(error: Throwable) {
     if (error.isAuthRequired()) {
-        showAuthRequiredDialogInternal("Tu dois être connecté ou créer un compte.")
+        showAuthRequiredDialogInternal(UiText.Resource(Res.string.home_auth_required_generic))
     } else {
-        emitMessage(UiText.DynamicString(error.message ?: "Une erreur est arrivée"))
+        emitMessage(UiText.Resource(Res.string.error_unknown))
     }
 }
 
-internal fun HomeViewModel.showAuthRequiredDialogInternal(message: String) {
+internal fun HomeViewModel.showAuthRequiredDialogInternal(message: UiText) {
     _uiState.update {
         it.copy(
             dialogMessage = message,
-            dialogConfirmLabel = "Se connecter",
-            dialogSecondaryLabel = "Créer un compte",
+            dialogConfirmLabel = UiText.Resource(Res.string.dialog_login),
+            dialogSecondaryLabel = UiText.Resource(Res.string.dialog_signup),
             dialogShouldOpenLogin = true,
             dialogShouldOpenSignup = true
         )

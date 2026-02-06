@@ -10,6 +10,9 @@ import com.nazam.instaclone.feature.home.domain.model.VoteCategory
 import com.nazam.instaclone.feature.home.domain.usecase.*
 import com.nazam.instaclone.feature.home.presentation.categories.HomeFilterStore
 import com.nazam.instaclone.feature.home.presentation.model.HomeUiState
+import instaclone.composeapp.generated.resources.Res
+import instaclone.composeapp.generated.resources.home_auth_required_comment
+import instaclone.composeapp.generated.resources.home_auth_required_create
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -20,11 +23,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/**
- * ViewModel KMP pur:
- * - UiState: état durable
- * - events: navigation + message (one-shot)
- */
 class HomeViewModel(
     private val dispatchers: AppDispatchers,
     private val getFeedUseCase: GetFeedUseCase,
@@ -66,21 +64,19 @@ class HomeViewModel(
 
     fun loadFeed() = loadFeedInternal(dispatchers, getFeedUseCase)
 
-    fun voteLeft(postId: String) = voteInternal(dispatchers, postId, true, voteLeftUseCase, voteRightUseCase)
+    fun voteLeft(postId: String) =
+        voteInternal(dispatchers, postId, true, voteLeftUseCase, voteRightUseCase)
 
-    fun voteRight(postId: String) = voteInternal(dispatchers, postId, false, voteLeftUseCase, voteRightUseCase)
+    fun voteRight(postId: String) =
+        voteInternal(dispatchers, postId, false, voteLeftUseCase, voteRightUseCase)
 
     fun onCreatePostClicked() {
         if (uiState.value.isLoggedIn) {
             navigateTo(Screen.CreatePost)
         } else {
             NavigationStore.setAfterLogin(Screen.CreatePost)
-            showAuthRequiredDialogInternal("Tu dois être connecté pour créer un post.")
+            showAuthRequiredDialogInternal(UiText.Resource(Res.string.home_auth_required_create))
         }
-    }
-
-    fun onLoginClicked() {
-        navigateTo(Screen.Login)
     }
 
     fun openComments(postId: String) = openCommentsInternal(dispatchers, postId, getCommentsUseCase)
@@ -95,13 +91,12 @@ class HomeViewModel(
 
     fun onCommentInputRequested() {
         if (!uiState.value.isLoggedIn) {
-            showAuthRequiredDialogInternal("Tu dois te connecter ou créer un compte pour commenter.")
+            showAuthRequiredDialogInternal(UiText.Resource(Res.string.home_auth_required_comment))
         }
     }
 
     fun logout() = logoutInternal(dispatchers, logoutUseCase)
 
-    // ✅ Dialog actions (utilisées par HomeRoute -> HomeScreen)
     fun onDialogConfirmClicked() {
         val goLogin = uiState.value.dialogShouldOpenLogin
         consumeDialog()
@@ -126,7 +121,6 @@ class HomeViewModel(
         }
     }
 
-    // ✅ Events
     internal fun emitMessage(message: UiText) {
         _events.tryEmit(HomeUiEvent.ShowMessage(message))
     }
@@ -139,19 +133,9 @@ class HomeViewModel(
         job.cancel()
     }
 
-    // ✅ Filter
     fun refreshFilter() {
         val selected = HomeFilterStore.getCategory()
         _uiState.update { it.copy(selectedCategoryId = selected) }
-    }
-
-    fun onChooseCategoryFilterClicked() {
-        navigateTo(Screen.Explore)
-    }
-
-    fun onHomeClicked() {
-        HomeFilterStore.clear()
-        refreshFilter()
     }
 
     fun onExploreCategoryClicked(category: VoteCategory) {
