@@ -15,6 +15,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import instaclone.composeapp.generated.resources.Res
+import instaclone.composeapp.generated.resources.vspost_vs_badge
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun VsPostVsBadge(
@@ -28,6 +31,12 @@ fun VsPostVsBadge(
             .background(Brush.linearGradient(listOf(Color(0xFFFF4EB8), Color(0xFFFF9F3F)))),
         contentAlignment = Alignment.Center
     ) {
-        Text("VS", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+        // ✅ Texte traduisible (composeResources)
+        Text(
+            text = stringResource(Res.string.vspost_vs_badge),
+            color = Color.White,
+            fontWeight = FontWeight.Bold,
+            fontSize = 20.sp
+        )
     }
 }

@@ -22,6 +22,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nazam.instaclone.feature.home.domain.model.VsPost
+import instaclone.composeapp.generated.resources.Res
+import instaclone.composeapp.generated.resources.vspost_votes_count
+import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
 
 @Composable
@@ -47,10 +50,19 @@ fun VsPostResults(
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(post.leftLabel, color = Color.White)
-                Text("${post.leftVotesCount} votes", color = Color.White, fontSize = 12.sp)
+
+                // ✅ Texte traduisible (composeResources)
+                Text(
+                    text = stringResource(Res.string.vspost_votes_count, post.leftVotesCount),
+                    color = Color.White,
+                    fontSize = 12.sp
+                )
+
                 Spacer(Modifier.height(4.dp))
+
                 Text("${leftPercent.roundToInt()}%", color = Color.White, fontSize = 12.sp)
                 Spacer(Modifier.height(6.dp))
+
                 PercentBar(
                     ratio = leftRatio,
                     reverse = true,
@@ -65,10 +77,19 @@ fun VsPostResults(
                 horizontalAlignment = Alignment.End
             ) {
                 Text(post.rightLabel, color = Color.White)
-                Text("${post.rightVotesCount} votes", color = Color.White, fontSize = 12.sp)
+
+                // ✅ Texte traduisible (composeResources)
+                Text(
+                    text = stringResource(Res.string.vspost_votes_count, post.rightVotesCount),
+                    color = Color.White,
+                    fontSize = 12.sp
+                )
+
                 Spacer(Modifier.height(4.dp))
+
                 Text("${rightPercent.roundToInt()}%", color = Color.White, fontSize = 12.sp)
                 Spacer(Modifier.height(6.dp))
+
                 PercentBar(
                     ratio = rightRatio,
                     reverse = false,

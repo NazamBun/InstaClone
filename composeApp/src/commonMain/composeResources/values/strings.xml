@@ -142,4 +142,8 @@
     <!-- Dialog buttons -->
     <string name="dialog_login">Se connecter</string>
     <string name="dialog_signup">Créer un compte</string>
+
+    <!-- VsPost -->
+    <string name="vspost_votes_count">%1$d votes</string>
+    <string name="vspost_vs_badge">VS</string>
 </resources>
