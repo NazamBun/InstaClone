@@ -7,7 +7,11 @@ import com.nazam.instaclone.core.ui.UiText
 import com.nazam.instaclone.feature.auth.domain.usecase.GetCurrentUserUseCase
 import com.nazam.instaclone.feature.auth.domain.usecase.LogoutUseCase
 import com.nazam.instaclone.feature.home.domain.model.VoteCategory
-import com.nazam.instaclone.feature.home.domain.usecase.*
+import com.nazam.instaclone.feature.home.domain.usecase.AddCommentUseCase
+import com.nazam.instaclone.feature.home.domain.usecase.GetCommentsUseCase
+import com.nazam.instaclone.feature.home.domain.usecase.GetFeedUseCase
+import com.nazam.instaclone.feature.home.domain.usecase.VoteLeftUseCase
+import com.nazam.instaclone.feature.home.domain.usecase.VoteRightUseCase
 import com.nazam.instaclone.feature.home.presentation.categories.HomeFilterStore
 import com.nazam.instaclone.feature.home.presentation.model.HomeUiState
 import instaclone.composeapp.generated.resources.Res
@@ -64,11 +68,8 @@ class HomeViewModel(
 
     fun loadFeed() = loadFeedInternal(dispatchers, getFeedUseCase)
 
-    fun voteLeft(postId: String) =
-        voteInternal(dispatchers, postId, true, voteLeftUseCase, voteRightUseCase)
-
-    fun voteRight(postId: String) =
-        voteInternal(dispatchers, postId, false, voteLeftUseCase, voteRightUseCase)
+    fun voteLeft(postId: String) = voteInternal(dispatchers, postId, true, voteLeftUseCase, voteRightUseCase)
+    fun voteRight(postId: String) = voteInternal(dispatchers, postId, false, voteLeftUseCase, voteRightUseCase)
 
     fun onCreatePostClicked() {
         if (uiState.value.isLoggedIn) {
@@ -80,7 +81,6 @@ class HomeViewModel(
     }
 
     fun openComments(postId: String) = openCommentsInternal(dispatchers, postId, getCommentsUseCase)
-
     fun closeComments() = closeCommentsInternal()
 
     fun onNewCommentChange(value: String) {
@@ -136,6 +136,15 @@ class HomeViewModel(
     fun refreshFilter() {
         val selected = HomeFilterStore.getCategory()
         _uiState.update { it.copy(selectedCategoryId = selected) }
+    }
+
+    fun onChooseCategoryFilterClicked() {
+        navigateTo(Screen.Explore)
+    }
+
+    fun onHomeClicked() {
+        HomeFilterStore.clear()
+        refreshFilter()
     }
 
     fun onExploreCategoryClicked(category: VoteCategory) {

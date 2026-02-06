@@ -11,7 +11,16 @@ import com.nazam.instaclone.feature.home.domain.usecase.GetFeedUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.VoteLeftUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.VoteRightUseCase
 import instaclone.composeapp.generated.resources.Res
-import instaclone.composeapp.generated.resources.*
+import instaclone.composeapp.generated.resources.dialog_login
+import instaclone.composeapp.generated.resources.dialog_signup
+import instaclone.composeapp.generated.resources.error_unknown
+import instaclone.composeapp.generated.resources.home_auth_required_generic
+import instaclone.composeapp.generated.resources.home_auth_required_vote
+import instaclone.composeapp.generated.resources.home_comments_load_error
+import instaclone.composeapp.generated.resources.home_feed_error
+import instaclone.composeapp.generated.resources.home_feed_loaded
+import instaclone.composeapp.generated.resources.home_logged_out
+import instaclone.composeapp.generated.resources.home_logout_error
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -121,9 +130,8 @@ internal fun HomeViewModel.sendCommentInternal(
     addCommentUseCase: AddCommentUseCase
 ) {
     val state = uiState.value
-
     if (!state.isLoggedIn) {
-        showAuthRequiredDialogInternal(UiText.Resource(Res.string.home_auth_required_comment))
+        showAuthRequiredDialogInternal(UiText.Resource(Res.string.home_auth_required_generic))
         return
     }
 
@@ -198,7 +206,9 @@ internal fun HomeViewModel.handleAuthOrGenericErrorInternal(error: Throwable) {
     if (error.isAuthRequired()) {
         showAuthRequiredDialogInternal(UiText.Resource(Res.string.home_auth_required_generic))
     } else {
-        emitMessage(UiText.Resource(Res.string.error_unknown))
+        // message serveur si présent, sinon message générique
+        val msg = error.message?.takeIf { it.isNotBlank() }
+        emitMessage(msg?.let { UiText.DynamicString(it) } ?: UiText.Resource(Res.string.error_unknown))
     }
 }
 
