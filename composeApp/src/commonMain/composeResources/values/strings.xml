@@ -123,4 +123,23 @@
 
     <!-- Categories / labels -->
     <string name="category_none">Sans catégorie</string>
+
+    <!-- Home - Messages -->
+    <string name="home_auth_required_create">Tu dois être connecté pour créer un post.</string>
+    <string name="home_auth_required_comment">Tu dois te connecter ou créer un compte pour commenter.</string>
+
+    <!-- Home - messages -->
+    <string name="home_feed_loaded">Feed chargé : %1$d posts</string>
+    <string name="home_feed_error">Erreur lors du chargement du feed</string>
+    <string name="home_comments_load_error">Impossible de charger les commentaires</string>
+    <string name="home_logged_out">Déconnecté</string>
+    <string name="home_logout_error">Erreur de déconnexion</string>
+
+    <!-- Home - auth required -->
+    <string name="home_auth_required_vote">Tu dois être connecté ou créer un compte pour voter.</string>
+    <string name="home_auth_required_generic">Tu dois être connecté ou créer un compte.</string>
+
+    <!-- Dialog buttons -->
+    <string name="dialog_login">Se connecter</string>
+    <string name="dialog_signup">Créer un compte</string>
 </resources>
