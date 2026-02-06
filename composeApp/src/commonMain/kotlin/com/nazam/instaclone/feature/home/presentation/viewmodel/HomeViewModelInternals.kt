@@ -3,6 +3,7 @@ package com.nazam.instaclone.feature.home.presentation.viewmodel
 import com.nazam.instaclone.core.dispatchers.AppDispatchers
 import com.nazam.instaclone.core.navigation.NavigationStore
 import com.nazam.instaclone.core.navigation.Screen
+import com.nazam.instaclone.core.ui.UiText
 import com.nazam.instaclone.feature.auth.domain.usecase.LogoutUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.AddCommentUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.GetCommentsUseCase
@@ -25,11 +26,11 @@ internal fun HomeViewModel.loadFeedInternal(
         result
             .onSuccess { posts ->
                 _uiState.update { it.copy(isLoading = false, posts = posts) }
-                emitMessage("Feed chargé : ${posts.size} posts")
+                emitMessage(UiText.DynamicString("Feed chargé : ${posts.size} posts"))
             }
             .onFailure { error ->
                 _uiState.update { it.copy(isLoading = false) }
-                emitMessage("Feed erreur : ${error.message}")
+                emitMessage(UiText.DynamicString("Feed erreur : ${error.message ?: "Erreur"}"))
             }
     }
 }
@@ -96,7 +97,7 @@ internal fun HomeViewModel.openCommentsInternal(
             }
             .onFailure { error ->
                 _uiState.update { it.copy(isCommentsLoading = false) }
-                emitMessage(error.toUiMessage("Impossible de charger les commentaires"))
+                emitMessage(UiText.DynamicString(error.message ?: "Impossible de charger les commentaires"))
             }
     }
 }
@@ -161,10 +162,8 @@ internal fun HomeViewModel.logoutInternal(
 
         result
             .onSuccess {
-                // 1) Nettoyage des intentions de navigation (pro)
                 NavigationStore.clear()
 
-                // 2) Reset UI local (propre)
                 _uiState.update {
                     it.copy(
                         isLoggedIn = false,
@@ -184,13 +183,11 @@ internal fun HomeViewModel.logoutInternal(
                     )
                 }
 
-                emitMessage("Déconnecté")
-
-                // 3) Redirection intelligente
+                emitMessage(UiText.DynamicString("Déconnecté"))
                 navigateTo(Screen.Login)
             }
             .onFailure { error ->
-                emitMessage(error.toUiMessage("Erreur de déconnexion"))
+                emitMessage(UiText.DynamicString(error.message ?: "Erreur de déconnexion"))
             }
     }
 }
@@ -199,7 +196,7 @@ internal fun HomeViewModel.handleAuthOrGenericErrorInternal(error: Throwable) {
     if (error.isAuthRequired()) {
         showAuthRequiredDialogInternal("Tu dois être connecté ou créer un compte.")
     } else {
-        emitMessage(error.toUiMessage("Une erreur est arrivée"))
+        emitMessage(UiText.DynamicString(error.message ?: "Une erreur est arrivée"))
     }
 }
 
