@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A984D1932F378D86009DF1ED /* Secrets.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = A984D1922F378D86009DF1ED /* Secrets.xcconfig */; };
 		A993C8EF2EF9590F00FBC048 /* ComposeApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A993C8EE2EF9590F00FBC048 /* ComposeApp.framework */; };
 		A993C8F02EF9590F00FBC048 /* ComposeApp.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A993C8EE2EF9590F00FBC048 /* ComposeApp.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
@@ -26,6 +27,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		A984D1922F378D86009DF1ED /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 		A993C8EE2EF9590F00FBC048 /* ComposeApp.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ComposeApp.framework; path = ../composeApp/build/bin/iosSimulatorArm64/debugFramework/ComposeApp.framework; sourceTree = "<group>"; };
 		A9A110FE2EFDA9BE00A4AE4E /* ComposeApp.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ComposeApp.framework; path = ../composeApp/build/bin/iosSimulatorArm64/debugFramework/ComposeApp.framework; sourceTree = "<group>"; };
 		CAD16B485CBBA00A1630F6D0 /* InstaClone.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = InstaClone.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -80,6 +82,7 @@
 		C717730F3CC5F7BDDFC2ED4E = {
 			isa = PBXGroup;
 			children = (
+				A984D1922F378D86009DF1ED /* Secrets.xcconfig */,
 				A9A110FE2EFDA9BE00A4AE4E /* ComposeApp.framework */,
 				D967CC42B36308C8B9805C21 /* Configuration */,
 				9B3DDEB8FFCE183AD810EC64 /* iosApp */,
@@ -163,6 +166,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A984D1932F378D86009DF1ED /* Secrets.xcconfig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -220,6 +224,7 @@
 /* Begin XCBuildConfiguration section */
 		0AB608311E9144A34D275F78 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A984D1922F378D86009DF1ED /* Secrets.xcconfig */;
 			buildSettings = {
 				ARCHS = arm64;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -371,6 +376,7 @@
 		};
 		9465CD6D472B262F08E2887D /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A984D1922F378D86009DF1ED /* Secrets.xcconfig */;
 			buildSettings = {
 				ARCHS = arm64;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
