@@ -148,6 +148,5 @@
     <string name="vspost_vs_badge">VS</string>
 
     <!-- VS Post - format -->
-    <string name="vs_votes_count">%1$d votes</string>
     <string name="percent_value">%1$d%%</string>
 </resources>

@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.sp
 import com.nazam.instaclone.feature.home.domain.model.VsPost
 import instaclone.composeapp.generated.resources.Res
 import instaclone.composeapp.generated.resources.percent_value
-import instaclone.composeapp.generated.resources.vs_votes_count
+import instaclone.composeapp.generated.resources.vspost_votes_count
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
 
@@ -52,7 +52,7 @@ fun VsPostResults(
             Column(modifier = Modifier.weight(1f)) {
                 Text(post.leftLabel, color = Color.White)
                 Text(
-                    text = stringResource(Res.string.vs_votes_count, post.leftVotesCount),
+                    text = stringResource(Res.string.vspost_votes_count, post.leftVotesCount),
                     color = Color.White,
                     fontSize = 12.sp
                 )
@@ -78,7 +78,7 @@ fun VsPostResults(
             ) {
                 Text(post.rightLabel, color = Color.White)
                 Text(
-                    text = stringResource(Res.string.vs_votes_count, post.rightVotesCount),
+                    text = stringResource(Res.string.vspost_votes_count, post.rightVotesCount),
                     color = Color.White,
                     fontSize = 12.sp
                 )
