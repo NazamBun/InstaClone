@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A984D1932F378D86009DF1ED /* Secrets.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = A984D1922F378D86009DF1ED /* Secrets.xcconfig */; };
 		A993C8EF2EF9590F00FBC048 /* ComposeApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A993C8EE2EF9590F00FBC048 /* ComposeApp.framework */; };
 		A993C8F02EF9590F00FBC048 /* ComposeApp.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A993C8EE2EF9590F00FBC048 /* ComposeApp.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
@@ -166,7 +165,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A984D1932F378D86009DF1ED /* Secrets.xcconfig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
