@@ -24,6 +24,8 @@ import com.nazam.instaclone.feature.home.presentation.ui.HomeRoute
 import com.nazam.instaclone.feature.home.presentation.ui.categories.CategoriesRoute
 import com.nazam.instaclone.feature.home.presentation.ui.explore.ExplorePagerRoute
 import com.nazam.instaclone.feature.home.presentation.ui.explore.ExploreRoute
+import com.nazam.instaclone.feature.profile.presentation.ui.ProfileScreen
+import com.nazam.instaclone.feature.profile.presentation.ui.ProfileUi
 import instaclone.composeapp.generated.resources.*
 import org.jetbrains.compose.resources.stringResource
 
@@ -70,9 +72,24 @@ fun App() {
                         contentPadding = padding
                     )
 
-                    Screen.Profile -> SimplePlaceholder(
-                        title = stringResource(Res.string.placeholder_profile_soon),
-                        contentPadding = padding
+                    Screen.Profile -> ProfileScreen(
+                        ui = ProfileUi(
+                            displayName = "Sophie Martin",
+                            username = "sophiemartin",
+                            bio = "Designer UI/UX passionnée 🎨 | Créative | Amoureuse de café ☕️ | Partage mes projets",
+                            location = "Paris, France",
+                            website = "sophiemartin.design",
+                            joinedLabel = "janvier 2020",
+                            postsCount = 42,
+                            followersCount = 1280,
+                            followingCount = 180
+                        ),
+                        contentPadding = padding,
+                        onFollowClick = {},
+                        onMessageClick = {},
+                        onMoreClick = {},
+                        onEditCoverClick = {},
+                        onEditAvatarClick = {}
                     )
                 }
             }

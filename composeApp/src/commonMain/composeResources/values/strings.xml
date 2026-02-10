@@ -149,4 +149,18 @@
 
     <!-- VS Post - format -->
     <string name="percent_value">%1$d%%</string>
+
+    <!-- Profile -->
+    <string name="profile_follow">Suivre</string>
+    <string name="profile_message">Message</string>
+    <string name="profile_more">…</string>
+
+    <string name="profile_edit_cover">Modifier la couverture</string>
+    <string name="profile_edit_avatar_cd">Modifier la photo</string>
+
+    <string name="profile_posts">Posts</string>
+    <string name="profile_followers">Abonnés</string>
+    <string name="profile_following">Abonnements</string>
+
+    <string name="profile_joined_prefix">Inscrit en</string>
 </resources>
