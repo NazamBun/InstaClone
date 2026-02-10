@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
@@ -17,6 +19,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -42,6 +47,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.nazam.instaclone.feature.home.domain.model.VsPost
 import com.nazam.instaclone.feature.home.presentation.ui.components.NetworkImage
 import instaclone.composeapp.generated.resources.Res
 import instaclone.composeapp.generated.resources.profile_edit_cover
@@ -55,13 +61,16 @@ import instaclone.composeapp.generated.resources.profile_posts
 import instaclone.composeapp.generated.resources.profile_tab_likes
 import instaclone.composeapp.generated.resources.profile_tab_media
 import instaclone.composeapp.generated.resources.profile_tab_posts
+import instaclone.composeapp.generated.resources.vspost_votes_count
+import instaclone.composeapp.generated.resources.vs_title_format
 import org.jetbrains.compose.resources.stringResource
+import kotlin.math.max
 
 /**
  * UI Profil (KMP-friendly)
  * ✅ Pas d'Android-only
- * ✅ Pas de texte en dur (strings.xml)
- * ✅ Prêt pour avatar/cover en URL
+ * ✅ Strings via composeResources
+ * ✅ Grille de VsPost
  */
 @Composable
 fun ProfileScreen(
@@ -72,6 +81,7 @@ fun ProfileScreen(
     onMoreClick: () -> Unit,
     onEditCoverClick: () -> Unit,
     onEditAvatarClick: () -> Unit,
+    onPostClick: (VsPost) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val t = ProfileUiTokens
@@ -333,8 +343,10 @@ fun ProfileScreen(
 
         Spacer(Modifier.height(12.dp))
 
-        // --- Grid placeholder ---
-        ProfileGridPlaceholder(
+        // --- VS grid ---
+        ProfileVsGrid(
+            posts = ui.posts,
+            onPostClick = onPostClick,
             modifier = Modifier.padding(horizontal = 16.dp)
         )
 
@@ -416,30 +428,110 @@ private fun TabChip(
     }
 }
 
+/**
+ * ✅ Grille VS : 3 colonnes
+ * - chaque item est carré
+ * - image gagnante + voile + titre + votes
+ */
 @Composable
-private fun ProfileGridPlaceholder(
+private fun ProfileVsGrid(
+    posts: List<VsPost>,
+    onPostClick: (VsPost) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val t = ProfileUiTokens
 
-    Column(modifier = modifier.fillMaxWidth()) {
-        repeat(2) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                repeat(3) {
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(110.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(t.CardBg)
-                            .border(1.dp, t.Border, RoundedCornerShape(16.dp))
-                    )
-                }
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(3),
+        modifier = modifier
+            .fillMaxWidth()
+            .height(420.dp), // simple pour l'instant (plus tard on fera un scroll global)
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+        contentPadding = PaddingValues(bottom = 12.dp)
+    ) {
+        items(
+            items = posts,
+            key = { it.id }
+        ) { post ->
+            VsGridItem(
+                post = post,
+                onClick = { onPostClick(post) }
+            )
+        }
+
+        // si vide => on met juste 6 “squelettes”
+        if (posts.isEmpty()) {
+            items(6) {
+                Box(
+                    modifier = Modifier
+                        .aspectRatio(1f)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(t.CardBg)
+                        .border(1.dp, t.Border, RoundedCornerShape(16.dp))
+                )
             }
-            Spacer(Modifier.height(10.dp))
+        }
+    }
+}
+
+@Composable
+private fun VsGridItem(
+    post: VsPost,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val t = ProfileUiTokens
+
+    val totalVotes = max(post.totalVotesCount, 1)
+    val winnerUrl =
+        if (post.leftVotesCount >= post.rightVotesCount) post.leftImageUrl else post.rightImageUrl
+
+    val title = stringResource(Res.string.vs_title_format, post.leftLabel, post.rightLabel)
+    val votes = stringResource(Res.string.vspost_votes_count, totalVotes)
+
+    Box(
+        modifier = modifier
+            .aspectRatio(1f)
+            .clip(RoundedCornerShape(16.dp))
+            .clickable(onClick = onClick)
+    ) {
+        NetworkImage(
+            url = winnerUrl,
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize()
+        )
+
+        // voile sombre pour lire le texte
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(t.SoftOverlay)
+        )
+
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(10.dp)
+        ) {
+            Text(
+                text = title,
+                color = t.TextPrimary,
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            Spacer(Modifier.height(4.dp))
+
+            Text(
+                text = votes,
+                color = t.TextSecondary,
+                style = MaterialTheme.typography.bodySmall,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }
@@ -468,7 +560,7 @@ private fun StatItem(
 
 /**
  * UI Model (simple pour l’instant).
- * ✅ Defaults => App.kt ne casse pas
+ * ✅ On ajoute posts, avec default.
  */
 data class ProfileUi(
     val displayName: String,
@@ -481,5 +573,6 @@ data class ProfileUi(
     val followersCount: Int,
     val followingCount: Int,
     val avatarUrl: String? = null,
-    val coverUrl: String? = null
+    val coverUrl: String? = null,
+    val posts: List<VsPost> = emptyList()
 )
