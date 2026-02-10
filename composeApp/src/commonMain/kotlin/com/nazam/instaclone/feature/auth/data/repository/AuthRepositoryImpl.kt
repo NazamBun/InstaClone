@@ -17,6 +17,18 @@ class AuthRepositoryImpl(
 
     private val auth = supabaseClient.auth
 
+    private fun readDisplayNameFromMetadata(): String? {
+        val user = auth.currentUserOrNull() ?: return null
+
+        // ✅ Compatible avec ta version: pas de contentOrNull
+        return runCatching {
+            user.userMetadata
+                ?.get("display_name")
+                ?.jsonPrimitive
+                ?.content
+        }.getOrNull()?.takeIf { it.isNotBlank() }
+    }
+
     override suspend fun login(email: String, password: String): Result<AuthUser> {
         return runCatching {
             auth.signInWith(Email) {
@@ -27,10 +39,7 @@ class AuthRepositoryImpl(
             val user = auth.currentUserOrNull()
                 ?: throw IllegalStateException("Utilisateur introuvable après le login")
 
-            val displayName = user.userMetadata
-                ?.get("display_name")
-                ?.jsonPrimitive
-                ?.contentOrNull
+            val displayName = readDisplayNameFromMetadata()
 
             AuthMapper.toDomain(
                 id = user.id,
@@ -75,11 +84,7 @@ class AuthRepositoryImpl(
 
     override suspend fun getCurrentUser(): AuthUser? {
         val user = auth.currentUserOrNull() ?: return null
-
-        val displayName = user.userMetadata
-            ?.get("display_name")
-            ?.jsonPrimitive
-            ?.contentOrNull
+        val displayName = readDisplayNameFromMetadata()
 
         return AuthMapper.toDomain(
             id = user.id,
