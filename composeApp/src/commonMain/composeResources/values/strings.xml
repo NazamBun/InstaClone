@@ -163,4 +163,8 @@
     <string name="profile_following">Abonnements</string>
 
     <string name="profile_joined_prefix">Inscrit en</string>
+    <string name="profile_more_cd">Plus</string>
+    <string name="profile_tab_posts">Posts</string>
+    <string name="profile_tab_media">Media</string>
+    <string name="profile_tab_likes">Likes</string>
 </resources>
