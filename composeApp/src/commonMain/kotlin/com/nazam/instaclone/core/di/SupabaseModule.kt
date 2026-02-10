@@ -28,6 +28,10 @@ import com.nazam.instaclone.feature.home.presentation.ui.categories.CategoriesVi
 import com.nazam.instaclone.feature.home.presentation.viewmodel.CreatePostViewModel
 import com.nazam.instaclone.feature.home.presentation.viewmodel.ExploreViewModel
 import com.nazam.instaclone.feature.home.presentation.viewmodel.HomeViewModel
+import com.nazam.instaclone.feature.profile.data.repository.ProfileRepositoryImpl
+import com.nazam.instaclone.feature.profile.domain.repository.ProfileRepository
+import com.nazam.instaclone.feature.profile.domain.usecase.GetMyProfileUseCase
+import com.nazam.instaclone.feature.profile.presentation.viewmodel.ProfileViewModel
 import kotlinx.serialization.json.Json
 import org.koin.dsl.module
 
@@ -37,9 +41,7 @@ val appModule = module {
     single { SupabaseClientProvider.client }
 
     // ✅ Json
-    single {
-        Json { ignoreUnknownKeys = true }
-    }
+    single { Json { ignoreUnknownKeys = true } }
 
     // ✅ Dispatchers (KMP)
     single<AppDispatchers> { DefaultAppDispatchers() }
@@ -70,6 +72,10 @@ val appModule = module {
     factory { GetCommentsUseCase(get()) }
     factory { AddCommentUseCase(get()) }
 
+    // ✅ Profile (Clean)
+    single<ProfileRepository> { ProfileRepositoryImpl(client = get()) }
+    factory { GetMyProfileUseCase(get()) }
+
     // ✅ ViewModels
     factory {
         HomeViewModel(
@@ -87,7 +93,7 @@ val appModule = module {
     factory {
         CreatePostViewModel(
             dispatchers = get(),
-            uploadPostImageUseCase = get(), // ✅ upload direct à la sélection
+            uploadPostImageUseCase = get(),
             createPostUseCase = get(),
             getCurrentUserUseCase = get()
         )
@@ -112,4 +118,13 @@ val appModule = module {
 
     // ✅ Explore : on garde la valeur même si on change d'écran
     single { ExploreViewModel() }
+
+    // ✅ Profile VM
+    factory {
+        ProfileViewModel(
+            dispatchers = get(),
+            getCurrentUserUseCase = get(),
+            getMyProfileUseCase = get()
+        )
+    }
 }
