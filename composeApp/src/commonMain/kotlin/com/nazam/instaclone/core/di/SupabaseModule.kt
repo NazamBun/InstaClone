@@ -30,6 +30,7 @@ import com.nazam.instaclone.feature.home.presentation.viewmodel.ExploreViewModel
 import com.nazam.instaclone.feature.home.presentation.viewmodel.HomeViewModel
 import com.nazam.instaclone.feature.profile.data.repository.ProfileRepositoryImpl
 import com.nazam.instaclone.feature.profile.domain.repository.ProfileRepository
+import com.nazam.instaclone.feature.profile.domain.usecase.GetMyPostsUseCase
 import com.nazam.instaclone.feature.profile.domain.usecase.GetMyProfileUseCase
 import com.nazam.instaclone.feature.profile.presentation.viewmodel.ProfileViewModel
 import kotlinx.serialization.json.Json
@@ -47,7 +48,6 @@ val appModule = module {
     single<AppDispatchers> { DefaultAppDispatchers() }
 
     // ✅ ImageBytesReader (fallback KMP)
-    // Android le remplace via AndroidPlatformModule.
     single<ImageBytesReader> { DefaultImageBytesReader() }
 
     // ✅ Post media upload
@@ -61,10 +61,8 @@ val appModule = module {
     factory { LogoutUseCase(get()) }
     factory { GetCurrentUserUseCase(get()) }
 
-    // ✅ Home repository
+    // ✅ Home
     single<HomeRepository> { HomeRepositoryImpl(client = get(), json = get()) }
-
-    // ✅ Home use cases
     factory { GetFeedUseCase(get()) }
     factory { VoteLeftUseCase(get()) }
     factory { VoteRightUseCase(get()) }
@@ -73,8 +71,9 @@ val appModule = module {
     factory { AddCommentUseCase(get()) }
 
     // ✅ Profile (Clean)
-    single<ProfileRepository> { ProfileRepositoryImpl(client = get()) }
+    single<ProfileRepository> { ProfileRepositoryImpl(client = get(), json = get()) }
     factory { GetMyProfileUseCase(get()) }
+    factory { GetMyPostsUseCase(get()) }
 
     // ✅ ViewModels
     factory {
@@ -124,7 +123,8 @@ val appModule = module {
         ProfileViewModel(
             dispatchers = get(),
             getCurrentUserUseCase = get(),
-            getMyProfileUseCase = get()
+            getMyProfileUseCase = get(),
+            getMyPostsUseCase = get()
         )
     }
 }
