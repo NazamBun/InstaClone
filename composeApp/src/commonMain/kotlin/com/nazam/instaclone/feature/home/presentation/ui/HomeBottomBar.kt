@@ -2,7 +2,11 @@ package com.nazam.instaclone.feature.home.presentation.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -12,17 +16,24 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.nazam.instaclone.core.navigation.Screen
-import instaclone.composeapp.generated.resources.*
+import instaclone.composeapp.generated.resources.Res
+import instaclone.composeapp.generated.resources.bottom_create
+import instaclone.composeapp.generated.resources.bottom_explore
+import instaclone.composeapp.generated.resources.bottom_home
+import instaclone.composeapp.generated.resources.bottom_notifications
+import instaclone.composeapp.generated.resources.bottom_profile
+import instaclone.composeapp.generated.resources.dialog_login
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun HomeBottomBar(
     selectedScreen: Screen,
+    isLoggedIn: Boolean,
     onHomeClick: () -> Unit,
     onExploreClick: () -> Unit,
     onCreatePostClick: () -> Unit,
     onNotificationsClick: () -> Unit,
-    onProfileClick: () -> Unit,
+    onProfileOrLoginClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val background = Color(0xFF050509)
@@ -56,6 +67,10 @@ fun HomeBottomBar(
         )
     }
 
+    val profileLabel = stringResource(
+        if (isLoggedIn) Res.string.bottom_profile else Res.string.dialog_login
+    )
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -67,6 +82,6 @@ fun HomeBottomBar(
         BottomItem(stringResource(Res.string.bottom_explore), Screen.Explore, onExploreClick)
         BottomItem(stringResource(Res.string.bottom_create), Screen.CreatePost, onCreatePostClick)
         BottomItem(stringResource(Res.string.bottom_notifications), Screen.Notifications, onNotificationsClick)
-        BottomItem(stringResource(Res.string.bottom_profile), Screen.Profile, onProfileClick)
+        BottomItem(profileLabel, Screen.Profile, onProfileOrLoginClick)
     }
 }

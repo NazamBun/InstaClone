@@ -10,12 +10,16 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.nazam.instaclone.core.dispatchers.AppDispatchers
+import com.nazam.instaclone.core.navigation.NavigationStore
 import com.nazam.instaclone.core.navigation.Screen
+import com.nazam.instaclone.feature.auth.domain.usecase.GetCurrentUserUseCase
 import com.nazam.instaclone.feature.auth.presentation.ui.LoginRoute
 import com.nazam.instaclone.feature.auth.presentation.ui.SignupRoute
 import com.nazam.instaclone.feature.home.presentation.ui.CreatePostRoute
@@ -27,15 +31,49 @@ import com.nazam.instaclone.feature.home.presentation.ui.explore.ExploreRoute
 import com.nazam.instaclone.feature.profile.presentation.ui.ProfileRoute
 import instaclone.composeapp.generated.resources.Res
 import instaclone.composeapp.generated.resources.placeholder_notifications_soon
+import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 
 @Composable
 fun App() {
     var currentScreen by remember { mutableStateOf(Screen.Home) }
 
+    val dispatchers: AppDispatchers = koinInject()
+    val getCurrentUserUseCase: GetCurrentUserUseCase = koinInject()
+
+    var isLoggedIn by remember { mutableStateOf(false) }
+
     fun navigateTo(screen: Screen) {
         currentScreen = screen
     }
+
+    fun requireAuth(target: Screen) {
+        NavigationStore.setAfterLogin(target)
+        navigateTo(Screen.Login)
+    }
+
+    // ✅ On met à jour la session quand on change d’écran
+    LaunchedEffect(currentScreen) {
+        isLoggedIn = withContext(dispatchers.io) {
+            getCurrentUserUseCase.execute() != null
+        }
+    }
+
+    // ✅ Garde-fou: si quelqu’un arrive sur Profile/CreatePost/Notifications sans être loggé
+    LaunchedEffect(currentScreen, isLoggedIn) {
+        if (!isLoggedIn) {
+            when (currentScreen) {
+                Screen.Profile,
+                Screen.CreatePost,
+                Screen.Notifications -> requireAuth(currentScreen)
+
+                else -> Unit
+            }
+        }
+    }
+
+    val shouldShowBottomBar = currentScreen != Screen.Login && currentScreen != Screen.Signup
 
     MaterialTheme {
         Scaffold(
@@ -43,14 +81,23 @@ fun App() {
                 .fillMaxSize()
                 .windowInsetsPadding(WindowInsets.safeDrawing),
             bottomBar = {
-                HomeBottomBar(
-                    selectedScreen = currentScreen,
-                    onHomeClick = { navigateTo(Screen.Home) },
-                    onExploreClick = { navigateTo(Screen.Explore) },
-                    onCreatePostClick = { navigateTo(Screen.CreatePost) },
-                    onNotificationsClick = { navigateTo(Screen.Notifications) },
-                    onProfileClick = { navigateTo(Screen.Profile) }
-                )
+                if (shouldShowBottomBar) {
+                    HomeBottomBar(
+                        selectedScreen = currentScreen,
+                        isLoggedIn = isLoggedIn,
+                        onHomeClick = { navigateTo(Screen.Home) },
+                        onExploreClick = { navigateTo(Screen.Explore) },
+                        onCreatePostClick = {
+                            if (isLoggedIn) navigateTo(Screen.CreatePost) else requireAuth(Screen.CreatePost)
+                        },
+                        onNotificationsClick = {
+                            if (isLoggedIn) navigateTo(Screen.Notifications) else requireAuth(Screen.Notifications)
+                        },
+                        onProfileOrLoginClick = {
+                            if (isLoggedIn) navigateTo(Screen.Profile) else requireAuth(Screen.Profile)
+                        }
+                    )
+                }
             }
         ) { padding: PaddingValues ->
             Box(modifier = Modifier.fillMaxSize()) {
@@ -78,7 +125,6 @@ fun App() {
                         onEditCoverClick = {},
                         onEditAvatarClick = {},
                         onPostClick = { _ -> }
-
                     )
                 }
             }
