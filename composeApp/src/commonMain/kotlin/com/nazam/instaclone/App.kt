@@ -42,34 +42,44 @@ fun App() {
     val dispatchers: AppDispatchers = koinInject()
     val getCurrentUserUseCase: GetCurrentUserUseCase = koinInject()
 
+    // ✅ Etat de session
     var isLoggedIn by remember { mutableStateOf(false) }
+
+    // ✅ IMPORTANT: on bloque seulement quand la vérif de session est finie
+    var isSessionChecked by remember { mutableStateOf(false) }
 
     fun navigateTo(screen: Screen) {
         currentScreen = screen
     }
 
     fun requireAuth(target: Screen) {
+        // on retient où on veut aller, puis on va au login
         NavigationStore.setAfterLogin(target)
         navigateTo(Screen.Login)
     }
 
-    // ✅ On met à jour la session quand on change d’écran
+    // ✅ Re-vérifie la session à chaque changement d'écran
     LaunchedEffect(currentScreen) {
+        isSessionChecked = false
         isLoggedIn = withContext(dispatchers.io) {
             getCurrentUserUseCase.execute() != null
         }
+        isSessionChecked = true
     }
 
-    // ✅ Garde-fou: si quelqu’un arrive sur Profile/CreatePost/Notifications sans être loggé
-    LaunchedEffect(currentScreen, isLoggedIn) {
-        if (!isLoggedIn) {
-            when (currentScreen) {
-                Screen.Profile,
-                Screen.CreatePost,
-                Screen.Notifications -> requireAuth(currentScreen)
+    // ✅ Ecrans "protégés" : accessibles seulement si connecté
+    fun isProtected(screen: Screen): Boolean {
+        return screen == Screen.Profile ||
+                screen == Screen.CreatePost ||
+                screen == Screen.Notifications
+    }
 
-                else -> Unit
-            }
+    // ✅ Garde-fou anti-boucle:
+    // On ne redirige que si la session a été vérifiée
+    LaunchedEffect(currentScreen, isLoggedIn, isSessionChecked) {
+        if (!isSessionChecked) return@LaunchedEffect
+        if (!isLoggedIn && isProtected(currentScreen)) {
+            requireAuth(currentScreen)
         }
     }
 
@@ -119,12 +129,13 @@ fun App() {
 
                     Screen.Profile -> ProfileRoute(
                         contentPadding = padding,
+                        onNavigate = ::navigateTo,
                         onFollowClick = {},
                         onMessageClick = {},
-                        onMoreClick = {},
                         onEditCoverClick = {},
                         onEditAvatarClick = {},
-                        onPostClick = { _ -> }
+                        onPostClick = { _ -> },
+                        onMoreClick = {},
                     )
                 }
             }

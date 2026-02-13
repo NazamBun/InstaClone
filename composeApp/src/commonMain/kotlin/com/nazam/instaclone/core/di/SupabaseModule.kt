@@ -124,7 +124,8 @@ val appModule = module {
             dispatchers = get(),
             getCurrentUserUseCase = get(),
             getMyProfileUseCase = get(),
-            getMyPostsUseCase = get()
+            getMyPostsUseCase = get(),
+            logoutUseCase = get()
         )
     }
 }

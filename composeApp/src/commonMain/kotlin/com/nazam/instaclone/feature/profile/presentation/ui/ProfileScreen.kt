@@ -29,7 +29,10 @@ import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material.icons.outlined.PhotoCamera
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -38,6 +41,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -78,7 +82,8 @@ fun ProfileScreen(
     contentPadding: PaddingValues,
     onFollowClick: () -> Unit,
     onMessageClick: () -> Unit,
-    onMoreClick: () -> Unit,
+    onMoreClick: () -> Unit, // ✅ on le garde (compat), mais on gère le menu ici
+    onLogoutClick: () -> Unit, // ✅ nouveau
     onEditCoverClick: () -> Unit,
     onEditAvatarClick: () -> Unit,
     onPostClick: (VsPost) -> Unit,
@@ -86,6 +91,29 @@ fun ProfileScreen(
 ) {
     val t = ProfileUiTokens
     var selectedTab by remember { mutableIntStateOf(0) } // 0=Posts, 1=Media, 2=Likes
+
+    // ✅ menu "..."
+    var isMenuOpen by remember { mutableStateOf(false) }
+    var showLogoutConfirm by remember { mutableStateOf(false) }
+
+    if (showLogoutConfirm) {
+        AlertDialog(
+            onDismissRequest = { showLogoutConfirm = false },
+            title = { Text("Déconnexion") },
+            text = { Text("Tu veux vraiment te déconnecter ?") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showLogoutConfirm = false
+                        onLogoutClick()
+                    }
+                ) { Text("Oui") }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { showLogoutConfirm = false }) { Text("Non") }
+            }
+        )
+    }
 
     Column(
         modifier = modifier
@@ -214,19 +242,39 @@ fun ProfileScreen(
                 Text(stringResource(Res.string.profile_message))
             }
 
-            Surface(
-                color = t.CardBg,
-                shape = RoundedCornerShape(14.dp),
-                modifier = Modifier
-                    .size(48.dp)
-                    .border(1.dp, t.Border, RoundedCornerShape(14.dp))
-                    .clickable(onClick = onMoreClick)
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = Icons.Outlined.MoreHoriz,
-                        contentDescription = stringResource(Res.string.profile_more_cd),
-                        tint = t.TextPrimary
+            // ✅ Bouton "..." + menu
+            Box {
+                Surface(
+                    color = t.CardBg,
+                    shape = RoundedCornerShape(14.dp),
+                    modifier = Modifier
+                        .size(48.dp)
+                        .border(1.dp, t.Border, RoundedCornerShape(14.dp))
+                        .clickable {
+                            // on garde aussi l’ancien callback, au cas où
+                            onMoreClick()
+                            isMenuOpen = true
+                        }
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Outlined.MoreHoriz,
+                            contentDescription = stringResource(Res.string.profile_more_cd),
+                            tint = t.TextPrimary
+                        )
+                    }
+                }
+
+                DropdownMenu(
+                    expanded = isMenuOpen,
+                    onDismissRequest = { isMenuOpen = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Déconnexion") },
+                        onClick = {
+                            isMenuOpen = false
+                            showLogoutConfirm = true
+                        }
                     )
                 }
             }
@@ -428,11 +476,6 @@ private fun TabChip(
     }
 }
 
-/**
- * ✅ Grille VS : 3 colonnes
- * - chaque item est carré
- * - image gagnante + voile + titre + votes
- */
 @Composable
 private fun ProfileVsGrid(
     posts: List<VsPost>,
@@ -445,7 +488,7 @@ private fun ProfileVsGrid(
         columns = GridCells.Fixed(3),
         modifier = modifier
             .fillMaxWidth()
-            .height(420.dp), // simple pour l'instant (plus tard on fera un scroll global)
+            .height(420.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
         contentPadding = PaddingValues(bottom = 12.dp)
@@ -460,7 +503,6 @@ private fun ProfileVsGrid(
             )
         }
 
-        // si vide => on met juste 6 “squelettes”
         if (posts.isEmpty()) {
             items(6) {
                 Box(
@@ -502,7 +544,6 @@ private fun VsGridItem(
             modifier = Modifier.fillMaxSize()
         )
 
-        // voile sombre pour lire le texte
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -558,10 +599,6 @@ private fun StatItem(
     }
 }
 
-/**
- * UI Model (simple pour l’instant).
- * ✅ On ajoute posts, avec default.
- */
 data class ProfileUi(
     val displayName: String,
     val username: String,
