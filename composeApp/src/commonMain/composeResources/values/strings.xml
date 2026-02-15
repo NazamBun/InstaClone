@@ -170,4 +170,11 @@
     <string name="vs_title_format">%1$s vs %2$s</string>
     <string name="profile_loading">Chargement du profil...</string>
     <string name="profile_load_error">Impossible de charger le profil</string>
+
+    <!-- ✅ Profile - Logout (NOUVEAU) -->
+    <string name="profile_logout">Déconnexion</string>
+    <string name="profile_logout_title">Déconnexion</string>
+    <string name="profile_logout_message">Tu veux vraiment te déconnecter ?</string>
+    <string name="dialog_yes">Oui</string>
+    <string name="dialog_no">Non</string>
 </resources>

@@ -54,11 +54,16 @@ import androidx.compose.ui.unit.dp
 import com.nazam.instaclone.feature.home.domain.model.VsPost
 import com.nazam.instaclone.feature.home.presentation.ui.components.NetworkImage
 import instaclone.composeapp.generated.resources.Res
+import instaclone.composeapp.generated.resources.dialog_no
+import instaclone.composeapp.generated.resources.dialog_yes
 import instaclone.composeapp.generated.resources.profile_edit_cover
 import instaclone.composeapp.generated.resources.profile_follow
 import instaclone.composeapp.generated.resources.profile_followers
 import instaclone.composeapp.generated.resources.profile_following
 import instaclone.composeapp.generated.resources.profile_joined_prefix
+import instaclone.composeapp.generated.resources.profile_logout
+import instaclone.composeapp.generated.resources.profile_logout_message
+import instaclone.composeapp.generated.resources.profile_logout_title
 import instaclone.composeapp.generated.resources.profile_message
 import instaclone.composeapp.generated.resources.profile_more_cd
 import instaclone.composeapp.generated.resources.profile_posts
@@ -82,35 +87,36 @@ fun ProfileScreen(
     contentPadding: PaddingValues,
     onFollowClick: () -> Unit,
     onMessageClick: () -> Unit,
-    onMoreClick: () -> Unit, // ✅ on le garde (compat), mais on gère le menu ici
-    onLogoutClick: () -> Unit, // ✅ nouveau
+    onMoreClick: () -> Unit,     // compat
+    onLogoutClick: () -> Unit,   // action logout
     onEditCoverClick: () -> Unit,
     onEditAvatarClick: () -> Unit,
     onPostClick: (VsPost) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val t = ProfileUiTokens
-    var selectedTab by remember { mutableIntStateOf(0) } // 0=Posts, 1=Media, 2=Likes
+    var selectedTab by remember { mutableIntStateOf(0) }
 
-    // ✅ menu "..."
     var isMenuOpen by remember { mutableStateOf(false) }
     var showLogoutConfirm by remember { mutableStateOf(false) }
 
     if (showLogoutConfirm) {
         AlertDialog(
             onDismissRequest = { showLogoutConfirm = false },
-            title = { Text("Déconnexion") },
-            text = { Text("Tu veux vraiment te déconnecter ?") },
+            title = { Text(stringResource(Res.string.profile_logout_title)) },
+            text = { Text(stringResource(Res.string.profile_logout_message)) },
             confirmButton = {
                 Button(
                     onClick = {
                         showLogoutConfirm = false
                         onLogoutClick()
                     }
-                ) { Text("Oui") }
+                ) { Text(stringResource(Res.string.dialog_yes)) }
             },
             dismissButton = {
-                OutlinedButton(onClick = { showLogoutConfirm = false }) { Text("Non") }
+                OutlinedButton(onClick = { showLogoutConfirm = false }) {
+                    Text(stringResource(Res.string.dialog_no))
+                }
             }
         )
     }
@@ -173,7 +179,7 @@ fun ProfileScreen(
             }
         }
 
-        // Avatar + bouton caméra
+        // Avatar + caméra
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -242,7 +248,7 @@ fun ProfileScreen(
                 Text(stringResource(Res.string.profile_message))
             }
 
-            // ✅ Bouton "..." + menu
+            // "..." + menu
             Box {
                 Surface(
                     color = t.CardBg,
@@ -251,8 +257,7 @@ fun ProfileScreen(
                         .size(48.dp)
                         .border(1.dp, t.Border, RoundedCornerShape(14.dp))
                         .clickable {
-                            // on garde aussi l’ancien callback, au cas où
-                            onMoreClick()
+                            onMoreClick() // compat (si tu veux une action plus tard)
                             isMenuOpen = true
                         }
                 ) {
@@ -270,7 +275,7 @@ fun ProfileScreen(
                     onDismissRequest = { isMenuOpen = false }
                 ) {
                     DropdownMenuItem(
-                        text = { Text("Déconnexion") },
+                        text = { Text(stringResource(Res.string.profile_logout)) },
                         onClick = {
                             isMenuOpen = false
                             showLogoutConfirm = true
@@ -391,7 +396,7 @@ fun ProfileScreen(
 
         Spacer(Modifier.height(12.dp))
 
-        // --- VS grid ---
+        // --- Grid ---
         ProfileVsGrid(
             posts = ui.posts,
             onPostClick = onPostClick,

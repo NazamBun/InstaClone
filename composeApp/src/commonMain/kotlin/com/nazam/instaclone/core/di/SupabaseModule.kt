@@ -35,6 +35,8 @@ import com.nazam.instaclone.feature.profile.domain.usecase.GetMyProfileUseCase
 import com.nazam.instaclone.feature.profile.presentation.viewmodel.ProfileViewModel
 import kotlinx.serialization.json.Json
 import org.koin.dsl.module
+import com.nazam.instaclone.core.session.DefaultSessionManager
+import com.nazam.instaclone.core.session.SessionManager
 
 val appModule = module {
 

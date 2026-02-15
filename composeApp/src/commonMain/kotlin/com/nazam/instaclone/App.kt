@@ -11,15 +11,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import com.nazam.instaclone.core.dispatchers.AppDispatchers
 import com.nazam.instaclone.core.navigation.NavigationStore
 import com.nazam.instaclone.core.navigation.Screen
-import com.nazam.instaclone.feature.auth.domain.usecase.GetCurrentUserUseCase
+import com.nazam.instaclone.core.session.SessionManager
 import com.nazam.instaclone.feature.auth.presentation.ui.LoginRoute
 import com.nazam.instaclone.feature.auth.presentation.ui.SignupRoute
 import com.nazam.instaclone.feature.home.presentation.ui.CreatePostRoute
@@ -31,7 +31,6 @@ import com.nazam.instaclone.feature.home.presentation.ui.explore.ExploreRoute
 import com.nazam.instaclone.feature.profile.presentation.ui.ProfileRoute
 import instaclone.composeapp.generated.resources.Res
 import instaclone.composeapp.generated.resources.placeholder_notifications_soon
-import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 
@@ -39,45 +38,32 @@ import org.koin.compose.koinInject
 fun App() {
     var currentScreen by remember { mutableStateOf(Screen.Home) }
 
-    val dispatchers: AppDispatchers = koinInject()
-    val getCurrentUserUseCase: GetCurrentUserUseCase = koinInject()
-
-    // ✅ Etat de session
-    var isLoggedIn by remember { mutableStateOf(false) }
-
-    // ✅ IMPORTANT: on bloque seulement quand la vérif de session est finie
-    var isSessionChecked by remember { mutableStateOf(false) }
+    val sessionManager: SessionManager = koinInject()
+    val currentUser by sessionManager.user.collectAsState()
+    val isLoggedIn = currentUser != null
 
     fun navigateTo(screen: Screen) {
         currentScreen = screen
     }
 
     fun requireAuth(target: Screen) {
-        // on retient où on veut aller, puis on va au login
         NavigationStore.setAfterLogin(target)
         navigateTo(Screen.Login)
     }
 
-    // ✅ Re-vérifie la session à chaque changement d'écran
-    LaunchedEffect(currentScreen) {
-        isSessionChecked = false
-        isLoggedIn = withContext(dispatchers.io) {
-            getCurrentUserUseCase.execute() != null
-        }
-        isSessionChecked = true
-    }
-
-    // ✅ Ecrans "protégés" : accessibles seulement si connecté
     fun isProtected(screen: Screen): Boolean {
         return screen == Screen.Profile ||
                 screen == Screen.CreatePost ||
                 screen == Screen.Notifications
     }
 
-    // ✅ Garde-fou anti-boucle:
-    // On ne redirige que si la session a été vérifiée
-    LaunchedEffect(currentScreen, isLoggedIn, isSessionChecked) {
-        if (!isSessionChecked) return@LaunchedEffect
+    // ✅ On charge la session une seule fois au démarrage
+    LaunchedEffect(Unit) {
+        sessionManager.refresh()
+    }
+
+    // ✅ Si l’écran est protégé et qu’on n’est pas connecté -> Login
+    LaunchedEffect(currentScreen, isLoggedIn) {
         if (!isLoggedIn && isProtected(currentScreen)) {
             requireAuth(currentScreen)
         }
@@ -135,7 +121,7 @@ fun App() {
                         onEditCoverClick = {},
                         onEditAvatarClick = {},
                         onPostClick = { _ -> },
-                        onMoreClick = {},
+                        onMoreClick = {}
                     )
                 }
             }
