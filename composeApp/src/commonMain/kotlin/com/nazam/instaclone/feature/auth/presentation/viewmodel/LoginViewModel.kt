@@ -3,6 +3,7 @@ package com.nazam.instaclone.feature.auth.presentation.viewmodel
 import com.nazam.instaclone.core.dispatchers.AppDispatchers
 import com.nazam.instaclone.core.navigation.NavigationStore
 import com.nazam.instaclone.core.navigation.Screen
+import com.nazam.instaclone.core.session.SessionManager
 import com.nazam.instaclone.core.ui.UiText
 import com.nazam.instaclone.feature.auth.domain.usecase.GetCurrentUserUseCase
 import com.nazam.instaclone.feature.auth.domain.usecase.LoginUseCase
@@ -23,7 +24,8 @@ import kotlinx.coroutines.withContext
 class LoginViewModel(
     private val dispatchers: AppDispatchers,
     private val loginUseCase: LoginUseCase,
-    private val getCurrentUserUseCase: GetCurrentUserUseCase
+    private val getCurrentUserUseCase: GetCurrentUserUseCase,
+    private val sessionManager: SessionManager
 ) {
     private val job = Job()
     private val scope = CoroutineScope(dispatchers.main + job)
@@ -45,7 +47,10 @@ class LoginViewModel(
     fun checkSession() {
         scope.launch {
             val user = withContext(dispatchers.default) { getCurrentUserUseCase.execute() }
-            if (user != null) navigateAfterLogin()
+            if (user != null) {
+                sessionManager.setUser(user) // ✅ sync App()
+                navigateAfterLogin()
+            }
         }
     }
 
@@ -67,7 +72,10 @@ class LoginViewModel(
             }
 
             result
-                .onSuccess {
+                .onSuccess { user ->
+                    // ✅ met à jour la source de vérité de la session
+                    sessionManager.setUser(user)
+
                     _uiState.update { it.copy(isLoading = false, isLoggedIn = true) }
                     navigateAfterLogin()
                 }

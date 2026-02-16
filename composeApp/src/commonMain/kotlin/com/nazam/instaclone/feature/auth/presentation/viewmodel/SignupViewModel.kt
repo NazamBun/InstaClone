@@ -3,6 +3,7 @@ package com.nazam.instaclone.feature.auth.presentation.viewmodel
 import com.nazam.instaclone.core.dispatchers.AppDispatchers
 import com.nazam.instaclone.core.navigation.NavigationStore
 import com.nazam.instaclone.core.navigation.Screen
+import com.nazam.instaclone.core.session.SessionManager
 import com.nazam.instaclone.core.ui.UiText
 import com.nazam.instaclone.feature.auth.domain.usecase.SignupUseCase
 import com.nazam.instaclone.feature.auth.presentation.model.SignupUiState
@@ -21,7 +22,8 @@ import kotlinx.coroutines.withContext
 
 class SignupViewModel(
     private val dispatchers: AppDispatchers,
-    private val signupUseCase: SignupUseCase
+    private val signupUseCase: SignupUseCase,
+    private val sessionManager: SessionManager
 ) {
     private val job = Job()
     private val scope = CoroutineScope(dispatchers.main + job)
@@ -62,7 +64,10 @@ class SignupViewModel(
             }
 
             result
-                .onSuccess {
+                .onSuccess { user ->
+                    // ✅ session connectée
+                    sessionManager.setUser(user)
+
                     _uiState.update { it.copy(isLoading = false, isSignedUp = true) }
                     val target = NavigationStore.consumeAfterLogin() ?: Screen.Home
                     _events.tryEmit(AuthUiEvent.Navigate(target))

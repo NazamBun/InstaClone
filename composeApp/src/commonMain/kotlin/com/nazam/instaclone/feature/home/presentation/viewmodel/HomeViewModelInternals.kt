@@ -1,9 +1,9 @@
-// File: composeApp/src/commonMain/kotlin/com/nazam/instaclone/feature/home/presentation/viewmodel/HomeViewModelInternals.kt
 package com.nazam.instaclone.feature.home.presentation.viewmodel
 
 import com.nazam.instaclone.core.dispatchers.AppDispatchers
 import com.nazam.instaclone.core.navigation.NavigationStore
 import com.nazam.instaclone.core.navigation.Screen
+import com.nazam.instaclone.core.session.SessionManager
 import com.nazam.instaclone.core.ui.UiText
 import com.nazam.instaclone.feature.auth.domain.usecase.LogoutUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.AddCommentUseCase
@@ -15,7 +15,6 @@ import instaclone.composeapp.generated.resources.Res
 import instaclone.composeapp.generated.resources.dialog_login
 import instaclone.composeapp.generated.resources.dialog_signup
 import instaclone.composeapp.generated.resources.error_unknown
-import instaclone.composeapp.generated.resources.home_auth_required_comment
 import instaclone.composeapp.generated.resources.home_auth_required_generic
 import instaclone.composeapp.generated.resources.home_auth_required_vote
 import instaclone.composeapp.generated.resources.home_comments_load_error
@@ -27,27 +26,17 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/**
- * HomeViewModelInternals :
- * - Fonctions internes pour garder HomeViewModel plus petit et plus lisible.
- * - ✅ Tous les textes UI passent par UiText (KMP + traduisible).
- * - ✅ Les erreurs serveur peuvent rester en DynamicString.
- */
-
 internal fun HomeViewModel.loadFeedInternal(
     dispatchers: AppDispatchers,
     getFeedUseCase: GetFeedUseCase
 ) {
     scope.launch {
         _uiState.update { it.copy(isLoading = true) }
-
         val result = withContext(dispatchers.default) { getFeedUseCase.execute() }
 
         result
             .onSuccess { posts ->
                 _uiState.update { it.copy(isLoading = false, posts = posts) }
-
-                // "Feed chargé : X posts"
                 emitMessage(
                     UiText.ResourceArgs(
                         res = Res.string.home_feed_loaded,
@@ -57,8 +46,6 @@ internal fun HomeViewModel.loadFeedInternal(
             }
             .onFailure { error ->
                 _uiState.update { it.copy(isLoading = false) }
-
-                // Message serveur si dispo, sinon message traduisible
                 val msg = error.message?.takeIf { it.isNotBlank() }
                 emitMessage(
                     msg?.let { UiText.DynamicString(it) }
@@ -130,7 +117,6 @@ internal fun HomeViewModel.openCommentsInternal(
             }
             .onFailure { error ->
                 _uiState.update { it.copy(isCommentsLoading = false) }
-
                 val msg = error.message?.takeIf { it.isNotBlank() }
                 emitMessage(
                     msg?.let { UiText.DynamicString(it) }
@@ -157,9 +143,8 @@ internal fun HomeViewModel.sendCommentInternal(
     addCommentUseCase: AddCommentUseCase
 ) {
     val state = uiState.value
-
     if (!state.isLoggedIn) {
-        showAuthRequiredDialogInternal(UiText.Resource(Res.string.home_auth_required_comment))
+        // message déjà géré ailleurs si besoin
         return
     }
 
@@ -193,17 +178,19 @@ internal fun HomeViewModel.sendCommentInternal(
 
 internal fun HomeViewModel.logoutInternal(
     dispatchers: AppDispatchers,
-    logoutUseCase: LogoutUseCase
+    logoutUseCase: LogoutUseCase,
+    sessionManager: SessionManager
 ) {
     scope.launch {
         val result = withContext(dispatchers.default) { logoutUseCase.execute() }
 
         result
             .onSuccess {
-                // Nettoyage des intentions de navigation
                 NavigationStore.clear()
 
-                // Reset UI local
+                // ✅ IMPORTANT : App() doit savoir qu’on est déconnecté
+                sessionManager.setUser(null)
+
                 _uiState.update {
                     it.copy(
                         isLoggedIn = false,
@@ -250,10 +237,6 @@ internal fun HomeViewModel.handleAuthOrGenericErrorInternal(error: Throwable) {
     }
 }
 
-/**
- * Ouvre le dialog "auth required" dans l'UiState.
- * ✅ HomeUiState stocke des UiText, et HomeDialogHost fait UiText -> String côté UI.
- */
 internal fun HomeViewModel.showAuthRequiredDialogInternal(message: UiText) {
     _uiState.update {
         it.copy(

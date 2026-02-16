@@ -3,6 +3,7 @@ package com.nazam.instaclone.feature.home.presentation.viewmodel
 import com.nazam.instaclone.core.dispatchers.AppDispatchers
 import com.nazam.instaclone.core.navigation.NavigationStore
 import com.nazam.instaclone.core.navigation.Screen
+import com.nazam.instaclone.core.session.SessionManager
 import com.nazam.instaclone.core.ui.UiText
 import com.nazam.instaclone.feature.auth.domain.usecase.GetCurrentUserUseCase
 import com.nazam.instaclone.feature.auth.domain.usecase.LogoutUseCase
@@ -35,7 +36,8 @@ class HomeViewModel(
     private val getCommentsUseCase: GetCommentsUseCase,
     private val addCommentUseCase: AddCommentUseCase,
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
-    private val logoutUseCase: LogoutUseCase
+    private val logoutUseCase: LogoutUseCase,
+    private val sessionManager: SessionManager
 ) {
     internal val job = SupervisorJob()
     internal val scope = CoroutineScope(job + dispatchers.main)
@@ -63,13 +65,19 @@ class HomeViewModel(
                     currentUserDisplayName = user?.displayName
                 )
             }
+
+            // ✅ on synchronise aussi SessionManager
+            sessionManager.setUser(user)
         }
     }
 
     fun loadFeed() = loadFeedInternal(dispatchers, getFeedUseCase)
 
-    fun voteLeft(postId: String) = voteInternal(dispatchers, postId, true, voteLeftUseCase, voteRightUseCase)
-    fun voteRight(postId: String) = voteInternal(dispatchers, postId, false, voteLeftUseCase, voteRightUseCase)
+    fun voteLeft(postId: String) =
+        voteInternal(dispatchers, postId, true, voteLeftUseCase, voteRightUseCase)
+
+    fun voteRight(postId: String) =
+        voteInternal(dispatchers, postId, false, voteLeftUseCase, voteRightUseCase)
 
     fun onCreatePostClicked() {
         if (uiState.value.isLoggedIn) {
@@ -95,7 +103,7 @@ class HomeViewModel(
         }
     }
 
-    fun logout() = logoutInternal(dispatchers, logoutUseCase)
+    fun logout() = logoutInternal(dispatchers, logoutUseCase, sessionManager)
 
     fun onDialogConfirmClicked() {
         val goLogin = uiState.value.dialogShouldOpenLogin

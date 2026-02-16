@@ -4,6 +4,8 @@ import com.nazam.instaclone.core.dispatchers.AppDispatchers
 import com.nazam.instaclone.core.dispatchers.DefaultAppDispatchers
 import com.nazam.instaclone.core.media.DefaultImageBytesReader
 import com.nazam.instaclone.core.media.ImageBytesReader
+import com.nazam.instaclone.core.session.DefaultSessionManager
+import com.nazam.instaclone.core.session.SessionManager
 import com.nazam.instaclone.core.supabase.SupabaseClientProvider
 import com.nazam.instaclone.feature.auth.data.repository.AuthRepositoryImpl
 import com.nazam.instaclone.feature.auth.domain.repository.AuthRepository
@@ -35,8 +37,6 @@ import com.nazam.instaclone.feature.profile.domain.usecase.GetMyProfileUseCase
 import com.nazam.instaclone.feature.profile.presentation.viewmodel.ProfileViewModel
 import kotlinx.serialization.json.Json
 import org.koin.dsl.module
-import com.nazam.instaclone.core.session.DefaultSessionManager
-import com.nazam.instaclone.core.session.SessionManager
 
 val appModule = module {
 
@@ -63,6 +63,14 @@ val appModule = module {
     factory { LogoutUseCase(get()) }
     factory { GetCurrentUserUseCase(get()) }
 
+    // ✅ Session (source unique)
+    single<SessionManager> {
+        DefaultSessionManager(
+            dispatchers = get(),
+            getCurrentUserUseCase = get()
+        )
+    }
+
     // ✅ Home
     single<HomeRepository> { HomeRepositoryImpl(client = get(), json = get()) }
     factory { GetFeedUseCase(get()) }
@@ -87,7 +95,8 @@ val appModule = module {
             getCommentsUseCase = get(),
             addCommentUseCase = get(),
             getCurrentUserUseCase = get(),
-            logoutUseCase = get()
+            logoutUseCase = get(),
+            sessionManager = get()
         )
     }
 
@@ -104,14 +113,16 @@ val appModule = module {
         LoginViewModel(
             dispatchers = get(),
             loginUseCase = get(),
-            getCurrentUserUseCase = get()
+            getCurrentUserUseCase = get(),
+            sessionManager = get()
         )
     }
 
     factory {
         SignupViewModel(
             dispatchers = get(),
-            signupUseCase = get()
+            signupUseCase = get(),
+            sessionManager = get()
         )
     }
 
@@ -127,7 +138,8 @@ val appModule = module {
             getCurrentUserUseCase = get(),
             getMyProfileUseCase = get(),
             getMyPostsUseCase = get(),
-            logoutUseCase = get()
+            logoutUseCase = get(),
+            sessionManager = get()
         )
     }
 }

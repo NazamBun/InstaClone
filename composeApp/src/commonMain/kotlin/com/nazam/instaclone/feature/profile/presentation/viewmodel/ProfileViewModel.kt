@@ -3,6 +3,7 @@ package com.nazam.instaclone.feature.profile.presentation.viewmodel
 import com.nazam.instaclone.core.dispatchers.AppDispatchers
 import com.nazam.instaclone.core.navigation.NavigationStore
 import com.nazam.instaclone.core.navigation.Screen
+import com.nazam.instaclone.core.session.SessionManager
 import com.nazam.instaclone.core.ui.UiText
 import com.nazam.instaclone.feature.auth.domain.usecase.GetCurrentUserUseCase
 import com.nazam.instaclone.feature.auth.domain.usecase.LogoutUseCase
@@ -27,7 +28,8 @@ class ProfileViewModel(
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
     private val getMyProfileUseCase: GetMyProfileUseCase,
     private val getMyPostsUseCase: GetMyPostsUseCase,
-    private val logoutUseCase: LogoutUseCase
+    private val logoutUseCase: LogoutUseCase,
+    private val sessionManager: SessionManager
 ) {
     private val job = SupervisorJob()
     private val scope = CoroutineScope(dispatchers.main + job)
@@ -46,10 +48,7 @@ class ProfileViewModel(
         scope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
 
-            // ✅ lire la session en IO
-            val user = withContext(dispatchers.io) {
-                getCurrentUserUseCase.execute()
-            }
+            val user = withContext(dispatchers.io) { getCurrentUserUseCase.execute() }
 
             if (user == null) {
                 _uiState.update {
@@ -63,12 +62,8 @@ class ProfileViewModel(
             }
 
             val profileResult = withContext(dispatchers.io) {
-                getMyProfileUseCase.execute(
-                    userId = user.id,
-                    emailFallback = user.email
-                )
+                getMyProfileUseCase.execute(userId = user.id, emailFallback = user.email)
             }
-
             val postsResult = withContext(dispatchers.io) {
                 getMyPostsUseCase.execute(email = user.email)
             }
@@ -112,22 +107,18 @@ class ProfileViewModel(
 
     fun logout() {
         scope.launch {
-            // petit loader
             _uiState.update { it.copy(isLoading = true, error = null) }
 
-            val result = withContext(dispatchers.io) {
-                logoutUseCase.execute()
-            }
+            val result = withContext(dispatchers.io) { logoutUseCase.execute() }
 
             result
                 .onSuccess {
-                    // ✅ important : reset "afterLogin"
                     NavigationStore.clear()
 
-                    // ✅ reset UI
-                    _uiState.update { ProfileUiState(isLoading = false, ui = null, error = null) }
+                    // ✅ session = déconnecté (App() se met à jour)
+                    sessionManager.setUser(null)
 
-                    // ✅ go login
+                    _uiState.update { ProfileUiState(isLoading = false, ui = null, error = null) }
                     _events.tryEmit(ProfileUiEvent.Navigate(Screen.Login))
                 }
                 .onFailure {
