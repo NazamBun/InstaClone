@@ -8,6 +8,7 @@ import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 
 class AuthRepositoryImpl(
@@ -15,6 +16,18 @@ class AuthRepositoryImpl(
 ) : AuthRepository {
 
     private val auth = supabaseClient.auth
+
+    private fun readDisplayNameFromMetadata(): String? {
+        val user = auth.currentUserOrNull() ?: return null
+
+        // ✅ Compatible avec ta version: pas de contentOrNull
+        return runCatching {
+            user.userMetadata
+                ?.get("display_name")
+                ?.jsonPrimitive
+                ?.content
+        }.getOrNull()?.takeIf { it.isNotBlank() }
+    }
 
     override suspend fun login(email: String, password: String): Result<AuthUser> {
         return runCatching {
@@ -26,10 +39,12 @@ class AuthRepositoryImpl(
             val user = auth.currentUserOrNull()
                 ?: throw IllegalStateException("Utilisateur introuvable après le login")
 
+            val displayName = readDisplayNameFromMetadata()
+
             AuthMapper.toDomain(
                 id = user.id,
                 email = user.email ?: email,
-                displayName = null
+                displayName = displayName
             )
         }
     }
@@ -44,7 +59,7 @@ class AuthRepositoryImpl(
                 this.email = email
                 this.password = password
 
-                // ✅ metadata : utilisé par le trigger SQL pour remplir profiles.display_name
+                // ✅ metadata : utilisé par ton trigger SQL profiles.display_name
                 this.data = buildJsonObject {
                     if (!displayName.isNullOrBlank()) {
                         put("display_name", displayName)
@@ -53,7 +68,7 @@ class AuthRepositoryImpl(
             }
 
             val user = createdUser ?: auth.currentUserOrNull()
-            ?: throw IllegalStateException("Utilisateur introuvable après l'inscription")
+                ?: throw IllegalStateException("Utilisateur introuvable après l'inscription")
 
             AuthMapper.toDomain(
                 id = user.id,
@@ -69,11 +84,12 @@ class AuthRepositoryImpl(
 
     override suspend fun getCurrentUser(): AuthUser? {
         val user = auth.currentUserOrNull() ?: return null
+        val displayName = readDisplayNameFromMetadata()
 
         return AuthMapper.toDomain(
             id = user.id,
             email = user.email ?: "",
-            displayName = null
+            displayName = displayName
         )
     }
 }

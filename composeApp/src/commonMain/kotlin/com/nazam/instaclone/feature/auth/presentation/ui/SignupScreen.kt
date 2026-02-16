@@ -15,12 +15,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.nazam.instaclone.core.ui.asString
 import com.nazam.instaclone.feature.auth.presentation.model.SignupUiState
+import instaclone.composeapp.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 
-/**
- * Ecran pur (UI only).
- * Il ne connaît pas Koin et ne connaît pas les events.
- */
 @Composable
 fun SignupScreen(
     ui: SignupUiState,
@@ -37,7 +36,7 @@ fun SignupScreen(
             .padding(24.dp),
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "Créer un compte")
+        Text(text = stringResource(Res.string.signup_title))
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -45,7 +44,7 @@ fun SignupScreen(
             value = ui.email,
             onValueChange = onEmailChange,
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Email") },
+            placeholder = { Text(stringResource(Res.string.signup_email_placeholder)) },
             singleLine = true
         )
 
@@ -55,7 +54,7 @@ fun SignupScreen(
             value = ui.password,
             onValueChange = onPasswordChange,
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Mot de passe") },
+            placeholder = { Text(stringResource(Res.string.signup_password_placeholder)) },
             singleLine = true
         )
 
@@ -65,7 +64,7 @@ fun SignupScreen(
             value = ui.displayName,
             onValueChange = onDisplayNameChange,
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Nom d'utilisateur") },
+            placeholder = { Text(stringResource(Res.string.signup_display_name_placeholder)) },
             singleLine = true
         )
 
@@ -76,7 +75,7 @@ fun SignupScreen(
             modifier = Modifier.fillMaxWidth(),
             enabled = !ui.isLoading
         ) {
-            Text("Créer un compte")
+            Text(stringResource(Res.string.signup_button))
         }
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -86,12 +85,12 @@ fun SignupScreen(
             modifier = Modifier.fillMaxWidth(),
             enabled = !ui.isLoading
         ) {
-            Text("Déjà un compte ? Se connecter")
+            Text(stringResource(Res.string.signup_go_to_login_button))
         }
 
-        ui.errorMessage?.let { msg ->
+        ui.error?.let { err ->
             Spacer(modifier = Modifier.height(12.dp))
-            Text(text = msg, color = Color.Red)
+            Text(text = err.asString(), color = Color.Red)
         }
     }
 }

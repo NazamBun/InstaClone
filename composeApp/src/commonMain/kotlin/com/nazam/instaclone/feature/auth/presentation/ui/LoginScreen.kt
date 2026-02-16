@@ -16,12 +16,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.nazam.instaclone.core.ui.asString
 import com.nazam.instaclone.feature.auth.presentation.model.LoginUiState
+import instaclone.composeapp.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 
-/**
- * Ecran pur (UI only).
- * Il ne connaît pas Koin et ne connaît pas les events.
- */
 @Composable
 fun LoginScreen(
     ui: LoginUiState,
@@ -37,7 +36,7 @@ fun LoginScreen(
             .padding(24.dp),
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "Connexion")
+        Text(text = stringResource(Res.string.login_title))
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -45,7 +44,7 @@ fun LoginScreen(
             value = ui.email,
             onValueChange = onEmailChange,
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Email") },
+            placeholder = { Text(stringResource(Res.string.login_email_placeholder)) },
             singleLine = true
         )
 
@@ -55,7 +54,7 @@ fun LoginScreen(
             value = ui.password,
             onValueChange = onPasswordChange,
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Mot de passe") },
+            placeholder = { Text(stringResource(Res.string.login_password_placeholder)) },
             singleLine = true
         )
 
@@ -69,7 +68,7 @@ fun LoginScreen(
             if (ui.isLoading) {
                 CircularProgressIndicator(color = Color.White)
             } else {
-                Text("Connexion")
+                Text(stringResource(Res.string.login_button))
             }
         }
 
@@ -80,12 +79,12 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth(),
             enabled = !ui.isLoading
         ) {
-            Text("Créer un compte")
+            Text(stringResource(Res.string.login_go_to_signup_button))
         }
 
-        ui.errorMessage?.let { msg ->
+        ui.error?.let { err ->
             Spacer(modifier = Modifier.height(12.dp))
-            Text(text = msg, color = Color.Red)
+            Text(text = err.asString(), color = Color.Red)
         }
     }
 }

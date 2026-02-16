@@ -14,6 +14,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import com.nazam.instaclone.feature.home.presentation.model.HomeUiState
 import com.nazam.instaclone.feature.home.presentation.ui.VsPostItem
+import instaclone.composeapp.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 import kotlin.math.abs
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -25,6 +27,10 @@ fun HomeFeedContent(
     onVoteRight: (String) -> Unit,
     onOpenComments: (String) -> Unit
 ) {
+    val visiblePosts =
+        if (ui.selectedCategoryId.isBlank()) ui.posts
+        else ui.posts.filter { it.category == ui.selectedCategoryId }
+
     Box(modifier = Modifier.fillMaxSize()) {
         when {
             ui.isLoading -> {
@@ -34,22 +40,27 @@ fun HomeFeedContent(
                 )
             }
 
-            ui.posts.isEmpty() -> {
+            visiblePosts.isEmpty() -> {
+                val labelRes =
+                    if (ui.selectedCategoryId.isBlank()) Res.string.home_empty
+                    else Res.string.home_empty_filtered
+
                 Text(
-                    text = "Aucun post",
+                    text = stringResource(labelRes),
                     color = Color.White,
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
 
             else -> {
-                val pagerState = rememberPagerState(pageCount = { ui.posts.size })
+                val pagerState = rememberPagerState(pageCount = { visiblePosts.size })
 
                 VerticalPager(
                     state = pagerState,
                     modifier = Modifier.fillMaxSize()
                 ) { index ->
-                    val post = ui.posts[index]
+                    val post = visiblePosts[index]
+
                     val rawOffset =
                         (pagerState.currentPage - index) + pagerState.currentPageOffsetFraction
                     val pageOffset = abs(rawOffset)

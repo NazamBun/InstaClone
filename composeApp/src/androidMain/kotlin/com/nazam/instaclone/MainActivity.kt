@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
+import com.nazam.instaclone.core.di.androidPlatformModule
 import com.nazam.instaclone.core.di.initKoin
 
 class MainActivity : ComponentActivity() {
@@ -14,8 +15,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
-        // ✅ Koin démarre UNE seule fois ici
-        initKoin()
+        // ✅ Koin démarre UNE seule fois ici (avec module Android)
+        initKoin(androidPlatformModule(this))
 
         setContent {
             App()

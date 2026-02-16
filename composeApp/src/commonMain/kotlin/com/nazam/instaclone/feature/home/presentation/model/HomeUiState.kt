@@ -1,5 +1,6 @@
 package com.nazam.instaclone.feature.home.presentation.model
 
+import com.nazam.instaclone.core.ui.UiText
 import com.nazam.instaclone.feature.home.domain.model.Comment
 import com.nazam.instaclone.feature.home.domain.model.VsPost
 
@@ -7,7 +8,6 @@ data class HomeUiState(
     val isLoading: Boolean = false,
     val isLoggedIn: Boolean = false,
 
-    // ✅ infos user (pour l’avatar dans l’input)
     val currentUserId: String? = null,
     val currentUserEmail: String? = null,
     val currentUserDisplayName: String? = null,
@@ -15,10 +15,10 @@ data class HomeUiState(
     val votingPostId: String? = null,
     val posts: List<VsPost> = emptyList(),
 
-    // ✅ Dialog (popup)
-    val dialogMessage: String? = null,
-    val dialogConfirmLabel: String? = null,
-    val dialogSecondaryLabel: String? = null,
+    // ✅ Dialog (UiText = traduisible)
+    val dialogMessage: UiText? = null,
+    val dialogConfirmLabel: UiText? = null,
+    val dialogSecondaryLabel: UiText? = null,
     val dialogShouldOpenLogin: Boolean = false,
     val dialogShouldOpenSignup: Boolean = false,
 
@@ -27,5 +27,7 @@ data class HomeUiState(
     val commentsPostId: String? = null,
     val isCommentsLoading: Boolean = false,
     val comments: List<Comment> = emptyList(),
-    val newCommentText: String = ""
+    val newCommentText: String = "",
+
+    val selectedCategoryId: String = ""
 )

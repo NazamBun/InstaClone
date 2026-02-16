@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">InstaClone</string>
+
+    <!-- Auth - Login -->
+    <string name="login_title">Connexion</string>
+    <string name="login_email_placeholder">Email</string>
+    <string name="login_password_placeholder">Mot de passe</string>
+    <string name="login_button">Connexion</string>
+    <string name="login_go_to_signup_button">Créer un compte</string>
+
+    <!-- Auth - Signup -->
+    <string name="signup_title">Créer un compte</string>
+    <string name="signup_email_placeholder">Email</string>
+    <string name="signup_password_placeholder">Mot de passe</string>
+    <string name="signup_display_name_placeholder">Nom d'utilisateur</string>
+    <string name="signup_button">Créer un compte</string>
+    <string name="signup_go_to_login_button">Déjà un compte ? Se connecter</string>
+
+    <!-- Comments -->
+    <string name="comment_placeholder">Commenter…</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_info_title">Information</string>
+    <string name="dialog_ok">OK</string>
+    <string name="dialog_cancel">Annuler</string>
+
+    <!-- Bottom bar -->
+    <string name="bottom_home">Accueil</string>
+    <string name="bottom_explore">Explorer</string>
+    <string name="bottom_create">Créer</string>
+    <string name="bottom_notifications">Notifs</string>
+    <string name="bottom_profile">Profil</string>
+
+    <!-- Create post -->
+    <string name="create_post_title">Créer un nouveau VS</string>
+    <string name="create_post_question_label">Question</string>
+    <string name="create_post_left_label">Label gauche</string>
+    <string name="create_post_right_label">Label droite</string>
+
+    <string name="create_post_pick_left_image">Choisir image gauche</string>
+    <string name="create_post_change_left_image">Changer image gauche</string>
+    <string name="create_post_pick_right_image">Choisir image droite</string>
+    <string name="create_post_change_right_image">Changer image droite</string>
+
+    <string name="create_post_uploading_left">Upload image gauche...</string>
+    <string name="create_post_uploading_right">Upload image droite...</string>
+
+    <string name="create_post_left_image_cd">Image gauche</string>
+    <string name="create_post_right_image_cd">Image droite</string>
+
+    <string name="create_post_category_label">Catégorie</string>
+    <string name="create_post_choose_category_placeholder">Choisir une catégorie</string>
+    <string name="create_post_choose_category_button">Choisir la catégorie</string>
+
+    <string name="create_post_submit">Publier le VS</string>
+    <string name="create_post_cancel">Annuler</string>
+
+    <!-- Categories -->
+    <string name="categories_title">Choisir une catégorie</string>
+
+    <!-- Placeholders -->
+    <string name="placeholder_notifications_soon">Notifications (bientôt)</string>
+    <string name="placeholder_profile_soon">Profil (bientôt)</string>
+
+    <!-- Explore -->
+    <string name="explore_back">Retour</string>
+    <string name="explore_empty_category">Aucun post dans cette catégorie</string>
+
+    <string name="explore_sort_hot">Hot</string>
+    <string name="explore_sort_recent">Recent</string>
+    <string name="explore_sort_controversial">Controversé</string>
+
+    <string name="explore_title">Découvrir</string>
+    <string name="explore_all">Tout</string>
+
+    <!-- Home -->
+    <string name="home_empty">Aucun post</string>
+    <string name="home_empty_filtered">Aucun post dans ce filtre</string>
+
+    <!-- Comments -->
+    <string name="comments_title">Commentaires</string>
+    <string name="comments_empty">Aucun commentaire</string>
+    <string name="comments_login_required">Connecte-toi pour commenter</string>
+    <string name="close">Fermer</string>
+
+    <!-- Accessibility -->
+    <string name="cd_comments">Commentaires</string>
+    <string name="cd_message">Message</string>
+    <string name="cd_share">Partager</string>
+    <string name="cd_poll_image">Image du sondage</string>
+
+    <string name="explore_sort_hot_title">Hot (plus de votes)</string>
+    <string name="explore_sort_recent_title">Recent (les plus récents)</string>
+    <string name="explore_sort_controversial_title">Controversé (votes serrés)</string>
+    <string name="explore_category_prefix">Catégorie :</string>
+
+    <!-- Errors -->
+    <string name="error_email_password_required">Email et mot de passe requis</string>
+    <string name="error_unknown">Erreur inconnue</string>
+
+    <!-- Create post - validation / messages -->
+    <string name="create_post_wait">Patiente...</string>
+    <string name="create_post_upload_in_progress">Upload des images en cours...</string>
+
+    <string name="create_post_error_question">Écris une question.</string>
+    <string name="create_post_error_left_label">Écris le label gauche.</string>
+    <string name="create_post_error_right_label">Écris le label droite.</string>
+    <string name="create_post_error_category">Choisis une catégorie.</string>
+
+    <string name="create_post_error_pick_left_image">Choisis l’image gauche.</string>
+    <string name="create_post_error_pick_right_image">Choisis l’image droite.</string>
+
+    <string name="create_post_error_wait_left_upload">Attends l’upload de l’image gauche.</string>
+    <string name="create_post_error_wait_right_upload">Attends l’upload de l’image droite.</string>
+
+    <string name="create_post_auth_required">Tu dois être connecté pour créer un post.</string>
+    <string name="create_post_error_submit_blocked">Impossible de publier.</string>
+
+    <string name="create_post_error_upload_left_failed">Upload image gauche impossible.</string>
+    <string name="create_post_error_upload_right_failed">Upload image droite impossible.</string>
+    <string name="create_post_error_create_failed">Erreur lors de la création du post.</string>
+
+    <!-- Categories / labels -->
+    <string name="category_none">Sans catégorie</string>
+
+    <!-- Home - Messages -->
+    <string name="home_auth_required_create">Tu dois être connecté pour créer un post.</string>
+    <string name="home_auth_required_comment">Tu dois te connecter ou créer un compte pour commenter.</string>
+
+    <!-- Home - messages -->
+    <string name="home_feed_loaded">Feed chargé : %1$d posts</string>
+    <string name="home_feed_error">Erreur lors du chargement du feed</string>
+    <string name="home_comments_load_error">Impossible de charger les commentaires</string>
+    <string name="home_logged_out">Déconnecté</string>
+    <string name="home_logout_error">Erreur de déconnexion</string>
+
+    <!-- Home - auth required -->
+    <string name="home_auth_required_vote">Tu dois être connecté ou créer un compte pour voter.</string>
+    <string name="home_auth_required_generic">Tu dois être connecté ou créer un compte.</string>
+
+    <!-- Dialog buttons -->
+    <string name="dialog_login">Se connecter</string>
+    <string name="dialog_signup">Créer un compte</string>
+
+    <!-- VsPost -->
+    <string name="vspost_votes_count">%1$d votes</string>
+    <string name="vspost_vs_badge">VS</string>
+
+    <!-- VS Post - format -->
+    <string name="percent_value">%1$d%%</string>
+
+    <!-- Profile -->
+    <string name="profile_follow">Suivre</string>
+    <string name="profile_message">Message</string>
+    <string name="profile_more">…</string>
+
+    <string name="profile_edit_cover">Modifier la couverture</string>
+    <string name="profile_edit_avatar_cd">Modifier la photo</string>
+
+    <string name="profile_posts">Posts</string>
+    <string name="profile_followers">Abonnés</string>
+    <string name="profile_following">Abonnements</string>
+
+    <string name="profile_joined_prefix">Inscrit en</string>
+    <string name="profile_more_cd">Plus</string>
+    <string name="profile_tab_posts">Posts</string>
+    <string name="profile_tab_media">Media</string>
+    <string name="profile_tab_likes">Likes</string>
+    <string name="vs_title_format">%1$s vs %2$s</string>
+    <string name="profile_loading">Chargement du profil...</string>
+    <string name="profile_load_error">Impossible de charger le profil</string>
+
+    <!-- ✅ Profile - Logout (NOUVEAU) -->
+    <string name="profile_logout">Déconnexion</string>
+    <string name="profile_logout_title">Déconnexion</string>
+    <string name="profile_logout_message">Tu veux vraiment te déconnecter ?</string>
+    <string name="dialog_yes">Oui</string>
+    <string name="dialog_no">Non</string>
+
+</resources>

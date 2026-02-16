@@ -1,39 +1,35 @@
 package com.nazam.instaclone.feature.home.presentation.ui.components.home
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.graphics.Color
 import com.nazam.instaclone.feature.home.presentation.model.HomeUiState
-import com.nazam.instaclone.feature.home.presentation.ui.HomeBottomBar
 import com.nazam.instaclone.feature.home.presentation.ui.components.comments.CommentInputBar
 import com.nazam.instaclone.feature.home.presentation.ui.components.comments.LockedCommentBar
 import com.nazam.instaclone.feature.home.presentation.ui.components.utils.getUserLetter
 
+/**
+ * HomeBottomArea :
+ * ✅ Ne gère PLUS la bottom bar (elle est dans App.kt maintenant).
+ * ✅ Sert seulement à afficher la zone d'input des commentaires quand le panel est ouvert.
+ */
 @Composable
 fun HomeBottomArea(
     ui: HomeUiState,
-    onCreatePostClick: () -> Unit,
-    onLoginClick: () -> Unit,
-    onLogoutClick: () -> Unit,
     onNewCommentChange: (String) -> Unit,
     onSendCommentClick: () -> Unit,
     onCommentInputRequested: () -> Unit,
-    onBottomHeightChanged: (Dp) -> Unit
+    modifier: Modifier = Modifier
 ) {
-    val density = LocalDensity.current
-
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
+            .background(Color(0xFF050509))
             .imePadding()
-            .onSizeChanged { size ->
-                onBottomHeightChanged(with(density) { size.height.toDp() })
-            }
     ) {
         if (ui.isCommentsSheetOpen) {
             if (ui.isLoggedIn) {
@@ -47,12 +43,5 @@ fun HomeBottomArea(
                 LockedCommentBar(onClick = onCommentInputRequested)
             }
         }
-
-        HomeBottomBar(
-            isLoggedIn = ui.isLoggedIn,
-            onCreatePostClick = onCreatePostClick,
-            onLoginClick = onLoginClick,
-            onLogoutClick = onLogoutClick
-        )
     }
 }

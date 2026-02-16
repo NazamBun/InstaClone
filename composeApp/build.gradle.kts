@@ -107,12 +107,18 @@ android {
     namespace = "com.nazam.instaclone"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
         applicationId = "com.nazam.instaclone"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
+        buildConfigField("String", "SUPABASE_URL", "\"https://ushaekvefuarbqsesaut.supabase.co\"")
+        buildConfigField("String", "SUPABASE_ANON_KEY", "\"***SUPABASE_KEY_REMOVED***\"")
     }
     packaging {
         resources {

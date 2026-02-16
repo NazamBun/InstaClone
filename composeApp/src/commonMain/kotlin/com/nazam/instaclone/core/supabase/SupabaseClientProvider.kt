@@ -5,17 +5,15 @@ import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.storage.Storage
 
-// Un seul client Supabase partagé pour toute l'app
 object SupabaseClientProvider {
-
     val client by lazy {
         createSupabaseClient(
-            supabaseUrl = SupabaseConfig.SUPABASE_URL,
-            supabaseKey = SupabaseConfig.SUPABASE_ANON_KEY
+            supabaseUrl = SupabaseSecrets.url,
+            supabaseKey = SupabaseSecrets.anonKey
         ) {
-            install(Auth.Companion)
-            install(Postgrest.Companion)
-            install(Storage.Companion)
+            install(Auth)
+            install(Postgrest)
+            install(Storage)
         }
     }
 }
