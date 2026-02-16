@@ -277,7 +277,7 @@ internal fun HomeViewModel.showAuthRequiredDialogInternal(message: UiText) {
  *
  * Sinon : on garde l'intention pour plus tard.
  */
-private fun HomeViewModel.runPendingVoteIfPossible() {
+internal fun HomeViewModel.runPendingVoteIfPossible() {
     val state = uiState.value
     if (!state.isLoggedIn) return
     if (state.isLoading) return
