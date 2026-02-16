@@ -15,6 +15,7 @@ import com.nazam.instaclone.feature.home.domain.usecase.VoteLeftUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.VoteRightUseCase
 import com.nazam.instaclone.feature.home.presentation.categories.HomeFilterStore
 import com.nazam.instaclone.feature.home.presentation.model.HomeUiState
+import com.nazam.instaclone.feature.home.presentation.vote.VoteIntentStore
 import instaclone.composeapp.generated.resources.Res
 import instaclone.composeapp.generated.resources.home_auth_required_comment
 import instaclone.composeapp.generated.resources.home_auth_required_create
@@ -48,6 +49,12 @@ class HomeViewModel(
     private val _events = MutableSharedFlow<HomeUiEvent>(extraBufferCapacity = 1)
     val events: SharedFlow<HomeUiEvent> = _events
 
+    /**
+     * Vote en attente après login.
+     * On ne le lance qu'une fois et seulement quand le feed est chargé.
+     */
+    internal var pendingVoteAfterLogin: VoteIntentStore.VoteIntent? = null
+
     init {
         refreshFilter()
         refreshSession()
@@ -57,6 +64,10 @@ class HomeViewModel(
     fun refreshSession() {
         scope.launch {
             val user = withContext(dispatchers.default) { getCurrentUserUseCase.execute() }
+
+            // ✅ session globale
+            sessionManager.setUser(user)
+
             _uiState.update {
                 it.copy(
                     isLoggedIn = user != null,
@@ -66,8 +77,10 @@ class HomeViewModel(
                 )
             }
 
-            // ✅ on synchronise aussi SessionManager
-            sessionManager.setUser(user)
+            // ✅ si on est connecté maintenant, on récupère un vote en attente
+            if (user != null && pendingVoteAfterLogin == null) {
+                pendingVoteAfterLogin = VoteIntentStore.consume()
+            }
         }
     }
 

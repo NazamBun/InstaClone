@@ -11,6 +11,7 @@ import com.nazam.instaclone.feature.home.domain.usecase.GetCommentsUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.GetFeedUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.VoteLeftUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.VoteRightUseCase
+import com.nazam.instaclone.feature.home.presentation.vote.VoteIntentStore
 import instaclone.composeapp.generated.resources.Res
 import instaclone.composeapp.generated.resources.dialog_login
 import instaclone.composeapp.generated.resources.dialog_signup
@@ -32,20 +33,26 @@ internal fun HomeViewModel.loadFeedInternal(
 ) {
     scope.launch {
         _uiState.update { it.copy(isLoading = true) }
+
         val result = withContext(dispatchers.default) { getFeedUseCase.execute() }
 
         result
             .onSuccess { posts ->
                 _uiState.update { it.copy(isLoading = false, posts = posts) }
+
                 emitMessage(
                     UiText.ResourceArgs(
                         res = Res.string.home_feed_loaded,
                         args = listOf(posts.size)
                     )
                 )
+
+                // ✅ Si un vote était en attente après login, on le lance maintenant.
+                runPendingVoteIfPossible(dispatchers)
             }
             .onFailure { error ->
                 _uiState.update { it.copy(isLoading = false) }
+
                 val msg = error.message?.takeIf { it.isNotBlank() }
                 emitMessage(
                     msg?.let { UiText.DynamicString(it) }
@@ -65,9 +72,20 @@ internal fun HomeViewModel.voteInternal(
     val state = uiState.value
 
     if (!state.isLoggedIn) {
+        // ✅ On garde l’intention du vote
+        VoteIntentStore.save(
+            postId = postId,
+            side = if (isLeft) VoteIntentStore.Side.LEFT else VoteIntentStore.Side.RIGHT
+        )
+
+        // ✅ Après login on revient sur Home
+        NavigationStore.setAfterLogin(Screen.Home)
+
+        // ✅ Dialog “auth required”
         showAuthRequiredDialogInternal(UiText.Resource(Res.string.home_auth_required_vote))
         return
     }
+
     if (state.votingPostId == postId) return
 
     scope.launch {
@@ -117,6 +135,7 @@ internal fun HomeViewModel.openCommentsInternal(
             }
             .onFailure { error ->
                 _uiState.update { it.copy(isCommentsLoading = false) }
+
                 val msg = error.message?.takeIf { it.isNotBlank() }
                 emitMessage(
                     msg?.let { UiText.DynamicString(it) }
@@ -143,8 +162,9 @@ internal fun HomeViewModel.sendCommentInternal(
     addCommentUseCase: AddCommentUseCase
 ) {
     val state = uiState.value
+
     if (!state.isLoggedIn) {
-        // message déjà géré ailleurs si besoin
+        showAuthRequiredDialogInternal(UiText.Resource(Res.string.home_auth_required_generic))
         return
     }
 
@@ -187,8 +207,10 @@ internal fun HomeViewModel.logoutInternal(
         result
             .onSuccess {
                 NavigationStore.clear()
+                VoteIntentStore.clear()
+                pendingVoteAfterLogin = null
 
-                // ✅ IMPORTANT : App() doit savoir qu’on est déconnecté
+                // ✅ session globale
                 sessionManager.setUser(null)
 
                 _uiState.update {
@@ -246,5 +268,31 @@ internal fun HomeViewModel.showAuthRequiredDialogInternal(message: UiText) {
             dialogShouldOpenLogin = true,
             dialogShouldOpenSignup = true
         )
+    }
+}
+
+/**
+ * Exécute un vote en attente si :
+ * - on est connecté
+ * - le feed est chargé
+ */
+private fun HomeViewModel.runPendingVoteIfPossible(dispatchers: AppDispatchers) {
+    val state = uiState.value
+    if (!state.isLoggedIn) return
+
+    // si pas encore récupéré, on tente une fois
+    if (pendingVoteAfterLogin == null) {
+        pendingVoteAfterLogin = VoteIntentStore.consume()
+    }
+
+    val intent = pendingVoteAfterLogin ?: return
+    pendingVoteAfterLogin = null
+
+    when (intent.side) {
+        VoteIntentStore.Side.LEFT ->
+            voteInternal(dispatchers, intent.postId, true, voteLeftUseCase, voteRightUseCase)
+
+        VoteIntentStore.Side.RIGHT ->
+            voteInternal(dispatchers, intent.postId, false, voteLeftUseCase, voteRightUseCase)
     }
 }
