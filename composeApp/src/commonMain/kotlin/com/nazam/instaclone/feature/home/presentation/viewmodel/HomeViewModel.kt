@@ -51,7 +51,9 @@ class HomeViewModel(
 
     /**
      * Vote en attente après login.
-     * On ne le lance qu'une fois et seulement quand le feed est chargé.
+     * On tente de le lancer :
+     * - après refreshSession()
+     * - et après loadFeed()
      */
     internal var pendingVoteAfterLogin: VoteIntentStore.VoteIntent? = null
 
@@ -77,10 +79,13 @@ class HomeViewModel(
                 )
             }
 
-            // ✅ si on est connecté maintenant, on récupère un vote en attente
+            // ✅ si on est connecté maintenant, on récupère un vote en attente (une seule fois)
             if (user != null && pendingVoteAfterLogin == null) {
                 pendingVoteAfterLogin = VoteIntentStore.consume()
             }
+
+            // ✅ IMPORTANT : si le feed est déjà là, on tente tout de suite
+            runPendingVoteIfPossible()
         }
     }
 

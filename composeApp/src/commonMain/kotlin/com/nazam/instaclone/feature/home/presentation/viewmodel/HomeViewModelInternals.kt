@@ -270,20 +270,17 @@ internal fun HomeViewModel.showAuthRequiredDialogInternal(message: UiText) {
         )
     }
 }
-
 /**
  * Exécute un vote en attente si :
  * - on est connecté
- * - le feed est chargé
- */
-/**
- * Exécute un vote en attente si :
- * - on est connecté
- * - le feed est chargé
+ * - le feed contient le post
+ *
+ * Sinon : on garde l'intention pour plus tard.
  */
 private fun HomeViewModel.runPendingVoteIfPossible() {
     val state = uiState.value
     if (!state.isLoggedIn) return
+    if (state.isLoading) return
 
     // Si on n'a pas encore récupéré le vote, on tente une fois
     if (pendingVoteAfterLogin == null) {
@@ -291,10 +288,14 @@ private fun HomeViewModel.runPendingVoteIfPossible() {
     }
 
     val intent = pendingVoteAfterLogin ?: return
+
+    // ✅ Si le feed ne contient pas encore ce post, on attend (on ne consomme pas)
+    val existsInFeed = state.posts.any { it.id == intent.postId }
+    if (!existsInFeed) return
+
+    // ✅ Là on peut le consommer et le lancer
     pendingVoteAfterLogin = null
 
-    // ✅ Important : on appelle les fonctions publiques du ViewModel
-    // (pas besoin d'accéder aux use cases privés)
     when (intent.side) {
         VoteIntentStore.Side.LEFT -> voteLeft(intent.postId)
         VoteIntentStore.Side.RIGHT -> voteRight(intent.postId)
