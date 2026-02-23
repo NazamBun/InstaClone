@@ -46,29 +46,33 @@ fun App() {
         currentScreen = screen
     }
 
-    fun requireAuth(target: Screen) {
-        // ✅ IMPORTANT : on retient d’où on vient (pour la flèche retour du Login)
-        NavigationStore.setAuthReturn(currentScreen)
+    fun isProtected(screen: Screen): Boolean {
+        return screen == Screen.Profile ||
+            screen == Screen.CreatePost ||
+            screen == Screen.Notifications
+    }
 
-        // ✅ où aller après login (CreatePost / Notifs / Profile)
+    /**
+     * Redirection vers Login en gardant :
+     * - "afterLogin" : où aller après login
+     * - "authReturn" : où revenir si l’utilisateur appuie sur la flèche retour
+     */
+    fun requireAuth(target: Screen, returnScreen: Screen) {
+        NavigationStore.setAuthReturn(returnScreen)
         NavigationStore.setAfterLogin(target)
-
         navigateTo(Screen.Login)
     }
 
-    fun isProtected(screen: Screen): Boolean {
-        return screen == Screen.Profile ||
-                screen == Screen.CreatePost ||
-                screen == Screen.Notifications
-    }
-
+    // ✅ Charge la session une seule fois au démarrage
     LaunchedEffect(Unit) {
         sessionManager.refresh()
     }
 
+    // ✅ Garde : si écran protégé + pas connecté -> Login
     LaunchedEffect(currentScreen, isLoggedIn) {
         if (!isLoggedIn && isProtected(currentScreen)) {
-            requireAuth(currentScreen)
+            // Ici currentScreen est déjà un écran protégé -> on revient sur Home
+            requireAuth(target = currentScreen, returnScreen = Screen.Home)
         }
     }
 
@@ -87,13 +91,16 @@ fun App() {
                         onHomeClick = { navigateTo(Screen.Home) },
                         onExploreClick = { navigateTo(Screen.Explore) },
                         onCreatePostClick = {
-                            if (isLoggedIn) navigateTo(Screen.CreatePost) else requireAuth(Screen.CreatePost)
+                            if (isLoggedIn) navigateTo(Screen.CreatePost)
+                            else requireAuth(target = Screen.CreatePost, returnScreen = currentScreen)
                         },
                         onNotificationsClick = {
-                            if (isLoggedIn) navigateTo(Screen.Notifications) else requireAuth(Screen.Notifications)
+                            if (isLoggedIn) navigateTo(Screen.Notifications)
+                            else requireAuth(target = Screen.Notifications, returnScreen = currentScreen)
                         },
                         onProfileOrLoginClick = {
-                            if (isLoggedIn) navigateTo(Screen.Profile) else requireAuth(Screen.Profile)
+                            if (isLoggedIn) navigateTo(Screen.Profile)
+                            else requireAuth(target = Screen.Profile, returnScreen = currentScreen)
                         }
                     )
                 }

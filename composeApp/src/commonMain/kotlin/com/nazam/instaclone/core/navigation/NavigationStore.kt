@@ -17,8 +17,9 @@ object NavigationStore {
 
     /**
      * Écran à afficher si l’utilisateur veut "revenir" depuis Login.
-     * Exemple : Home -> clique Create (protégé) -> Login
-     * Retour sur Home quand on clique la flèche.
+     * Exemple :
+     * Home -> clique Create (protégé) -> Login
+     * Flèche retour -> revient sur Home
      */
     fun setAuthReturn(screen: Screen) {
         authReturn = screen
@@ -30,9 +31,15 @@ object NavigationStore {
         return target
     }
 
+    /**
+     * Important :
+     * - si l’utilisateur quitte Login, on annule aussi "afterLogin"
+     *   (sinon ça peut rediriger plus tard alors qu’il a annulé)
+     */
     fun consumeAuthReturn(): Screen? {
         val target = authReturn
         authReturn = null
+        afterLogin = null
         return target
     }
 
