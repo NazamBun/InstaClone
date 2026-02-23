@@ -54,11 +54,13 @@ fun App() {
 
     /**
      * Redirection vers Login en gardant :
-     * - "afterLogin" : où aller après login
-     * - "authReturn" : où revenir si l’utilisateur appuie sur la flèche retour
+     * - afterLogin : où aller après login
+     * - authReturn : où revenir si l’utilisateur appuie sur la flèche retour
+     *
+     * ✅ IMPORTANT : authReturn ne doit pas être écrasé si déjà défini
      */
     fun requireAuth(target: Screen, returnScreen: Screen) {
-        NavigationStore.setAuthReturn(returnScreen)
+        NavigationStore.setAuthReturnIfEmpty(returnScreen)
         NavigationStore.setAfterLogin(target)
         navigateTo(Screen.Login)
     }
@@ -69,9 +71,9 @@ fun App() {
     }
 
     // ✅ Garde : si écran protégé + pas connecté -> Login
+    // Ici, si on arrive “direct” sur un écran protégé (cas rare), on met Home en fallback.
     LaunchedEffect(currentScreen, isLoggedIn) {
         if (!isLoggedIn && isProtected(currentScreen)) {
-            // Ici currentScreen est déjà un écran protégé -> on revient sur Home
             requireAuth(target = currentScreen, returnScreen = Screen.Home)
         }
     }

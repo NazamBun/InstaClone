@@ -16,13 +16,15 @@ object NavigationStore {
     }
 
     /**
-     * Écran à afficher si l’utilisateur veut "revenir" depuis Login.
+     * Définit l’écran de retour seulement si il n’est pas déjà défini.
      * Exemple :
-     * Home -> clique Create (protégé) -> Login
-     * Flèche retour -> revient sur Home
+     * - Home -> Create (protégé) -> Login => authReturn = Home
+     * - Explore -> Profile (protégé) -> Login => authReturn = Explore
+     *
+     * ✅ important : on ne doit pas écraser le vrai écran de retour
      */
-    fun setAuthReturn(screen: Screen) {
-        authReturn = screen
+    fun setAuthReturnIfEmpty(screen: Screen) {
+        if (authReturn == null) authReturn = screen
     }
 
     fun consumeAfterLogin(): Screen? {
@@ -33,7 +35,7 @@ object NavigationStore {
 
     /**
      * Important :
-     * - si l’utilisateur quitte Login, on annule aussi "afterLogin"
+     * - si l’utilisateur quitte Login, on annule aussi afterLogin
      *   (sinon ça peut rediriger plus tard alors qu’il a annulé)
      */
     fun consumeAuthReturn(): Screen? {
