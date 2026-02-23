@@ -88,4 +88,8 @@ class SignupViewModel(
     fun clear() {
         job.cancel()
     }
+
+    fun onBackClicked() {
+        _events.tryEmit(AuthUiEvent.NavigateBack)
+    }
 }

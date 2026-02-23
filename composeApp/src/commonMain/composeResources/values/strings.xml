@@ -177,5 +177,6 @@
     <string name="profile_logout_message">Tu veux vraiment te déconnecter ?</string>
     <string name="dialog_yes">Oui</string>
     <string name="dialog_no">Non</string>
+    <string name="nav_back_cd">Retour</string>
 
 </resources>

@@ -47,7 +47,12 @@ fun App() {
     }
 
     fun requireAuth(target: Screen) {
+        // ✅ IMPORTANT : on retient d’où on vient (pour la flèche retour du Login)
+        NavigationStore.setAuthReturn(currentScreen)
+
+        // ✅ où aller après login (CreatePost / Notifs / Profile)
         NavigationStore.setAfterLogin(target)
+
         navigateTo(Screen.Login)
     }
 
@@ -57,12 +62,10 @@ fun App() {
                 screen == Screen.Notifications
     }
 
-    // ✅ On charge la session une seule fois au démarrage
     LaunchedEffect(Unit) {
         sessionManager.refresh()
     }
 
-    // ✅ Si l’écran est protégé et qu’on n’est pas connecté -> Login
     LaunchedEffect(currentScreen, isLoggedIn) {
         if (!isLoggedIn && isProtected(currentScreen)) {
             requireAuth(currentScreen)

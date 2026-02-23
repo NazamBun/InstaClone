@@ -16,75 +16,86 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.nazam.instaclone.core.ui.AppTopBar
 import com.nazam.instaclone.core.ui.asString
 import com.nazam.instaclone.feature.auth.presentation.model.LoginUiState
-import instaclone.composeapp.generated.resources.*
+import instaclone.composeapp.generated.resources.Res
+import instaclone.composeapp.generated.resources.login_button
+import instaclone.composeapp.generated.resources.login_email_placeholder
+import instaclone.composeapp.generated.resources.login_go_to_signup_button
+import instaclone.composeapp.generated.resources.login_password_placeholder
+import instaclone.composeapp.generated.resources.login_title
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun LoginScreen(
     ui: LoginUiState,
+    onBackClick: () -> Unit,
     onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     onLoginClick: () -> Unit,
     onSignupClick: () -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .imePadding()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(text = stringResource(Res.string.login_title))
+    Column(modifier = Modifier.fillMaxSize()) {
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        TextField(
-            value = ui.email,
-            onValueChange = onEmailChange,
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text(stringResource(Res.string.login_email_placeholder)) },
-            singleLine = true
+        AppTopBar(
+            title = stringResource(Res.string.login_title),
+            onBackClick = onBackClick
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        TextField(
-            value = ui.password,
-            onValueChange = onPasswordChange,
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text(stringResource(Res.string.login_password_placeholder)) },
-            singleLine = true
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        Button(
-            onClick = onLoginClick,
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !ui.isLoading
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .imePadding()
+                .padding(24.dp),
+            verticalArrangement = Arrangement.Center
         ) {
-            if (ui.isLoading) {
-                CircularProgressIndicator(color = Color.White)
-            } else {
-                Text(stringResource(Res.string.login_button))
-            }
-        }
+            TextField(
+                value = ui.email,
+                onValueChange = onEmailChange,
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text(stringResource(Res.string.login_email_placeholder)) },
+                singleLine = true
+            )
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Button(
-            onClick = onSignupClick,
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !ui.isLoading
-        ) {
-            Text(stringResource(Res.string.login_go_to_signup_button))
-        }
-
-        ui.error?.let { err ->
             Spacer(modifier = Modifier.height(12.dp))
-            Text(text = err.asString(), color = Color.Red)
+
+            TextField(
+                value = ui.password,
+                onValueChange = onPasswordChange,
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text(stringResource(Res.string.login_password_placeholder)) },
+                singleLine = true
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Button(
+                onClick = onLoginClick,
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !ui.isLoading
+            ) {
+                if (ui.isLoading) {
+                    CircularProgressIndicator(color = Color.White)
+                } else {
+                    Text(stringResource(Res.string.login_button))
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Button(
+                onClick = onSignupClick,
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !ui.isLoading
+            ) {
+                Text(stringResource(Res.string.login_go_to_signup_button))
+            }
+
+            ui.error?.let { err ->
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(text = err.asString(), color = Color.Red)
+            }
         }
     }
 }

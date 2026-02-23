@@ -5,6 +5,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import com.nazam.instaclone.core.navigation.NavigationStore
 import com.nazam.instaclone.core.navigation.Screen
 import com.nazam.instaclone.feature.auth.presentation.viewmodel.AuthUiEvent
 import com.nazam.instaclone.feature.auth.presentation.viewmodel.LoginViewModel
@@ -28,13 +29,17 @@ fun LoginRoute(
         viewModel.events.collectLatest { event ->
             when (event) {
                 is AuthUiEvent.Navigate -> onNavigate(event.screen)
-                AuthUiEvent.NavigateBack -> Unit
+                AuthUiEvent.NavigateBack -> {
+                    val back = NavigationStore.consumeAuthReturn() ?: Screen.Home
+                    onNavigate(back)
+                }
             }
         }
     }
 
     LoginScreen(
         ui = ui,
+        onBackClick = viewModel::onBackClicked,
         onEmailChange = viewModel::onEmailChanged,
         onPasswordChange = viewModel::onPasswordChanged,
         onLoginClick = viewModel::login,
