@@ -33,6 +33,7 @@ fun SignupRoute(
 
     SignupScreen(
         ui = ui,
+        onBackClick = viewModel::onBackClicked, // ✅ IMPORTANT
         onEmailChange = viewModel::onEmailChanged,
         onPasswordChange = viewModel::onPasswordChanged,
         onDisplayNameChange = viewModel::onDisplayNameChanged,
