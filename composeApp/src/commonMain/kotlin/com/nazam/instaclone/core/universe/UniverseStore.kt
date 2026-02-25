@@ -1,20 +1,24 @@
 package com.nazam.instaclone.core.universe
 
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+
 /**
  * Store mémoire (KMP friendly).
- * On garde l'univers actif.
+ * ✅ StateFlow : Compose peut observer et se recomposer.
  */
 object UniverseStore {
 
-    private var current: Universe = Universe.FOOTBALL
+    private val _universe = MutableStateFlow(Universe.FOOTBALL)
+    val universe: StateFlow<Universe> = _universe
 
-    fun get(): Universe = current
+    fun get(): Universe = _universe.value
 
     fun set(value: Universe) {
-        current = value
+        _universe.value = value
     }
 
     fun resetToDefault() {
-        current = Universe.FOOTBALL
+        _universe.value = Universe.FOOTBALL
     }
 }
