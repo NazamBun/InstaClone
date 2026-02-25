@@ -4,12 +4,14 @@ import com.nazam.instaclone.core.dispatchers.AppDispatchers
 import com.nazam.instaclone.core.navigation.NavigationStore
 import com.nazam.instaclone.core.navigation.Screen
 import com.nazam.instaclone.core.session.SessionManager
+import com.nazam.instaclone.core.share.ShareTextFactory
 import com.nazam.instaclone.core.universe.Universe
 import com.nazam.instaclone.core.universe.UniverseStore
 import com.nazam.instaclone.core.ui.UiText
 import com.nazam.instaclone.feature.auth.domain.usecase.GetCurrentUserUseCase
 import com.nazam.instaclone.feature.auth.domain.usecase.LogoutUseCase
 import com.nazam.instaclone.feature.home.domain.model.VoteCategory
+import com.nazam.instaclone.feature.home.domain.model.VsPost
 import com.nazam.instaclone.feature.home.domain.usecase.AddCommentUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.GetCommentsUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.GetFeedUseCase
@@ -51,12 +53,6 @@ class HomeViewModel(
     private val _events = MutableSharedFlow<HomeUiEvent>(extraBufferCapacity = 1)
     val events: SharedFlow<HomeUiEvent> = _events
 
-    /**
-     * Vote en attente après login.
-     * On tente de le lancer :
-     * - après refreshSession()
-     * - et après loadFeed()
-     */
     internal var pendingVoteAfterLogin: VoteIntentStore.VoteIntent? = null
 
     init {
@@ -69,7 +65,6 @@ class HomeViewModel(
         scope.launch {
             val user = withContext(dispatchers.default) { getCurrentUserUseCase.execute() }
 
-            // ✅ session globale
             sessionManager.setUser(user)
 
             _uiState.update {
@@ -81,12 +76,10 @@ class HomeViewModel(
                 )
             }
 
-            // ✅ si on est connecté maintenant, on récupère un vote en attente (une seule fois)
             if (user != null && pendingVoteAfterLogin == null) {
                 pendingVoteAfterLogin = VoteIntentStore.consume()
             }
 
-            // ✅ IMPORTANT : si le feed est déjà là, on tente tout de suite
             runPendingVoteIfPossible()
         }
     }
@@ -121,6 +114,11 @@ class HomeViewModel(
         if (!uiState.value.isLoggedIn) {
             showAuthRequiredDialogInternal(UiText.Resource(Res.string.home_auth_required_comment))
         }
+    }
+
+    fun onShareClicked(post: VsPost) {
+        val payload = ShareTextFactory.fromPost(post)
+        _events.tryEmit(HomeUiEvent.Share(payload))
     }
 
     fun logout() = logoutInternal(dispatchers, logoutUseCase, sessionManager)
@@ -165,11 +163,6 @@ class HomeViewModel(
         val universe = UniverseStore.get()
         val categoryFilter = HomeFilterStore.getCategory()
 
-        // Final filter:
-        // - if a category is selected -> use it
-        // - else:
-        //   - FOOTBALL -> football
-        //   - GLOBAL -> all
         val effectiveCategoryId = when {
             categoryFilter.isNotBlank() -> categoryFilter
             universe == Universe.FOOTBALL -> "football"
@@ -198,15 +191,10 @@ class HomeViewModel(
         HomeFilterStore.setAll()
         refreshFilter()
     }
-    /**
-     * Change l'univers principal (Football / Global).
-     * - reset category filter
-     * - refresh UI filter
-     */
+
     fun onUniverseSelected(universe: Universe) {
         UniverseStore.set(universe)
         HomeFilterStore.setAll()
         refreshFilter()
     }
-
 }

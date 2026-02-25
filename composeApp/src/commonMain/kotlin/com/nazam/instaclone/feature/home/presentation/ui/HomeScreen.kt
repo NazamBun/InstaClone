@@ -9,7 +9,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -18,6 +22,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.nazam.instaclone.core.ui.asString
+import com.nazam.instaclone.feature.home.domain.model.VsPost
 import com.nazam.instaclone.feature.home.presentation.model.HomeUiState
 import com.nazam.instaclone.feature.home.presentation.ui.components.comments.CommentsPanel
 import com.nazam.instaclone.feature.home.presentation.ui.components.dialogs.InfoDialog
@@ -36,6 +41,7 @@ fun HomeScreen(
     onVoteRight: (String) -> Unit,
     onOpenComments: (String) -> Unit,
     onCloseComments: () -> Unit,
+    onShare: (VsPost) -> Unit,
 
     onNewCommentChange: (String) -> Unit,
     onSendCommentClick: () -> Unit,
@@ -80,7 +86,8 @@ fun HomeScreen(
             extraBottomPadding = extraBottomPadding,
             onVoteLeft = onVoteLeft,
             onVoteRight = onVoteRight,
-            onOpenComments = onOpenComments
+            onOpenComments = onOpenComments,
+            onShare = onShare
         )
 
         HomeBottomArea(

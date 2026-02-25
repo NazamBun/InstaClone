@@ -2,8 +2,16 @@ package com.nazam.instaclone.feature.home.presentation.ui
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.runtime.*
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import com.nazam.instaclone.core.navigation.Screen
+import com.nazam.instaclone.core.share.SharePayload
+import com.nazam.instaclone.core.share.rememberShareLauncher
 import com.nazam.instaclone.core.ui.UiText
 import com.nazam.instaclone.core.ui.asString
 import com.nazam.instaclone.feature.home.presentation.viewmodel.HomeUiEvent
@@ -11,10 +19,6 @@ import com.nazam.instaclone.feature.home.presentation.viewmodel.HomeViewModel
 import kotlinx.coroutines.flow.collectLatest
 import org.koin.compose.koinInject
 
-/**
- * Route = colle l'UI au ViewModel.
- * ✅ UiText -> String uniquement dans la composition (KMP friendly)
- */
 @Composable
 fun HomeRoute(
     onNavigate: (Screen) -> Unit,
@@ -24,25 +28,33 @@ fun HomeRoute(
     val ui by viewModel.uiState.collectAsState()
 
     val snackbarHostState = remember { SnackbarHostState() }
+    val shareLauncher = rememberShareLauncher()
 
-    // ✅ On stocke le message UiText ici (pour le convertir en String dans la composition)
     var pendingMessage by remember { mutableStateOf<UiText?>(null) }
+    var pendingShare by remember { mutableStateOf<SharePayload?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.events.collectLatest { event ->
             when (event) {
                 is HomeUiEvent.Navigate -> onNavigate(event.screen)
                 is HomeUiEvent.ShowMessage -> pendingMessage = event.message
+                is HomeUiEvent.Share -> pendingShare = event.payload
             }
         }
     }
 
-    // ✅ Conversion UiText -> String dans la composition (safe)
     pendingMessage?.let { msg ->
         val text = msg.asString()
         LaunchedEffect(text) {
             snackbarHostState.showSnackbar(text)
             pendingMessage = null
+        }
+    }
+
+    pendingShare?.let { payload ->
+        LaunchedEffect(payload) {
+            shareLauncher.share(payload)
+            pendingShare = null
         }
     }
 
@@ -57,6 +69,7 @@ fun HomeRoute(
         onVoteRight = viewModel::voteRight,
         onOpenComments = viewModel::openComments,
         onCloseComments = viewModel::closeComments,
+        onShare = viewModel::onShareClicked,
 
         onNewCommentChange = viewModel::onNewCommentChange,
         onSendCommentClick = viewModel::onSendCommentClicked,

@@ -12,9 +12,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
+import com.nazam.instaclone.feature.home.domain.model.VsPost
 import com.nazam.instaclone.feature.home.presentation.model.HomeUiState
 import com.nazam.instaclone.feature.home.presentation.ui.VsPostItem
-import instaclone.composeapp.generated.resources.*
+import instaclone.composeapp.generated.resources.Res
+import instaclone.composeapp.generated.resources.home_empty
+import instaclone.composeapp.generated.resources.home_empty_filtered
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.abs
 
@@ -25,7 +28,8 @@ fun HomeFeedContent(
     extraBottomPadding: Dp,
     onVoteLeft: (String) -> Unit,
     onVoteRight: (String) -> Unit,
-    onOpenComments: (String) -> Unit
+    onOpenComments: (String) -> Unit,
+    onShare: (VsPost) -> Unit
 ) {
     val visiblePosts =
         if (ui.selectedCategoryId.isBlank()) ui.posts
@@ -77,7 +81,7 @@ fun HomeFeedContent(
                         modifier = Modifier.fillMaxSize(),
                         onCommentsClick = { onOpenComments(post.id) },
                         onMessageClick = {},
-                        onShareClick = {},
+                        onShareClick = { onShare(post) },
                         extraBottomPadding = extraBottomPadding
                     )
                 }
