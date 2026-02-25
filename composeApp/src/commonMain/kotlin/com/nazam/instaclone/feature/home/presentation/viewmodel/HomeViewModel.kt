@@ -4,7 +4,6 @@ import com.nazam.instaclone.core.dispatchers.AppDispatchers
 import com.nazam.instaclone.core.navigation.NavigationStore
 import com.nazam.instaclone.core.navigation.Screen
 import com.nazam.instaclone.core.session.SessionManager
-import com.nazam.instaclone.core.share.ShareTextFactory
 import com.nazam.instaclone.core.universe.Universe
 import com.nazam.instaclone.core.universe.UniverseStore
 import com.nazam.instaclone.core.ui.UiText
@@ -117,7 +116,6 @@ class HomeViewModel(
     }
 
     fun onShareClicked(post: VsPost) {
-        val payload = ShareTextFactory.fromPost(post)
         _events.tryEmit(HomeUiEvent.Share(post))
     }
 
