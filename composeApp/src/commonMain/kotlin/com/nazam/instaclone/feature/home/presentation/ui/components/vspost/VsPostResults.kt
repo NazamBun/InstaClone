@@ -1,5 +1,7 @@
 package com.nazam.instaclone.feature.home.presentation.ui.components.vspost
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,8 +38,21 @@ fun VsPostResults(
     modifier: Modifier = Modifier
 ) {
     val total = post.totalVotesCount.coerceAtLeast(1)
-    val leftPercent = (post.leftVotesCount * 100f) / total
-    val rightPercent = (post.rightVotesCount * 100f) / total
+    val leftPercentTarget = (post.leftVotesCount * 100f) / total
+    val rightPercentTarget = (post.rightVotesCount * 100f) / total
+
+    val leftPercent = animateFloatAsState(
+        targetValue = leftPercentTarget,
+        animationSpec = tween(450),
+        label = "leftPercent"
+    ).value
+
+    val rightPercent = animateFloatAsState(
+        targetValue = rightPercentTarget,
+        animationSpec = tween(450),
+        label = "rightPercent"
+    ).value
+
     val leftRatio = (leftPercent / 100f).coerceIn(0f, 1f)
     val rightRatio = (rightPercent / 100f).coerceIn(0f, 1f)
 
@@ -48,7 +63,6 @@ fun VsPostResults(
             .alpha(resultsAlpha)
     ) {
         Row(modifier = Modifier.fillMaxWidth()) {
-
             Column(modifier = Modifier.weight(1f)) {
                 Text(post.leftLabel, color = Color.White)
                 Text(
@@ -105,6 +119,12 @@ private fun PercentBar(
     reverse: Boolean,
     fill: Brush
 ) {
+    val animatedRatio = animateFloatAsState(
+        targetValue = ratio,
+        animationSpec = tween(450),
+        label = "barRatio"
+    ).value
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -113,7 +133,7 @@ private fun PercentBar(
     ) {
         val inner = Modifier
             .fillMaxHeight()
-            .fillMaxWidth(ratio)
+            .fillMaxWidth(animatedRatio)
             .background(fill, RoundedCornerShape(50))
 
         if (reverse) {
