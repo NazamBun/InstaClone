@@ -196,4 +196,9 @@
 
     <string name="error_invite_required">Inscription fermée. Ton email n0027est pas encore invité.</string>
 
+    <!-- Share (viral) -->
+    <string name="share_hook_a">Tu vas choisir quoi ?</string>
+    <string name="share_hook_b">C0027est chaud... A ou B ?</string>
+    <string name="share_cta">Vote dans l0027app :</string>
+
 </resources>

@@ -10,13 +10,20 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.nazam.instaclone.core.navigation.Screen
+import com.nazam.instaclone.core.share.ShareLinkFactory
 import com.nazam.instaclone.core.share.SharePayload
 import com.nazam.instaclone.core.share.rememberShareLauncher
 import com.nazam.instaclone.core.ui.UiText
 import com.nazam.instaclone.core.ui.asString
+import com.nazam.instaclone.feature.home.domain.model.VsPost
 import com.nazam.instaclone.feature.home.presentation.viewmodel.HomeUiEvent
 import com.nazam.instaclone.feature.home.presentation.viewmodel.HomeViewModel
+import instaclone.composeapp.generated.resources.Res
+import instaclone.composeapp.generated.resources.share_cta
+import instaclone.composeapp.generated.resources.share_hook_a
+import instaclone.composeapp.generated.resources.share_hook_b
 import kotlinx.coroutines.flow.collectLatest
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 
 @Composable
@@ -31,18 +38,19 @@ fun HomeRoute(
     val shareLauncher = rememberShareLauncher()
 
     var pendingMessage by remember { mutableStateOf<UiText?>(null) }
-    var pendingShare by remember { mutableStateOf<SharePayload?>(null) }
+    var pendingSharePost by remember { mutableStateOf<VsPost?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.events.collectLatest { event ->
             when (event) {
                 is HomeUiEvent.Navigate -> onNavigate(event.screen)
                 is HomeUiEvent.ShowMessage -> pendingMessage = event.message
-                is HomeUiEvent.Share -> pendingShare = event.payload
+                is HomeUiEvent.Share -> pendingSharePost = event.post
             }
         }
     }
 
+    // Snackbar
     pendingMessage?.let { msg ->
         val text = msg.asString()
         LaunchedEffect(text) {
@@ -51,10 +59,31 @@ fun HomeRoute(
         }
     }
 
-    pendingShare?.let { payload ->
-        LaunchedEffect(payload) {
-            shareLauncher.share(payload)
-            pendingShare = null
+    // Share (texte + lien)
+    pendingSharePost?.let { post ->
+        val link = ShareLinkFactory.postLink(post.id)
+
+        // Petit "hook" qui change selon le post (stable, pas random)
+        val hook = if (post.id.hashCode() % 2 == 0) {
+            stringResource(Res.string.share_hook_a)
+        } else {
+            stringResource(Res.string.share_hook_b)
+        }
+
+        val cta = stringResource(Res.string.share_cta)
+
+        val text = buildString {
+            append(hook).append("\n\n")
+            append(post.question.trim()).append("\n")
+            append("A) ").append(post.leftLabel.trim()).append("\n")
+            append("B) ").append(post.rightLabel.trim()).append("\n\n")
+            append(cta).append("\n")
+            append(link)
+        }
+
+        LaunchedEffect(post.id) {
+            shareLauncher.share(SharePayload(text = text, subject = "VS"))
+            pendingSharePost = null
         }
     }
 
