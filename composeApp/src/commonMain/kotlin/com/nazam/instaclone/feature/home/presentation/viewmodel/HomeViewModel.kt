@@ -162,8 +162,21 @@ class HomeViewModel(
     }
 
     fun refreshFilter() {
-        val selected = HomeFilterStore.getCategory()
-        _uiState.update { it.copy(selectedCategoryId = selected) }
+        val universe = UniverseStore.get()
+        val categoryFilter = HomeFilterStore.getCategory()
+
+        // Final filter:
+        // - if a category is selected -> use it
+        // - else:
+        //   - FOOTBALL -> football
+        //   - GLOBAL -> all
+        val effectiveCategoryId = when {
+            categoryFilter.isNotBlank() -> categoryFilter
+            universe == Universe.FOOTBALL -> "football"
+            else -> ""
+        }
+
+        _uiState.update { it.copy(selectedCategoryId = effectiveCategoryId) }
     }
 
     fun onChooseCategoryFilterClicked() {
@@ -185,4 +198,15 @@ class HomeViewModel(
         HomeFilterStore.setAll()
         refreshFilter()
     }
+    /**
+     * Change l'univers principal (Football / Global).
+     * - reset category filter
+     * - refresh UI filter
+     */
+    fun onUniverseSelected(universe: Universe) {
+        UniverseStore.set(universe)
+        HomeFilterStore.setAll()
+        refreshFilter()
+    }
+
 }
