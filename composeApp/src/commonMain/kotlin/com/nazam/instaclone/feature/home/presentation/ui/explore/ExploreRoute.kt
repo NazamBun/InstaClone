@@ -24,6 +24,7 @@ fun ExploreRoute(
         homeUi = homeUi,
         exploreUi = exploreUi,
         contentPadding = contentPadding,
+        onUniverseClick = homeViewModel::onUniverseSelected,
         onCategoryClick = homeViewModel::onExploreCategoryClicked,
         onClearCategory = homeViewModel::onExploreClearCategory,
         onSortSelected = exploreViewModel::onSortModeSelected,

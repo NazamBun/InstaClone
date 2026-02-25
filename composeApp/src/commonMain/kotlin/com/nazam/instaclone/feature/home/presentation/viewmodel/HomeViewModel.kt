@@ -4,6 +4,8 @@ import com.nazam.instaclone.core.dispatchers.AppDispatchers
 import com.nazam.instaclone.core.navigation.NavigationStore
 import com.nazam.instaclone.core.navigation.Screen
 import com.nazam.instaclone.core.session.SessionManager
+import com.nazam.instaclone.core.universe.Universe
+import com.nazam.instaclone.core.universe.UniverseStore
 import com.nazam.instaclone.core.ui.UiText
 import com.nazam.instaclone.feature.auth.domain.usecase.GetCurrentUserUseCase
 import com.nazam.instaclone.feature.auth.domain.usecase.LogoutUseCase
@@ -169,6 +171,7 @@ class HomeViewModel(
     }
 
     fun onHomeClicked() {
+        UniverseStore.resetToDefault()
         HomeFilterStore.setAll()
         refreshFilter()
     }

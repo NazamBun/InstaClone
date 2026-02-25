@@ -190,4 +190,8 @@
     <string name="dialog_no">Non</string>
     <string name="nav_back_cd">Retour</string>
 
+    <string name="explore_universe_title">Univers</string>
+    <string name="universe_football">Football</string>
+    <string name="universe_global">Mondial</string>
+
 </resources>

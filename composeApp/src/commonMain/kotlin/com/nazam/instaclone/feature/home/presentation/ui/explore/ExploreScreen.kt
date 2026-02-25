@@ -20,6 +20,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.nazam.instaclone.core.ui.asString
+import com.nazam.instaclone.core.universe.Universe
+import com.nazam.instaclone.core.universe.UniverseStore
 import com.nazam.instaclone.feature.home.domain.model.VoteCategories
 import com.nazam.instaclone.feature.home.domain.model.VoteCategory
 import com.nazam.instaclone.feature.home.domain.model.VsPost
@@ -36,6 +38,9 @@ import instaclone.composeapp.generated.resources.explore_sort_controversial_titl
 import instaclone.composeapp.generated.resources.explore_sort_hot_title
 import instaclone.composeapp.generated.resources.explore_sort_recent_title
 import instaclone.composeapp.generated.resources.explore_title
+import instaclone.composeapp.generated.resources.explore_universe_title
+import instaclone.composeapp.generated.resources.universe_football
+import instaclone.composeapp.generated.resources.universe_global
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -43,6 +48,7 @@ fun ExploreScreen(
     homeUi: HomeUiState,
     exploreUi: ExploreUiState,
     contentPadding: PaddingValues,
+    onUniverseClick: (Universe) -> Unit,
     onCategoryClick: (VoteCategory) -> Unit,
     onClearCategory: () -> Unit,
     onSortSelected: (ExploreSortMode) -> Unit,
@@ -51,15 +57,12 @@ fun ExploreScreen(
 ) {
     val selectedId = homeUi.selectedCategoryId
     val sortMode = exploreUi.sortMode
+    val universe = UniverseStore.get()
 
-    val sortedPosts: List<VsPost> = sortExplorePosts(
-        posts = homeUi.posts,
-        mode = sortMode
-    )
+    val sortedPosts: List<VsPost> = sortExplorePosts(posts = homeUi.posts, mode = sortMode)
 
     val visiblePosts: List<VsPost> =
-        if (selectedId.isBlank()) sortedPosts
-        else sortedPosts.filter { it.category == selectedId }
+        if (selectedId.isBlank()) sortedPosts else sortedPosts.filter { it.category == selectedId }
 
     Box(
         modifier = modifier
@@ -79,6 +82,33 @@ fun ExploreScreen(
             )
 
             Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = stringResource(Res.string.explore_universe_title),
+                color = ExploreUiTokens.SubtitleColor,
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                item {
+                    ExploreCategoryChip(
+                        label = stringResource(Res.string.universe_football),
+                        selected = universe == Universe.FOOTBALL,
+                        onClick = { onUniverseClick(Universe.FOOTBALL) }
+                    )
+                }
+                item {
+                    ExploreCategoryChip(
+                        label = stringResource(Res.string.universe_global),
+                        selected = universe == Universe.GLOBAL,
+                        onClick = { onUniverseClick(Universe.GLOBAL) }
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
 
             LazyRow(
                 contentPadding = PaddingValues(end = 12.dp),
@@ -103,10 +133,7 @@ fun ExploreScreen(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            ExploreSortSelector(
-                selected = sortMode,
-                onSelected = onSortSelected
-            )
+            ExploreSortSelector(selected = sortMode, onSelected = onSortSelected)
 
             Spacer(modifier = Modifier.height(14.dp))
 
@@ -137,10 +164,7 @@ fun ExploreScreen(
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(visiblePosts) { post ->
-                    ExplorePostTile(
-                        post = post,
-                        onClick = onPostClick
-                    )
+                    ExplorePostTile(post = post, onClick = onPostClick)
                 }
             }
         }
