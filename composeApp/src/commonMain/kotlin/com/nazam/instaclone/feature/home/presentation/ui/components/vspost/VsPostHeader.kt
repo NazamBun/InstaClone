@@ -1,5 +1,6 @@
 package com.nazam.instaclone.feature.home.presentation.ui.components.vspost
 
+import com.nazam.instaclone.core.ui.asString
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
@@ -18,7 +19,7 @@ fun VsPostHeader(
     modifier: Modifier = Modifier
 ) {
     // category = categoryId (ex: "sport"), on veut afficher "Sport"
-    val categoryLabel = VoteCategories.labelFor(category)
+    val categoryLabel = VoteCategories.labelFor(category).asString()
 
     Column(modifier = modifier.padding(16.dp)) {
         Text(
