@@ -10,6 +10,7 @@ import com.nazam.instaclone.feature.auth.presentation.model.SignupUiState
 import instaclone.composeapp.generated.resources.Res
 import instaclone.composeapp.generated.resources.error_email_password_required
 import instaclone.composeapp.generated.resources.error_unknown
+import instaclone.composeapp.generated.resources.error_invite_required
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow

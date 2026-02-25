@@ -7,6 +7,7 @@ import com.nazam.instaclone.feature.auth.domain.repository.AuthRepository
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
+import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
@@ -15,12 +16,16 @@ class AuthRepositoryImpl(
     private val supabaseClient: SupabaseClient = SupabaseClientProvider.client
 ) : AuthRepository {
 
+    companion object {
+        private const val ERROR_INVITE_REQUIRED = "INVITE_REQUIRED"
+        private const val RPC_CAN_SIGNUP = "can_signup"
+        private const val RPC_CONSUME_INVITE = "consume_invite"
+    }
+
     private val auth = supabaseClient.auth
 
     private fun readDisplayNameFromMetadata(): String? {
         val user = auth.currentUserOrNull() ?: return null
-
-        // ✅ Compatible avec ta version: pas de contentOrNull
         return runCatching {
             user.userMetadata
                 ?.get("display_name")
@@ -55,16 +60,32 @@ class AuthRepositoryImpl(
         displayName: String?
     ): Result<AuthUser> {
         return runCatching {
+            // ✅ Invite-only : on vérifie côté Supabase (RPC)
+            val canSignup = supabaseClient.postgrest.rpc(
+                function = RPC_CAN_SIGNUP,
+                parameters = buildJsonObject { put("p_email", email) }
+            ).data.toBooleanStrictOrNull() ?: false
+
+            if (!canSignup) throw IllegalStateException(ERROR_INVITE_REQUIRED)
+
             val createdUser = auth.signUpWith(Email) {
                 this.email = email
                 this.password = password
 
-                // ✅ metadata : utilisé par ton trigger SQL profiles.display_name
+                // metadata : utile si tu as un trigger SQL profiles.display_name
                 this.data = buildJsonObject {
                     if (!displayName.isNullOrBlank()) {
                         put("display_name", displayName)
                     }
                 }
+            }
+
+            // ✅ Après inscription OK : on consomme l'invite (best-effort)
+            runCatching {
+                supabaseClient.postgrest.rpc(
+                    function = RPC_CONSUME_INVITE,
+                    parameters = buildJsonObject { put("p_email", email) }
+                )
             }
 
             val user = createdUser ?: auth.currentUserOrNull()
