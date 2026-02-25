@@ -12,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.nazam.instaclone.core.ui.asString
 import com.nazam.instaclone.feature.home.domain.model.VoteCategory
 import instaclone.composeapp.generated.resources.Res
 import instaclone.composeapp.generated.resources.categories_title
@@ -37,7 +38,7 @@ fun CategoriesScreen(
 
         ui.items.forEach { item ->
             Text(
-                text = item.label,
+                text = item.label.asString(),
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier
                     .fillMaxWidth()

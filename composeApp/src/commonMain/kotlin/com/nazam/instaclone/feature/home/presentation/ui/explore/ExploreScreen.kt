@@ -19,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.nazam.instaclone.core.ui.asString
 import com.nazam.instaclone.feature.home.domain.model.VoteCategories
 import com.nazam.instaclone.feature.home.domain.model.VoteCategory
 import com.nazam.instaclone.feature.home.domain.model.VsPost
@@ -28,13 +29,15 @@ import com.nazam.instaclone.feature.home.presentation.ui.explore.components.Expl
 import com.nazam.instaclone.feature.home.presentation.ui.explore.components.ExplorePostTile
 import com.nazam.instaclone.feature.home.presentation.ui.explore.components.ExploreSortSelector
 import com.nazam.instaclone.feature.home.presentation.ui.explore.components.ExploreUiTokens
-import instaclone.composeapp.generated.resources.*
+import instaclone.composeapp.generated.resources.Res
+import instaclone.composeapp.generated.resources.explore_all
+import instaclone.composeapp.generated.resources.explore_category_prefix
+import instaclone.composeapp.generated.resources.explore_sort_controversial_title
+import instaclone.composeapp.generated.resources.explore_sort_hot_title
+import instaclone.composeapp.generated.resources.explore_sort_recent_title
+import instaclone.composeapp.generated.resources.explore_title
 import org.jetbrains.compose.resources.stringResource
 
-/**
- * ExploreScreen.
- * ✅ KMP friendly : strings via composeResources
- */
 @Composable
 fun ExploreScreen(
     homeUi: HomeUiState,
@@ -91,7 +94,7 @@ fun ExploreScreen(
 
                 items(VoteCategories.all) { category ->
                     ExploreCategoryChip(
-                        label = category.label,
+                        label = category.label.asString(),
                         selected = category.id == selectedId,
                         onClick = { onCategoryClick(category) }
                     )
@@ -115,8 +118,8 @@ fun ExploreScreen(
                         ExploreSortMode.CONTROVERSIAL -> stringResource(Res.string.explore_sort_controversial_title)
                     }
                 } else {
-                    // garder ce format simple, mais sans texte en dur
-                    stringResource(Res.string.explore_category_prefix) + " " + VoteCategories.labelFor(selectedId)
+                    stringResource(Res.string.explore_category_prefix) + " " +
+                        VoteCategories.labelFor(selectedId).asString()
                 }
 
             Text(

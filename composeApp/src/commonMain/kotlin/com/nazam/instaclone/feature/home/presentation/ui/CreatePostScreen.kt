@@ -27,7 +27,23 @@ import com.nazam.instaclone.feature.home.domain.model.VoteCategories
 import com.nazam.instaclone.feature.home.presentation.model.CreatePostUiState
 import com.nazam.instaclone.feature.home.presentation.ui.components.NetworkImage
 import instaclone.composeapp.generated.resources.Res
-import instaclone.composeapp.generated.resources.*
+import instaclone.composeapp.generated.resources.create_post_cancel
+import instaclone.composeapp.generated.resources.create_post_category_label
+import instaclone.composeapp.generated.resources.create_post_change_left_image
+import instaclone.composeapp.generated.resources.create_post_change_right_image
+import instaclone.composeapp.generated.resources.create_post_choose_category_button
+import instaclone.composeapp.generated.resources.create_post_choose_category_placeholder
+import instaclone.composeapp.generated.resources.create_post_left_image_cd
+import instaclone.composeapp.generated.resources.create_post_left_label
+import instaclone.composeapp.generated.resources.create_post_pick_left_image
+import instaclone.composeapp.generated.resources.create_post_pick_right_image
+import instaclone.composeapp.generated.resources.create_post_question_label
+import instaclone.composeapp.generated.resources.create_post_right_image_cd
+import instaclone.composeapp.generated.resources.create_post_right_label
+import instaclone.composeapp.generated.resources.create_post_submit
+import instaclone.composeapp.generated.resources.create_post_title
+import instaclone.composeapp.generated.resources.create_post_uploading_left
+import instaclone.composeapp.generated.resources.create_post_uploading_right
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -170,7 +186,7 @@ fun CreatePostScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            val categoryLabel = VoteCategories.labelFor(ui.category)
+            val categoryLabel = VoteCategories.labelFor(ui.category).asString()
 
             OutlinedTextField(
                 value = if (ui.category.isBlank()) "" else categoryLabel,
@@ -191,7 +207,6 @@ fun CreatePostScreen(
                 Text(stringResource(Res.string.create_post_choose_category_button))
             }
 
-            // ✅ Erreur UI (UiText)
             ui.error?.let { err ->
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
@@ -212,7 +227,6 @@ fun CreatePostScreen(
                 Text(stringResource(Res.string.create_post_submit))
             }
 
-            // ✅ Message “pourquoi c’est bloqué”
             if (!ui.isSubmitEnabled && ui.submitBlockedReason != null && ui.error == null) {
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(

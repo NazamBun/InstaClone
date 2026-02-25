@@ -123,6 +123,17 @@
 
     <!-- Categories / labels -->
     <string name="category_none">Sans catégorie</string>
+    <string name="category_football">Football</string>
+    <string name="category_sport">Sport</string>
+    <string name="category_politique">Politique</string>
+    <string name="category_voyage">Voyage</string>
+    <string name="category_pays">Pays</string>
+    <string name="category_personnalite">Personnalité</string>
+    <string name="category_cinema">Cinéma</string>
+    <string name="category_musique">Musique</string>
+    <string name="category_tech">Tech</string>
+    <string name="category_food">Food</string>
+    <string name="category_jeux">Jeux</string>
 
     <!-- Home - Messages -->
     <string name="home_auth_required_create">Tu dois être connecté pour créer un post.</string>
