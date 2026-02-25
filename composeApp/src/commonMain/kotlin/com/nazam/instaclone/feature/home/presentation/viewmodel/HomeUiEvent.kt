@@ -1,8 +1,8 @@
 package com.nazam.instaclone.feature.home.presentation.viewmodel
 
 import com.nazam.instaclone.core.navigation.Screen
-import com.nazam.instaclone.core.share.SharePayload
 import com.nazam.instaclone.core.ui.UiText
+import com.nazam.instaclone.feature.home.domain.model.VsPost
 
 /**
  * Events one-shot : navigation + message + share.
@@ -14,8 +14,7 @@ sealed interface HomeUiEvent {
     data class ShowMessage(val message: UiText) : HomeUiEvent
 
     /**
-     * Partage natif (Android/iOS).
-     * Le texte est déjà prêt.
+     * Share demandé (l'UI génère image + texte et lance le share natif).
      */
-    data class Share(val payload: SharePayload) : HomeUiEvent
+    data class Share(val post: VsPost) : HomeUiEvent
 }

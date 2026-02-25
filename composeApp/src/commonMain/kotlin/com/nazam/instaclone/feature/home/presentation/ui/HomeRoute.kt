@@ -11,9 +11,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.nazam.instaclone.core.navigation.Screen
 import com.nazam.instaclone.core.share.SharePayload
+import com.nazam.instaclone.core.share.rememberShareCardRenderer
 import com.nazam.instaclone.core.share.rememberShareLauncher
+import com.nazam.instaclone.core.share.ViralShareTextFactory
 import com.nazam.instaclone.core.ui.UiText
 import com.nazam.instaclone.core.ui.asString
+import com.nazam.instaclone.feature.home.domain.model.VsPost
 import com.nazam.instaclone.feature.home.presentation.viewmodel.HomeUiEvent
 import com.nazam.instaclone.feature.home.presentation.viewmodel.HomeViewModel
 import kotlinx.coroutines.flow.collectLatest
@@ -22,7 +25,7 @@ import org.koin.compose.koinInject
 /**
  * Route = colle l'UI au ViewModel.
  * - UiText -> String uniquement dans la composition (KMP friendly)
- * - SharePayload est construit côté ViewModel (simple et testable)
+ * - Partage natif (Android/iOS) : image + texte + lien
  */
 @Composable
 fun HomeRoute(
@@ -34,16 +37,17 @@ fun HomeRoute(
 
     val snackbarHostState = remember { SnackbarHostState() }
     val shareLauncher = rememberShareLauncher()
+    val shareCardRenderer = rememberShareCardRenderer()
 
     var pendingMessage by remember { mutableStateOf<UiText?>(null) }
-    var pendingShare by remember { mutableStateOf<SharePayload?>(null) }
+    var pendingSharePost by remember { mutableStateOf<VsPost?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.events.collectLatest { event ->
             when (event) {
                 is HomeUiEvent.Navigate -> onNavigate(event.screen)
                 is HomeUiEvent.ShowMessage -> pendingMessage = event.message
-                is HomeUiEvent.Share -> pendingShare = event.payload
+                is HomeUiEvent.Share -> pendingSharePost = event.post
             }
         }
     }
@@ -57,11 +61,21 @@ fun HomeRoute(
         }
     }
 
-    // Share natif
-    pendingShare?.let { payload ->
-        LaunchedEffect(payload.text) {
-            shareLauncher.share(payload)
-            pendingShare = null
+    // Share natif (image + texte)
+    pendingSharePost?.let { post ->
+        val payloadText = ViralShareTextFactory.fromPost(post).text
+        val png = shareCardRenderer.renderPng(post)
+
+        LaunchedEffect(post.id) {
+            shareLauncher.share(
+                SharePayload(
+                    text = payloadText,
+                    subject = "VS",
+                    imagePng = png,
+                    imageFileName = "vs_${post.id}.png"
+                )
+            )
+            pendingSharePost = null
         }
     }
 
