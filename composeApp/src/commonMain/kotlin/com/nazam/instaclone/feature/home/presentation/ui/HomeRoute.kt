@@ -66,13 +66,15 @@ fun HomeRoute(
         val payloadText = ViralShareTextFactory.fromPost(post).text
         val png = shareCardRenderer.renderPng(post)
 
+        val imageOrNull = png.takeIf { it.isNotEmpty() }
+
         LaunchedEffect(post.id) {
             shareLauncher.share(
                 SharePayload(
                     text = payloadText,
                     subject = "VS",
-                    imagePng = png,
-                    imageFileName = "vs_${post.id}.png"
+                    imagePng = imageOrNull,
+                    imageFileName = "vs_.png"
                 )
             )
             pendingSharePost = null

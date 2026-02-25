@@ -36,7 +36,7 @@ actual fun rememberShareLauncher(): ShareLauncher {
     }
 }
 
-private fun ByteArray.toNSData(): NSData {
+\(kotlinx.cinterop.ExperimentalForeignApi::class)\nprivate fun ByteArray.toNSData(): NSData {
     return usePinned { pinned ->
         NSData.dataWithBytes(pinned.addressOf(0), size.toULong())
     }

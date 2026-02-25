@@ -118,7 +118,7 @@ class HomeViewModel(
 
     fun onShareClicked(post: VsPost) {
         val payload = ShareTextFactory.fromPost(post)
-        _events.tryEmit(HomeUiEvent.Share(payload))
+        _events.tryEmit(HomeUiEvent.Share(post))
     }
 
     fun logout() = logoutInternal(dispatchers, logoutUseCase, sessionManager)
