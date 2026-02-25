@@ -169,7 +169,7 @@ class HomeViewModel(
     }
 
     fun onHomeClicked() {
-        HomeFilterStore.clear()
+        HomeFilterStore.setAll()
         refreshFilter()
     }
 
@@ -179,7 +179,7 @@ class HomeViewModel(
     }
 
     fun onExploreClearCategory() {
-        HomeFilterStore.clear()
+        HomeFilterStore.setAll()
         refreshFilter()
     }
 }

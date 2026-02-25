@@ -3,21 +3,37 @@ package com.nazam.instaclone.feature.home.presentation.categories
 import com.nazam.instaclone.feature.home.domain.model.VoteCategories
 
 /**
- * Stocke le filtre de catégorie choisi pour l'écran Home.
- * KMP friendly : mémoire uniquement.
+ * Filtre de catégorie pour Home / Explore.
  *
- * ✅ Par défaut : Football (notre univers principal)
+ * Règle :
+ * - clear() = revient à l'univers par défaut (Football)
+ * - setAll() = affiche tout (id vide)
+ *
+ * KMP friendly : mémoire seulement.
  */
 object HomeFilterStore {
 
+    // ✅ Par défaut : univers Football
     private var selectedCategoryId: String = VoteCategories.FOOTBALL_ID
 
     fun setCategory(id: String) {
-        selectedCategoryId = id
+        selectedCategoryId = id.trim()
+    }
+
+    /**
+     * ✅ "Tout" : pas de filtre.
+     * On met vide, et l'UI montrera tous les posts.
+     */
+    fun setAll() {
+        selectedCategoryId = ""
     }
 
     fun getCategory(): String = selectedCategoryId
 
+    /**
+     * ✅ Retour à l'univers par défaut (Football).
+     * Utilisé quand on veut "revenir à l'accueil foot".
+     */
     fun clear() {
         selectedCategoryId = VoteCategories.FOOTBALL_ID
     }
