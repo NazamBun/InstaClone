@@ -11,9 +11,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.nazam.instaclone.core.navigation.Screen
 import com.nazam.instaclone.core.share.SharePayload
+import com.nazam.instaclone.core.share.ViralShareTextFactory
 import com.nazam.instaclone.core.share.rememberShareCardRenderer
 import com.nazam.instaclone.core.share.rememberShareLauncher
-import com.nazam.instaclone.core.share.ViralShareTextFactory
 import com.nazam.instaclone.core.ui.UiText
 import com.nazam.instaclone.core.ui.asString
 import com.nazam.instaclone.feature.home.domain.model.VsPost
@@ -63,18 +63,18 @@ fun HomeRoute(
 
     // Share natif (image + texte)
     pendingSharePost?.let { post ->
-        val payloadText = ViralShareTextFactory.fromPost(post).text
-        val png = shareCardRenderer.renderPng(post)
+        val basePayload = ViralShareTextFactory.fromPost(post)
 
+        val png = shareCardRenderer.renderPng(post)
         val imageOrNull = png.takeIf { it.isNotEmpty() }
 
         LaunchedEffect(post.id) {
             shareLauncher.share(
                 SharePayload(
-                    text = payloadText,
-                    subject = "VS",
+                    text = basePayload.text,
+                    subject = basePayload.subject,
                     imagePng = imageOrNull,
-                    imageFileName = "vs_.png"
+                    imageFileName = "vs_${post.id}.png"
                 )
             )
             pendingSharePost = null

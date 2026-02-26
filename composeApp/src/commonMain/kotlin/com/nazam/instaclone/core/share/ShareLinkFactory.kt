@@ -1,17 +1,16 @@
 package com.nazam.instaclone.core.share
 
 /**
- * Génère un lien partageable vers un post.
- * V1 : lien "web" simple.
- *
- * Plus tard : deep link + fallback store.
+ * Fabrique un lien de partage.
+ * V1: lien "fake" (plus tard: deep link + fallback web).
  */
 object ShareLinkFactory {
 
     private const val BASE_URL = "https://instaclone.app/p"
 
-    fun postLink(postId: String): String {
+    fun postLink(postId: String, code: String): String {
         val safeId = postId.trim()
-        return "$BASE_URL/$safeId?utm_source=share&utm_medium=app"
+        val safeCode = code.trim()
+        return "$BASE_URL/$safeId?utm_source=share&utm_medium=app&c=$safeCode"
     }
 }
