@@ -18,6 +18,18 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <!-- ✅ Deep link: https://instaclone.app/p/{postId} -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:scheme="https"
+                    android:host="instaclone.app"
+                    android:pathPrefix="/p" />
+            </intent-filter>
         </activity>
 
         <!-- ✅ FileProvider pour partager une image depuis cache -->

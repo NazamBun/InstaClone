@@ -17,16 +17,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.nazam.instaclone.feature.home.presentation.model.HomeUiState
 import com.nazam.instaclone.feature.home.presentation.ui.VsPostItem
-import instaclone.composeapp.generated.resources.*
+import instaclone.composeapp.generated.resources.Res
+import instaclone.composeapp.generated.resources.explore_back
+import instaclone.composeapp.generated.resources.explore_empty_category
 import org.jetbrains.compose.resources.stringResource
 
 /**
  * ExplorePagerScreen :
  * - Swipe horizontal (gauche/droite)
- * - Uniquement les posts de la catégorie cliquée
- * - Démarre sur le post cliqué
+ * - Si categoryId est vide (deep link) : on déduit la catégorie depuis le post
  *
- * ✅ KMP friendly : strings via composeResources
+ * ✅ KMP friendly
+ * ✅ Simple
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -38,12 +40,33 @@ fun ExplorePagerScreen(
     onVoteRight: (String) -> Unit,
     onOpenComments: (String) -> Unit
 ) {
-    val categoryId = ExplorePagerStore.getCategoryId()
+    val storeCategoryId = ExplorePagerStore.getCategoryId()
     val startPostId = ExplorePagerStore.getStartPostId()
 
+    // ✅ Si deep link (catégorie vide), on essaye de trouver la catégorie du post
+    val effectiveCategoryId: String =
+        if (storeCategoryId.isNotBlank()) {
+            storeCategoryId
+        } else {
+            ui.posts.firstOrNull { it.id == startPostId }?.category.orEmpty()
+        }
+
     val postsInCategory =
-        if (categoryId.isBlank()) ui.posts
-        else ui.posts.filter { it.category == categoryId }
+        if (effectiveCategoryId.isBlank()) ui.posts
+        else ui.posts.filter { it.category == effectiveCategoryId }
+
+    if (postsInCategory.isEmpty()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFF050509))
+                .padding(contentPadding),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(text = stringResource(Res.string.explore_empty_category), color = Color.White)
+        }
+        return
+    }
 
     val startIndex = postsInCategory.indexOfFirst { it.id == startPostId }.let { idx ->
         if (idx >= 0) idx else 0
@@ -60,7 +83,6 @@ fun ExplorePagerScreen(
             .background(Color(0xFF050509))
             .padding(contentPadding)
     ) {
-        // Retour (texte simple)
         Text(
             text = stringResource(Res.string.explore_back),
             color = Color.White,
@@ -69,15 +91,6 @@ fun ExplorePagerScreen(
                 .padding(horizontal = 16.dp, vertical = 12.dp)
                 .clickable { onBackClick() }
         )
-
-        if (postsInCategory.isEmpty()) {
-            Text(
-                text = stringResource(Res.string.explore_empty_category),
-                color = Color.White,
-                modifier = Modifier.align(Alignment.Center)
-            )
-            return
-        }
 
         HorizontalPager(
             state = pagerState,
@@ -95,7 +108,7 @@ fun ExplorePagerScreen(
                 modifier = Modifier.fillMaxSize(),
                 onCommentsClick = { onOpenComments(post.id) },
                 onMessageClick = {},
-                onShareClick = {},
+                onShareClick = {}, // on pourra le brancher après si tu veux
                 extraBottomPadding = 0.dp
             )
         }
