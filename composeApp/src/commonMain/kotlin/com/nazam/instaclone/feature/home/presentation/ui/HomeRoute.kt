@@ -9,6 +9,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.nazam.instaclone.core.clipboard.rememberClipboardManager
 import com.nazam.instaclone.core.navigation.Screen
 import com.nazam.instaclone.core.share.SharePayload
 import com.nazam.instaclone.core.share.ViralShareTextFactory
@@ -17,16 +18,15 @@ import com.nazam.instaclone.core.share.rememberShareLauncher
 import com.nazam.instaclone.core.ui.UiText
 import com.nazam.instaclone.core.ui.asString
 import com.nazam.instaclone.feature.home.domain.model.VsPost
+import com.nazam.instaclone.feature.home.presentation.ui.components.share.ShareBottomSheet
 import com.nazam.instaclone.feature.home.presentation.viewmodel.HomeUiEvent
 import com.nazam.instaclone.feature.home.presentation.viewmodel.HomeViewModel
+import instaclone.composeapp.generated.resources.Res
+import instaclone.composeapp.generated.resources.share_copied
 import kotlinx.coroutines.flow.collectLatest
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 
-/**
- * Route = colle l'UI au ViewModel.
- * - UiText -> String uniquement dans la composition (KMP friendly)
- * - Partage natif (Android/iOS) : image + texte + lien
- */
 @Composable
 fun HomeRoute(
     onNavigate: (Screen) -> Unit,
@@ -36,23 +36,29 @@ fun HomeRoute(
     val ui by viewModel.uiState.collectAsState()
 
     val snackbarHostState = remember { SnackbarHostState() }
+
     val shareLauncher = rememberShareLauncher()
     val shareCardRenderer = rememberShareCardRenderer()
+    val clipboard = rememberClipboardManager()
 
     var pendingMessage by remember { mutableStateOf<UiText?>(null) }
-    var pendingSharePost by remember { mutableStateOf<VsPost?>(null) }
+    var shareSheetPost by remember { mutableStateOf<VsPost?>(null) }
+
+    // ✅ Pour afficher un snackbar "Copié ✅" sans appeler stringResource dans un callback
+    val copiedLabel = stringResource(Res.string.share_copied)
+    var pendingSnackText by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.events.collectLatest { event ->
             when (event) {
                 is HomeUiEvent.Navigate -> onNavigate(event.screen)
                 is HomeUiEvent.ShowMessage -> pendingMessage = event.message
-                is HomeUiEvent.Share -> pendingSharePost = event.post
+                is HomeUiEvent.Share -> shareSheetPost = event.post
             }
         }
     }
 
-    // Snackbar
+    // Snackbar (messages UiText existants)
     pendingMessage?.let { msg ->
         val text = msg.asString()
         LaunchedEffect(text) {
@@ -61,24 +67,42 @@ fun HomeRoute(
         }
     }
 
-    // Share natif (image + texte)
-    pendingSharePost?.let { post ->
-        val basePayload = ViralShareTextFactory.fromPost(post)
+    // Snackbar (copié)
+    pendingSnackText?.let { text ->
+        LaunchedEffect(text) {
+            snackbarHostState.showSnackbar(text)
+            pendingSnackText = null
+        }
+    }
+
+    // ✅ ShareSheet pro
+    shareSheetPost?.let { post ->
+        val content = ViralShareTextFactory.contentFromPost(post)
 
         val png = shareCardRenderer.renderPng(post)
         val imageOrNull = png.takeIf { it.isNotEmpty() }
 
-        LaunchedEffect(post.id) {
-            shareLauncher.share(
-                SharePayload(
-                    text = basePayload.text,
-                    subject = basePayload.subject,
-                    imagePng = imageOrNull,
-                    imageFileName = "vs_${post.id}.png"
-                )
-            )
-            pendingSharePost = null
-        }
+        val finalPayload: SharePayload = content.payload.copy(
+            imagePng = imageOrNull,
+            imageFileName = "vs_${post.id}.png"
+        )
+
+        ShareBottomSheet(
+            previewTitle = post.question.trim(),
+            onDismiss = { shareSheetPost = null },
+            onShare = {
+                shareLauncher.share(finalPayload)
+                shareSheetPost = null
+            },
+            onCopyLink = {
+                clipboard.setText(content.link)
+                pendingSnackText = copiedLabel
+            },
+            onCopyText = {
+                clipboard.setText(finalPayload.text)
+                pendingSnackText = copiedLabel
+            }
+        )
     }
 
     HomeScreen(

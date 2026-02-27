@@ -9,13 +9,18 @@ import com.nazam.instaclone.feature.home.domain.model.VsPost
  * - Code court (effet curiosité)
  * - Lien
  *
- * ✅ KMP friendly (pas de stringResource ici)
+ * ✅ KMP friendly
  */
 object ViralShareTextFactory {
 
-    fun fromPost(post: VsPost): SharePayload {
-        val code = shortCode(post.id)
+    data class Content(
+        val payload: SharePayload,
+        val link: String,
+        val code: String
+    )
 
+    fun contentFromPost(post: VsPost): Content {
+        val code = shortCode(post.id)
         val hook = pickHook(post.id)
 
         val link = ShareLinkFactory.postLink(
@@ -32,9 +37,10 @@ object ViralShareTextFactory {
             append("Code: ").append(code)
         }
 
-        return SharePayload(
-            text = text,
-            subject = "VS"
+        return Content(
+            payload = SharePayload(text = text, subject = "VS"),
+            link = link,
+            code = code
         )
     }
 
@@ -47,21 +53,14 @@ object ViralShareTextFactory {
         }
     }
 
-    /**
-     * Petit code stable basé sur l'id.
-     * Exemple: V7K2
-     */
     private fun shortCode(seed: String): String {
-        val chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789" // sans I O 0 1
+        val chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
         val h = kotlin.math.abs(seed.hashCode())
 
         fun pick(i: Int): Char = chars[(h shr (i * 5)) % chars.length]
 
         return buildString {
-            append(pick(0))
-            append(pick(1))
-            append(pick(2))
-            append(pick(3))
+            append(pick(0)); append(pick(1)); append(pick(2)); append(pick(3))
         }
     }
 }

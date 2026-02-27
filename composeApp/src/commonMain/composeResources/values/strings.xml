@@ -194,11 +194,19 @@
     <string name="universe_football">Football</string>
     <string name="universe_global">Mondial</string>
 
-    <string name="error_invite_required">Inscription fermée. Ton email n0027est pas encore invité.</string>
+    <string name="error_invite_required">Inscription fermée. Ton email n'est pas encore invité.</string>
 
     <!-- Share (viral) -->
     <string name="share_hook_a">Tu vas choisir quoi ?</string>
-    <string name="share_hook_b">C0027est chaud... A ou B ?</string>
-    <string name="share_cta">Vote dans l0027app :</string>
+    <string name="share_hook_b">C'est chaud... A ou B ?</string>
+    <string name="share_cta">Vote dans l'app :</string>
+
+
+    <!-- Share sheet pro -->
+    <string name="share_sheet_title">Partager ce VS</string>
+    <string name="share_sheet_share">Partager</string>
+    <string name="share_sheet_copy_link">Copier le lien</string>
+    <string name="share_sheet_copy_text">Copier le texte</string>
+    <string name="share_copied">Copié ✅</string>
 
 </resources>
