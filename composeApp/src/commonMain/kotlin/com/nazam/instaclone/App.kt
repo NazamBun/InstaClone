@@ -19,6 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.nazam.instaclone.core.navigation.NavigationStore
 import com.nazam.instaclone.core.navigation.Screen
+import com.nazam.instaclone.core.access.CreatePostAccess
 import com.nazam.instaclone.core.session.SessionManager
 import com.nazam.instaclone.feature.auth.presentation.ui.LoginRoute
 import com.nazam.instaclone.feature.auth.presentation.ui.SignupRoute
@@ -41,6 +42,7 @@ fun App() {
     val sessionManager: SessionManager = koinInject()
     val currentUser by sessionManager.user.collectAsState()
     val isLoggedIn = currentUser != null
+    val canCreatePost = CreatePostAccess.canCreate(currentUser)
 
     fun navigateTo(screen: Screen) {
         currentScreen = screen
@@ -90,6 +92,7 @@ fun App() {
                     HomeBottomBar(
                         selectedScreen = currentScreen,
                         isLoggedIn = isLoggedIn,
+                        canCreatePost = canCreatePost,
                         onHomeClick = { navigateTo(Screen.Home) },
                         onExploreClick = { navigateTo(Screen.Explore) },
                         onCreatePostClick = {

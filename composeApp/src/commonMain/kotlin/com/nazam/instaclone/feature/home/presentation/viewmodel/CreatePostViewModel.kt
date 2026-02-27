@@ -1,6 +1,7 @@
 package com.nazam.instaclone.feature.home.presentation.viewmodel
 
 import com.nazam.instaclone.core.dispatchers.AppDispatchers
+import com.nazam.instaclone.core.access.CreatePostAccess
 import com.nazam.instaclone.core.navigation.NavigationStore
 import com.nazam.instaclone.core.navigation.Screen
 import com.nazam.instaclone.core.ui.UiText
@@ -11,6 +12,7 @@ import com.nazam.instaclone.feature.home.presentation.draft.CreatePostDraftStore
 import com.nazam.instaclone.feature.home.presentation.model.CreatePostUiState
 import instaclone.composeapp.generated.resources.Res
 import instaclone.composeapp.generated.resources.create_post_auth_required
+import instaclone.composeapp.generated.resources.create_post_not_allowed
 import instaclone.composeapp.generated.resources.create_post_error_category
 import instaclone.composeapp.generated.resources.create_post_error_create_failed
 import instaclone.composeapp.generated.resources.create_post_error_left_label
@@ -133,12 +135,18 @@ class CreatePostViewModel(
     fun checkAccess() {
         scope.launch {
             val user = withContext(dispatchers.default) { getCurrentUserUseCase.execute() }
+
             if (user == null) {
                 NavigationStore.setAfterLogin(Screen.CreatePost)
                 _events.tryEmit(
                     CreatePostUiEvent.ShowMessage(UiText.Resource(Res.string.create_post_auth_required))
                 )
                 _events.tryEmit(CreatePostUiEvent.NavigateToLogin)
+            } else if (!CreatePostAccess.canCreate(user)) {
+                _events.tryEmit(
+                    CreatePostUiEvent.ShowMessage(UiText.Resource(Res.string.create_post_not_allowed))
+                )
+                _events.tryEmit(CreatePostUiEvent.NavigateBack)
             }
         }
     }

@@ -209,4 +209,6 @@
     <string name="share_sheet_copy_text">Copier le texte</string>
     <string name="share_copied">Copié ✅</string>
 
+
+    <string name="create_post_not_allowed">Tu n0027as pas encore le droit de publier.</string>
 </resources>

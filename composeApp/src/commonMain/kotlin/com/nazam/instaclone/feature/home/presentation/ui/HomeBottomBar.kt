@@ -29,6 +29,7 @@ import org.jetbrains.compose.resources.stringResource
 fun HomeBottomBar(
     selectedScreen: Screen,
     isLoggedIn: Boolean,
+    canCreatePost: Boolean,
     onHomeClick: () -> Unit,
     onExploreClick: () -> Unit,
     onCreatePostClick: () -> Unit,
@@ -40,21 +41,14 @@ fun HomeBottomBar(
     val accent = Color(0xFFFF4EB8)
     val normal = Color.White
 
-    val normalizedSelectedScreen =
+    val normalizedSelected =
         if (selectedScreen == Screen.ExplorePager) Screen.Explore else selectedScreen
 
-    fun colorFor(screen: Screen): Color =
-        if (normalizedSelectedScreen == screen) accent else normal
-
-    fun weightFor(screen: Screen): FontWeight =
-        if (normalizedSelectedScreen == screen) FontWeight.Bold else FontWeight.Normal
+    fun colorFor(screen: Screen) = if (normalizedSelected == screen) accent else normal
+    fun weightFor(screen: Screen) = if (normalizedSelected == screen) FontWeight.Bold else FontWeight.Normal
 
     @Composable
-    fun RowScope.BottomItem(
-        label: String,
-        screen: Screen,
-        onClick: () -> Unit
-    ) {
+    fun RowScope.BottomItem(label: String, screen: Screen, onClick: () -> Unit) {
         Text(
             text = label,
             color = colorFor(screen),
@@ -67,9 +61,7 @@ fun HomeBottomBar(
         )
     }
 
-    val profileLabel = stringResource(
-        if (isLoggedIn) Res.string.bottom_profile else Res.string.dialog_login
-    )
+    val profileLabel = stringResource(if (isLoggedIn) Res.string.bottom_profile else Res.string.dialog_login)
 
     Row(
         modifier = modifier
@@ -80,7 +72,12 @@ fun HomeBottomBar(
     ) {
         BottomItem(stringResource(Res.string.bottom_home), Screen.Home, onHomeClick)
         BottomItem(stringResource(Res.string.bottom_explore), Screen.Explore, onExploreClick)
-        BottomItem(stringResource(Res.string.bottom_create), Screen.CreatePost, onCreatePostClick)
+
+        // ✅ IMPORTANT : bouton Créer visible seulement si autorisé
+        if (canCreatePost) {
+            BottomItem(stringResource(Res.string.bottom_create), Screen.CreatePost, onCreatePostClick)
+        }
+
         BottomItem(stringResource(Res.string.bottom_notifications), Screen.Notifications, onNotificationsClick)
         BottomItem(profileLabel, Screen.Profile, onProfileOrLoginClick)
     }
