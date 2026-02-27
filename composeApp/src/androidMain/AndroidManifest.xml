@@ -20,7 +20,7 @@
             </intent-filter>
 
             <!-- ✅ Deep link: https://instaclone.app/p/{postId} -->
-            <intent-filter>
+            <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
@@ -42,6 +42,13 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/share_file_paths" />
         </provider>
+
+        <!-- ✅ uCrop : écran de recadrage -->
+        <activity
+            android:name="com.yalantis.ucrop.UCropActivity"
+            android:exported="false"
+            android:theme="@style/Theme.UCrop"
+            android:parentActivityName=".MainActivity" />
 
     </application>
 </manifest>

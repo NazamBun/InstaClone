@@ -78,6 +78,7 @@ kotlin {
         // ⭐ Android
         val androidMain by getting {
             dependencies {
+                implementation("com.github.yalantis:ucrop:2.2.8")
                 implementation(compose.preview)
                 implementation(libs.androidx.activity.compose)
                 implementation("io.coil-kt.coil3:coil-network-okhttp:3.3.0")
