@@ -1,6 +1,7 @@
 package com.nazam.instaclone.feature.home.data.repository
 
 import com.nazam.instaclone.core.media.ImageBytesReader
+import com.nazam.instaclone.core.utils.retry
 import com.nazam.instaclone.feature.home.domain.repository.PostMediaRepository
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
@@ -27,17 +28,19 @@ class PostMediaRepositoryImpl(
         val user = client.auth.currentUserOrNull()
             ?: throw IllegalStateException("AUTH_REQUIRED")
 
+        // ✅ bytes compressés (Android)
         val bytes = bytesReader.readBytes(localUri)
 
-        // ✅ nom unique 100% KMP (pas de time, pas de datetime)
+        // ✅ nom unique KMP
         val unique = Random.nextLong().toString().replace("-", "")
         val fileName = "posts/${user.id}/$unique.jpg"
 
-        client.storage.from(BUCKET).upload(
-            path = fileName,
-            data = bytes
-        ) {
-            upsert = true
+        // ✅ Retry réseau (évite les erreurs temporaires)
+        retry(times = 3) {
+            client.storage.from(BUCKET).upload(
+                path = fileName,
+                data = bytes
+            ) { upsert = true }
         }
 
         client.storage.from(BUCKET).publicUrl(fileName)
