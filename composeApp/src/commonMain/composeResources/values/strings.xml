@@ -55,6 +55,7 @@
 
     <string name="create_post_submit">Publier le VS</string>
     <string name="create_post_cancel">Annuler</string>
+    <string name="create_post_publish_short">Publier</string>
 
     <!-- Categories -->
     <string name="categories_title">Choisir une catégorie</string>

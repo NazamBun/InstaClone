@@ -1,55 +1,42 @@
 package com.nazam.instaclone.feature.home.presentation.ui
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddPhotoAlternate
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.nazam.instaclone.core.ui.asString
 import com.nazam.instaclone.feature.home.domain.model.VoteCategories
 import com.nazam.instaclone.feature.home.presentation.model.CreatePostUiState
 import com.nazam.instaclone.feature.home.presentation.ui.components.NetworkImage
 import instaclone.composeapp.generated.resources.Res
-import instaclone.composeapp.generated.resources.create_post_cancel
 import instaclone.composeapp.generated.resources.create_post_category_label
-import instaclone.composeapp.generated.resources.create_post_change_left_image
-import instaclone.composeapp.generated.resources.create_post_change_right_image
-import instaclone.composeapp.generated.resources.create_post_choose_category_button
 import instaclone.composeapp.generated.resources.create_post_choose_category_placeholder
 import instaclone.composeapp.generated.resources.create_post_left_image_cd
 import instaclone.composeapp.generated.resources.create_post_left_label
-import instaclone.composeapp.generated.resources.create_post_pick_left_image
-import instaclone.composeapp.generated.resources.create_post_pick_right_image
+import instaclone.composeapp.generated.resources.create_post_publish_short
 import instaclone.composeapp.generated.resources.create_post_question_label
 import instaclone.composeapp.generated.resources.create_post_right_image_cd
 import instaclone.composeapp.generated.resources.create_post_right_label
-import instaclone.composeapp.generated.resources.create_post_submit
 import instaclone.composeapp.generated.resources.create_post_title
-import instaclone.composeapp.generated.resources.create_post_uploading_left
-import instaclone.composeapp.generated.resources.create_post_uploading_right
+import instaclone.composeapp.generated.resources.nav_back_cd
 import org.jetbrains.compose.resources.stringResource
 
 /**
  * UI only.
- * ✅ KMP friendly : strings via composeResources
+ * ✅ KMP friendly
+ * ✅ Design "pro" : top bar + cards + spacing
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreatePostScreen(
     ui: CreatePostUiState,
@@ -60,197 +47,207 @@ fun CreatePostScreen(
     onPickRightImageClick: () -> Unit,
     onChooseCategoryClick: () -> Unit,
     onSubmitClick: () -> Unit,
-    onCancelClick: () -> Unit,
+    onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val scrollState = rememberScrollState()
+    val scroll = rememberScrollState()
 
-    val leftPreview = if (ui.leftUploadedUrl.isNotBlank()) ui.leftUploadedUrl else ui.leftLocalUri
-    val rightPreview = if (ui.rightUploadedUrl.isNotBlank()) ui.rightUploadedUrl else ui.rightLocalUri
+    val leftPreview = ui.leftUploadedUrl.ifBlank { ui.leftLocalUri }
+    val rightPreview = ui.rightUploadedUrl.ifBlank { ui.rightLocalUri }
+    val categoryText = if (ui.category.isBlank()) {
+        stringResource(Res.string.create_post_choose_category_placeholder)
+    } else {
+        VoteCategories.labelFor(ui.category).asString()
+    }
 
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        text = stringResource(Res.string.create_post_title),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = stringResource(Res.string.nav_back_cd)
+                        )
+                    }
+                },
+                actions = {
+                    TextButton(
+                        onClick = onSubmitClick,
+                        enabled = ui.isSubmitEnabled
+                    ) { Text(stringResource(Res.string.create_post_publish_short)) }
+                }
+            )
+        }
+    ) { padding ->
         Column(
             modifier = Modifier
+                .padding(padding)
+                .padding(horizontal = 16.dp)
+                .verticalScroll(scroll)
                 .fillMaxSize()
-                .align(Alignment.TopCenter)
-                .verticalScroll(scrollState)
         ) {
-            Text(
-                text = stringResource(Res.string.create_post_title),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(Modifier.height(12.dp))
 
             OutlinedTextField(
                 value = ui.question,
                 onValueChange = onQuestionChange,
                 label = { Text(stringResource(Res.string.create_post_question_label)) },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 2
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(Modifier.height(14.dp))
 
-            OutlinedTextField(
-                value = ui.leftLabel,
-                onValueChange = onLeftLabelChange,
-                label = { Text(stringResource(Res.string.create_post_left_label)) },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = ui.rightLabel,
-                onValueChange = onRightLabelChange,
-                label = { Text(stringResource(Res.string.create_post_right_label)) },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Button(
-                onClick = onPickLeftImageClick,
-                enabled = !ui.isLoading && !ui.isUploadingLeft,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                val labelRes =
-                    if (ui.leftLocalUri.isBlank()) Res.string.create_post_pick_left_image
-                    else Res.string.create_post_change_left_image
-                Text(stringResource(labelRes))
-            }
-
-            if (ui.isUploadingLeft) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    CircularProgressIndicator(modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = stringResource(Res.string.create_post_uploading_left),
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-            }
-
-            if (leftPreview.isNotBlank()) {
-                Spacer(modifier = Modifier.height(8.dp))
-                NetworkImage(
-                    url = leftPreview,
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                MediaCard(
+                    title = stringResource(Res.string.create_post_left_label),
+                    previewUrl = leftPreview,
+                    isUploading = ui.isUploadingLeft,
+                    onClick = onPickLeftImageClick,
                     contentDescription = stringResource(Res.string.create_post_left_image_cd),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(180.dp)
+                    modifier = Modifier.weight(1f)
+                )
+                MediaCard(
+                    title = stringResource(Res.string.create_post_right_label),
+                    previewUrl = rightPreview,
+                    isUploading = ui.isUploadingRight,
+                    onClick = onPickRightImageClick,
+                    contentDescription = stringResource(Res.string.create_post_right_image_cd),
+                    modifier = Modifier.weight(1f)
                 )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(Modifier.height(10.dp))
 
-            Button(
-                onClick = onPickRightImageClick,
-                enabled = !ui.isLoading && !ui.isUploadingRight,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                val labelRes =
-                    if (ui.rightLocalUri.isBlank()) Res.string.create_post_pick_right_image
-                    else Res.string.create_post_change_right_image
-                Text(stringResource(labelRes))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedTextField(
+                    value = ui.leftLabel,
+                    onValueChange = onLeftLabelChange,
+                    label = { Text(stringResource(Res.string.create_post_left_label)) },
+                    modifier = Modifier.weight(1f)
+                )
+                OutlinedTextField(
+                    value = ui.rightLabel,
+                    onValueChange = onRightLabelChange,
+                    label = { Text(stringResource(Res.string.create_post_right_label)) },
+                    modifier = Modifier.weight(1f)
+                )
             }
 
-            if (ui.isUploadingRight) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    CircularProgressIndicator(modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
+            Spacer(Modifier.height(14.dp))
+
+            Surface(
+                shape = RoundedCornerShape(14.dp),
+                tonalElevation = 1.dp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(enabled = !ui.isLoading) { onChooseCategoryClick() }
+            ) {
+                Row(
+                    modifier = Modifier.padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text(
-                        text = stringResource(Res.string.create_post_uploading_right),
+                        text = stringResource(Res.string.create_post_category_label),
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                    Spacer(Modifier.width(10.dp))
+                    AssistChip(
+                        onClick = onChooseCategoryClick,
+                        enabled = !ui.isLoading,
+                        label = { Text(categoryText, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                    )
+                    Spacer(Modifier.weight(1f))
+                    Text(
+                        text = "›",
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                }
+            }
+
+            ui.error?.let {
+                Spacer(Modifier.height(10.dp))
+                Text(
+                    text = it.asString(),
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            } ?: run {
+                if (!ui.isSubmitEnabled && ui.submitBlockedReason != null) {
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        text = ui.submitBlockedReason.asString(),
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
             }
 
-            if (rightPreview.isNotBlank()) {
-                Spacer(modifier = Modifier.height(8.dp))
-                NetworkImage(
-                    url = rightPreview,
-                    contentDescription = stringResource(Res.string.create_post_right_image_cd),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(180.dp)
-                )
+            Spacer(Modifier.height(24.dp))
+
+            if (ui.isLoading) {
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) { CircularProgressIndicator() }
+                Spacer(Modifier.height(24.dp))
             }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            val categoryLabel = VoteCategories.labelFor(ui.category).asString()
-
-            OutlinedTextField(
-                value = if (ui.category.isBlank()) "" else categoryLabel,
-                onValueChange = { },
-                readOnly = true,
-                label = { Text(stringResource(Res.string.create_post_category_label)) },
-                placeholder = { Text(stringResource(Res.string.create_post_choose_category_placeholder)) },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Button(
-                onClick = onChooseCategoryClick,
-                enabled = !ui.isLoading,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(stringResource(Res.string.create_post_choose_category_button))
-            }
-
-            ui.error?.let { err ->
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = err.asString(),
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Button(
-                onClick = onSubmitClick,
-                enabled = ui.isSubmitEnabled,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(stringResource(Res.string.create_post_submit))
-            }
-
-            if (!ui.isSubmitEnabled && ui.submitBlockedReason != null && ui.error == null) {
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    text = ui.submitBlockedReason.asString(),
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Button(
-                onClick = onCancelClick,
-                enabled = !ui.isLoading,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(stringResource(Res.string.create_post_cancel))
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
         }
+    }
+}
 
-        if (ui.isLoading) {
-            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+@Composable
+private fun MediaCard(
+    title: String,
+    previewUrl: String,
+    isUploading: Boolean,
+    onClick: () -> Unit,
+    contentDescription: String,
+    modifier: Modifier = Modifier
+) {
+    val shape = RoundedCornerShape(16.dp)
+
+    Surface(
+        shape = shape,
+        tonalElevation = 1.dp,
+        modifier = modifier
+            .aspectRatio(1f)
+            .clickable(enabled = !isUploading) { onClick() }
+    ) {
+        Box(Modifier.fillMaxSize()) {
+            if (previewUrl.isNotBlank()) {
+                NetworkImage(
+                    url = previewUrl,
+                    contentDescription = contentDescription,
+                    modifier = Modifier.fillMaxSize().clip(shape)
+                )
+            } else {
+                Column(
+                    Modifier.fillMaxSize().padding(12.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(Icons.Default.AddPhotoAlternate, contentDescription = null)
+                    Spacer(Modifier.height(8.dp))
+                    Text(title, style = MaterialTheme.typography.labelLarge)
+                }
+            }
+
+            if (isUploading) {
+                Surface(
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.75f),
+                    modifier = Modifier.fillMaxSize()
+                ) {}
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            }
         }
     }
 }
