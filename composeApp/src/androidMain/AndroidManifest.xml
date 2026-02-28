@@ -45,7 +45,7 @@
 
         <!-- ✅ uCrop : écran de recadrage -->
         <activity
-            android:name="com.yalantis.ucrop.UCropActivity"
+            android:name="com.nazam.instaclone.core.media.FixedUCropActivity"
             android:exported="false"
             android:theme="@style/Theme.UCrop"
             android:parentActivityName=".MainActivity" />

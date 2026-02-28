@@ -16,14 +16,6 @@ import com.yalantis.ucrop.UCrop
 import java.io.File
 import java.util.UUID
 
-/**
- * Android :
- * 1) Pick image (Photo Picker)
- * 2) Crop (uCrop)
- *
- * ✅ Pro : destination = content:// via FileProvider (pas de file://)
- * ✅ On donne à uCrop les droits sur les URIs
- */
 @Composable
 actual fun rememberImagePicker(
     onImagePicked: (String) -> Unit
@@ -38,13 +30,6 @@ actual fun rememberImagePicker(
         if (result.resultCode == Activity.RESULT_OK && data != null) {
             val output = UCrop.getOutput(data)
             if (output != null) onImagePicked(output.toString())
-            return@rememberLauncherForActivityResult
-        }
-
-        // uCrop error (optionnel)
-        val error = data?.let { UCrop.getError(it) }
-        if (error != null) {
-            // println("uCrop error: ${error.message}")
         }
     }
 
@@ -77,7 +62,10 @@ private fun buildCropIntent(
         .withMaxResultSize(1080, 1920)
         .getIntent(context)
 
-    // ✅ Important : droits pour lire/écrire les URIs
+    // ✅ IMPORTANT : on force NOTRE activity (sinon il ouvre UCropActivity)
+    intent.setClass(context, FixedUCropActivity::class.java)
+
+    // ✅ droits pour lire/écrire les URIs
     intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
 
