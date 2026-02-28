@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- Thème spécial pour uCrop -->
+    <!-- Thème spécial pour uCrop (AppCompat obligatoire) -->
     <style name="Theme.UCrop" parent="Theme.AppCompat.Light.NoActionBar">
-        <!-- ✅ Important : pas de edge-to-edge -->
-        <item name="android:windowFullscreen">false</item>
-        <item name="android:statusBarColor">@android:color/black</item>
+        <!-- Barres système -->
+        <item name="android:statusBarColor">@color/ucrop_black</item>
+        <item name="android:navigationBarColor">@color/ucrop_black</item>
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+
+        <!-- Pas de fullscreen / pas de edge-to-edge ici -->
+        <item name="android:windowFullscreen">false</item>
     </style>
 
 </resources>

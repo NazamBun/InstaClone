@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- uCrop palette (simple & pro) -->
+    <color name="ucrop_black">#000000</color>
+    <color name="ucrop_dark">#121212</color>
+    <color name="ucrop_white">#FFFFFF</color>
+    <color name="ucrop_accent">#1A73E8</color>
+</resources>

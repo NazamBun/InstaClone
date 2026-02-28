@@ -12,10 +12,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
 import com.nazam.instaclone.BuildConfig
+import com.nazam.instaclone.R
 import com.yalantis.ucrop.UCrop
+import com.yalantis.ucrop.UCropActivity
 import java.io.File
 import java.util.UUID
 
+/**
+ * Android :
+ * 1) Pick image (Photo Picker)
+ * 2) Crop (uCrop) avec design pro + zoom/rotate
+ */
 @Composable
 actual fun rememberImagePicker(
     onImagePicked: (String) -> Unit
@@ -25,12 +32,10 @@ actual fun rememberImagePicker(
     val cropLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        val data = result.data
+        val data = result.data ?: return@rememberLauncherForActivityResult
+        if (result.resultCode != Activity.RESULT_OK) return@rememberLauncherForActivityResult
 
-        if (result.resultCode == Activity.RESULT_OK && data != null) {
-            val output = UCrop.getOutput(data)
-            if (output != null) onImagePicked(output.toString())
-        }
+        UCrop.getOutput(data)?.let { onImagePicked(it.toString()) }
     }
 
     val pickLauncher = rememberLauncherForActivityResult(
@@ -39,8 +44,7 @@ actual fun rememberImagePicker(
         if (uri == null) return@rememberLauncherForActivityResult
 
         val dest = createCacheOutputUri(context)
-        val intent = buildCropIntent(context, source = uri, destination = dest)
-        cropLauncher.launch(intent)
+        cropLauncher.launch(buildCropIntent(context, source = uri, destination = dest))
     }
 
     return remember {
@@ -57,12 +61,38 @@ private fun buildCropIntent(
     source: Uri,
     destination: Uri
 ): Intent {
+    val options = UCrop.Options().apply {
+        // ✅ UI pro
+        setToolbarTitle("Modifier la photo")
+        setStatusBarColor(context.getColorCompat(R.color.ucrop_black))
+        setToolbarColor(context.getColorCompat(R.color.ucrop_black))
+        setActiveControlsWidgetColor(context.getColorCompat(R.color.ucrop_accent))
+        setToolbarWidgetColor(context.getColorCompat(R.color.ucrop_white))
+        setRootViewBackgroundColor(context.getColorCompat(R.color.ucrop_dark))
+
+        // ✅ montrer le bas (zoom / rotate / etc.)
+        setHideBottomControls(false)
+
+        // ✅ grille et cadre
+        setShowCropGrid(true)
+        setShowCropFrame(true)
+
+        // ✅ gestes autorisés
+        // (scale tab, rotate tab, aspect ratio tab)
+        setAllowedGestures(
+            UCropActivity.SCALE,
+            UCropActivity.ROTATE,
+            UCropActivity.ALL
+        )
+    }
+
     val intent = UCrop.of(source, destination)
         .withAspectRatio(9f, 16f)
         .withMaxResultSize(1080, 1920)
+        .withOptions(options)
         .getIntent(context)
 
-    // ✅ IMPORTANT : on force NOTRE activity (sinon il ouvre UCropActivity)
+    // ✅ IMPORTANT : on force NOTRE activity (sinon UCropActivity)
     intent.setClass(context, FixedUCropActivity::class.java)
 
     // ✅ droits pour lire/écrire les URIs
@@ -77,3 +107,6 @@ private fun createCacheOutputUri(context: Context): Uri {
     val authority = "${BuildConfig.APPLICATION_ID}.fileprovider"
     return FileProvider.getUriForFile(context, authority, file)
 }
+
+private fun Context.getColorCompat(resId: Int): Int =
+    resources.getColor(resId, theme)
