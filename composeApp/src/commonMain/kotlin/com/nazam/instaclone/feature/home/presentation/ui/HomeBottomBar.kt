@@ -1,20 +1,18 @@
 package com.nazam.instaclone.feature.home.presentation.ui
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import com.nazam.instaclone.core.navigation.Screen
 import instaclone.composeapp.generated.resources.Res
 import instaclone.composeapp.generated.resources.bottom_create
@@ -37,48 +35,86 @@ fun HomeBottomBar(
     onProfileOrLoginClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // Couleurs cohérentes avec ton feed
     val background = Color(0xFF050509)
     val accent = Color(0xFF2F5BFF)
-    val normal = Color.White
+    val normal = Color.White.copy(alpha = 0.85f)
 
+    // ExplorePager = Explore (pour que l’icône reste sélectionnée)
     val normalizedSelected =
         if (selectedScreen == Screen.ExplorePager) Screen.Explore else selectedScreen
 
-    fun colorFor(screen: Screen) = if (normalizedSelected == screen) accent else normal
-    fun weightFor(screen: Screen) = if (normalizedSelected == screen) FontWeight.Bold else FontWeight.Normal
-
     @Composable
-    fun RowScope.BottomItem(label: String, screen: Screen, onClick: () -> Unit) {
-        Text(
-            text = label,
-            color = colorFor(screen),
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = weightFor(screen),
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .weight(1f)
-                .clickable(onClick = onClick)
+    fun Item(
+        isSelected: Boolean,
+        contentDescription: String,
+        onClick: () -> Unit,
+        icon: @Composable () -> Unit
+    ) {
+        NavigationBarItem(
+            selected = isSelected,
+            onClick = onClick,
+            icon = { icon() },
+            label = null,
+            alwaysShowLabel = false,
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = accent,
+                unselectedIconColor = normal,
+                indicatorColor = Color.Transparent
+            )
         )
     }
 
-    val profileLabel = stringResource(if (isLoggedIn) Res.string.bottom_profile else Res.string.dialog_login)
-
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(background)
-            .heightIn(min = 56.dp)
-            .padding(horizontal = 10.dp, vertical = 12.dp)
+    NavigationBar(
+        modifier = modifier,
+        containerColor = background,
+        tonalElevation = 0f
     ) {
-        BottomItem(stringResource(Res.string.bottom_home), Screen.Home, onHomeClick)
-        BottomItem(stringResource(Res.string.bottom_explore), Screen.Explore, onExploreClick)
-
-        // ✅ IMPORTANT : bouton Créer visible seulement si autorisé
-        if (canCreatePost) {
-            BottomItem(stringResource(Res.string.bottom_create), Screen.CreatePost, onCreatePostClick)
+        Item(
+            isSelected = normalizedSelected == Screen.Home,
+            contentDescription = stringResource(Res.string.bottom_home),
+            onClick = onHomeClick
+        ) {
+            Icon(Icons.Filled.Home, contentDescription = null)
         }
 
-        BottomItem(stringResource(Res.string.bottom_notifications), Screen.Notifications, onNotificationsClick)
-        BottomItem(profileLabel, Screen.Profile, onProfileOrLoginClick)
+        Item(
+            isSelected = normalizedSelected == Screen.Explore,
+            contentDescription = stringResource(Res.string.bottom_explore),
+            onClick = onExploreClick
+        ) {
+            Icon(Icons.Filled.Search, contentDescription = null)
+        }
+
+        // Bouton créer seulement si autorisé
+        if (canCreatePost) {
+            Item(
+                isSelected = normalizedSelected == Screen.CreatePost,
+                contentDescription = stringResource(Res.string.bottom_create),
+                onClick = onCreatePostClick
+            ) {
+                Icon(Icons.Filled.Add, contentDescription = null)
+            }
+        }
+
+        Item(
+            isSelected = normalizedSelected == Screen.Notifications,
+            contentDescription = stringResource(Res.string.bottom_notifications),
+            onClick = onNotificationsClick
+        ) {
+            Icon(Icons.Filled.Notifications, contentDescription = null)
+        }
+
+        val profileDesc = stringResource(
+            if (isLoggedIn) Res.string.bottom_profile else Res.string.dialog_login
+        )
+
+        Item(
+            isSelected = normalizedSelected == Screen.Profile,
+            contentDescription = profileDesc,
+            onClick = onProfileOrLoginClick
+        ) {
+            Icon(Icons.Filled.Person, contentDescription = null)
+        }
     }
 }
