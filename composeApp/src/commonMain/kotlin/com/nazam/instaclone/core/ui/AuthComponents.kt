@@ -1,4 +1,3 @@
-import androidx.compose.foundation.layout.width
 package com.nazam.instaclone.core.ui
 
 import androidx.compose.foundation.background
