@@ -4,19 +4,21 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import com.nazam.instaclone.core.ui.AppTopBar
+import com.nazam.instaclone.core.ui.AuthBackground
+import com.nazam.instaclone.core.ui.AuthCard
+import com.nazam.instaclone.core.ui.AuthErrorText
+import com.nazam.instaclone.core.ui.AuthPrimaryButton
+import com.nazam.instaclone.core.ui.AuthSecondaryButton
+import com.nazam.instaclone.core.ui.AuthTextField
+import com.nazam.instaclone.core.ui.AuthTopBar
 import com.nazam.instaclone.core.ui.asString
 import com.nazam.instaclone.feature.auth.presentation.model.LoginUiState
 import instaclone.composeapp.generated.resources.Res
@@ -36,65 +38,58 @@ fun LoginScreen(
     onLoginClick: () -> Unit,
     onSignupClick: () -> Unit
 ) {
-    Column(modifier = Modifier.fillMaxSize()) {
+    AuthBackground {
+        Column(modifier = Modifier.fillMaxSize().imePadding()) {
 
-        AppTopBar(
-            title = stringResource(Res.string.login_title),
-            onBackClick = onBackClick
-        )
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .imePadding()
-                .padding(24.dp),
-            verticalArrangement = Arrangement.Center
-        ) {
-            TextField(
-                value = ui.email,
-                onValueChange = onEmailChange,
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text(stringResource(Res.string.login_email_placeholder)) },
-                singleLine = true
+            AuthTopBar(
+                title = stringResource(Res.string.login_title),
+                onBackClick = onBackClick
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            TextField(
-                value = ui.password,
-                onValueChange = onPasswordChange,
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text(stringResource(Res.string.login_password_placeholder)) },
-                singleLine = true
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Button(
-                onClick = onLoginClick,
-                modifier = Modifier.fillMaxWidth(),
-                enabled = !ui.isLoading
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(bottom = 24.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                if (ui.isLoading) {
-                    CircularProgressIndicator(color = Color.White)
-                } else {
-                    Text(stringResource(Res.string.login_button))
+                AuthCard(
+                    title = stringResource(Res.string.login_title),
+                    subtitle = "Reviens voter et poster tes VS."
+                ) {
+                    AuthTextField(
+                        value = ui.email,
+                        onValueChange = onEmailChange,
+                        placeholder = stringResource(Res.string.login_email_placeholder)
+                    )
+
+                    Spacer(Modifier.height(12.dp))
+
+                    AuthTextField(
+                        value = ui.password,
+                        onValueChange = onPasswordChange,
+                        placeholder = stringResource(Res.string.login_password_placeholder),
+                        visualTransformation = PasswordVisualTransformation()
+                    )
+
+                    Spacer(Modifier.height(18.dp))
+
+                    AuthPrimaryButton(
+                        label = stringResource(Res.string.login_button),
+                        loading = ui.isLoading,
+                        onClick = onLoginClick
+                    )
+
+                    Spacer(Modifier.height(10.dp))
+
+                    AuthSecondaryButton(
+                        label = stringResource(Res.string.login_go_to_signup_button),
+                        enabled = !ui.isLoading,
+                        onClick = onSignupClick
+                    )
+
+                    ui.error?.let { AuthErrorText(it.asString()) }
                 }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Button(
-                onClick = onSignupClick,
-                modifier = Modifier.fillMaxWidth(),
-                enabled = !ui.isLoading
-            ) {
-                Text(stringResource(Res.string.login_go_to_signup_button))
-            }
-
-            ui.error?.let { err ->
-                Spacer(modifier = Modifier.height(12.dp))
-                Text(text = err.asString(), color = Color.Red)
             }
         }
     }
