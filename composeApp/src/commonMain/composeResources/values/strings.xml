@@ -160,7 +160,7 @@
     <string name="vspost_vs_badge">VS</string>
 
     <!-- VS Post - format -->
-    <string name="percent_value">%1$d%%</string>
+    <string name="percent_value">%1$d%</string>
 
     <!-- Profile -->
     <string name="profile_follow">Suivre</string>
