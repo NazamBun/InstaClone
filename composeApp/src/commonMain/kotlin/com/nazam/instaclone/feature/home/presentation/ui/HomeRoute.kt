@@ -124,6 +124,8 @@ fun HomeRoute(
 
         onConsumeDialog = viewModel::consumeDialog,
         onDialogConfirm = viewModel::onDialogConfirmClicked,
-        onDialogSecondary = viewModel::onDialogSecondaryClicked
+        onDialogSecondary = viewModel::onDialogSecondaryClicked,
+
+        onLoadMore = viewModel::loadMore
     )
 }

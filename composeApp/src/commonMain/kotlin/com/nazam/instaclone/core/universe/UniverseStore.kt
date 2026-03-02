@@ -5,11 +5,11 @@ import kotlinx.coroutines.flow.StateFlow
 
 /**
  * Store mémoire (KMP friendly).
- * ✅ StateFlow : Compose peut observer et se recomposer.
+ * ✅ Par défaut : GLOBAL (on affiche tout)
  */
 object UniverseStore {
 
-    private val _universe = MutableStateFlow(Universe.FOOTBALL)
+    private val _universe = MutableStateFlow(Universe.GLOBAL)
     val universe: StateFlow<Universe> = _universe
 
     fun get(): Universe = _universe.value
@@ -19,6 +19,6 @@ object UniverseStore {
     }
 
     fun resetToDefault() {
-        _universe.value = Universe.FOOTBALL
+        _universe.value = Universe.GLOBAL
     }
 }

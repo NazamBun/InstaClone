@@ -53,12 +53,12 @@ internal fun HomeViewModel.loadFeedInternal(
         result
             .onSuccess { page ->
                 _uiState.update { s ->
-                    val merged = if (reset) page else (s.posts + page)
+                    val merged = if (reset) page else (s.posts + page).distinctBy { it.id }
                     s.copy(
                         isLoading = false,
                         isLoadingMore = false,
                         posts = merged,
-                        endReached = page.isEmpty()
+                        endReached = page.size < pageSize
                     )
                 }
 

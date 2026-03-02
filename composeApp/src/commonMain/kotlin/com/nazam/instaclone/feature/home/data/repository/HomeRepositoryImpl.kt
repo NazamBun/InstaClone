@@ -44,6 +44,8 @@ class HomeRepositoryImpl(
                 .postgrest[POSTS_FEED_VIEW]
                 .select {
                     range(from = from.toLong(), to = to.toLong())
+                    order(column = "created_at", order = Order.DESCENDING)
+                    order(column = "id", order = Order.DESCENDING)
                 }
 
             val dtos: List<PostDto> = json.decodeFromString(

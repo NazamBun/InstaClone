@@ -49,10 +49,11 @@ fun HomeScreen(
 
     onConsumeDialog: () -> Unit,
     onDialogConfirm: () -> Unit,
-    onDialogSecondary: () -> Unit
+    onDialogSecondary: () -> Unit,
+
+    onLoadMore: () -> Unit
 ) {
     val density = LocalDensity.current
-
     var bottomBlockHeightDp by remember { mutableStateOf(0.dp) }
     val panelHeight = 320.dp
 
@@ -87,7 +88,8 @@ fun HomeScreen(
             onVoteLeft = onVoteLeft,
             onVoteRight = onVoteRight,
             onOpenComments = onOpenComments,
-            onShare = onShare
+            onShare = onShare,
+            onLoadMore = onLoadMore
         )
 
         HomeBottomArea(
