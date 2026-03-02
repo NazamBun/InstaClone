@@ -162,7 +162,7 @@ class HomeViewModel(
     fun refreshFilter() {
         val categoryFilter = HomeFilterStore.getCategory()
 
-        # V1: Home = tout. Pas de priorite football.
+        // V1: Home = tout. Pas de priorite football.
         _uiState.update { it.copy(selectedCategoryId = categoryFilter) }
     }
 
