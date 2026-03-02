@@ -1,11 +1,13 @@
 package com.nazam.instaclone.feature.home.domain.usecase
 
+import com.nazam.instaclone.feature.home.domain.model.UploadProgress
 import com.nazam.instaclone.feature.home.domain.repository.PostMediaRepository
+import kotlinx.coroutines.flow.Flow
 
 class UploadPostImageUseCase(
     private val repository: PostMediaRepository
 ) {
-    suspend fun execute(localUri: String): Result<String> {
+    fun execute(localUri: String): Flow<UploadProgress> {
         return repository.uploadPostImage(localUri)
     }
 }

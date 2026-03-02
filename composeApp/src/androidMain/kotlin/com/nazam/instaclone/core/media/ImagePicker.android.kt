@@ -15,13 +15,13 @@ import com.nazam.instaclone.BuildConfig
 import com.nazam.instaclone.R
 import com.yalantis.ucrop.UCrop
 import com.yalantis.ucrop.UCropActivity
+import com.yalantis.ucrop.model.AspectRatio
 import java.io.File
 import java.util.UUID
 
 /**
  * Android :
- * 1) Pick image (Photo Picker)
- * 2) Crop (uCrop) avec design pro + zoom/rotate
+ * Picker + uCrop version "Instagram style"
  */
 @Composable
 actual fun rememberImagePicker(
@@ -34,7 +34,6 @@ actual fun rememberImagePicker(
     ) { result ->
         val data = result.data ?: return@rememberLauncherForActivityResult
         if (result.resultCode != Activity.RESULT_OK) return@rememberLauncherForActivityResult
-
         UCrop.getOutput(data)?.let { onImagePicked(it.toString()) }
     }
 
@@ -42,9 +41,8 @@ actual fun rememberImagePicker(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
-
         val dest = createCacheOutputUri(context)
-        cropLauncher.launch(buildCropIntent(context, source = uri, destination = dest))
+        cropLauncher.launch(buildCropIntent(context, uri, dest))
     }
 
     return remember {
@@ -61,41 +59,48 @@ private fun buildCropIntent(
     source: Uri,
     destination: Uri
 ): Intent {
+
     val options = UCrop.Options().apply {
-        // ✅ UI pro
-        setToolbarTitle("Modifier la photo")
+
+        // 🎨 Style général
+        setToolbarTitle("Modifier")
         setStatusBarColor(context.getColorCompat(R.color.ucrop_black))
         setToolbarColor(context.getColorCompat(R.color.ucrop_black))
-        setActiveControlsWidgetColor(context.getColorCompat(R.color.ucrop_accent))
         setToolbarWidgetColor(context.getColorCompat(R.color.ucrop_white))
-        setRootViewBackgroundColor(context.getColorCompat(R.color.ucrop_dark))
+        setRootViewBackgroundColor(context.getColorCompat(R.color.ucrop_black))
+        setActiveControlsWidgetColor(context.getColorCompat(R.color.ucrop_accent))
 
-        // ✅ montrer le bas (zoom / rotate / etc.)
-        setHideBottomControls(false)
-
-        // ✅ grille et cadre
+        // 🧼 UI minimaliste
+        setFreeStyleCropEnabled(true)
         setShowCropGrid(true)
         setShowCropFrame(true)
+        setCropGridRowCount(2)
+        setCropGridColumnCount(2)
 
-        // ✅ gestes autorisés
-        // (scale tab, rotate tab, aspect ratio tab)
+        // 👆 Gestures
         setAllowedGestures(
             UCropActivity.SCALE,
             UCropActivity.ROTATE,
             UCropActivity.ALL
         )
+
+        // 📐 Ratios style Instagram
+        setAspectRatioOptions(
+            0,
+            AspectRatio("1:1", 1f, 1f),
+            AspectRatio("4:5", 4f, 5f),
+            AspectRatio("9:16", 9f, 16f)
+        )
     }
 
     val intent = UCrop.of(source, destination)
-        .withAspectRatio(9f, 16f)
+        .withAspectRatio(1f, 1f) // 🔥 défaut = carré (Insta)
         .withMaxResultSize(1080, 1920)
         .withOptions(options)
         .getIntent(context)
 
-    // ✅ IMPORTANT : on force NOTRE activity (sinon UCropActivity)
     intent.setClass(context, FixedUCropActivity::class.java)
 
-    // ✅ droits pour lire/écrire les URIs
     intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
 

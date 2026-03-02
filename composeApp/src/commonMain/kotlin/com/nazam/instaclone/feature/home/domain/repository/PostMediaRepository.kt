@@ -1,8 +1,8 @@
 package com.nazam.instaclone.feature.home.domain.repository
 
-/**
- * Contrat "domain" : uploader une image locale et obtenir une URL publique.
- */
+import com.nazam.instaclone.feature.home.domain.model.UploadProgress
+import kotlinx.coroutines.flow.Flow
+
 interface PostMediaRepository {
-    suspend fun uploadPostImage(localUri: String): Result<String>
+    fun uploadPostImage(localUri: String): Flow<UploadProgress>
 }

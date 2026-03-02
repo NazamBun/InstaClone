@@ -1,11 +1,11 @@
 package com.nazam.instaclone.feature.home.presentation.ui
 
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.layout.padding
 import com.nazam.instaclone.core.media.rememberImagePicker
 import com.nazam.instaclone.core.navigation.Screen
 import com.nazam.instaclone.core.ui.UiText
@@ -67,7 +67,7 @@ fun CreatePostRoute(
             onPickRightImageClick = pickRightImage,
             onChooseCategoryClick = viewModel::onChooseCategoryClicked,
             onSubmitClick = viewModel::submitPost,
-            onBackClick = viewModel::onCancelClicked,
+            onCancelClick = viewModel::onCancelClicked,
             modifier = Modifier.padding(padding)
         )
     }
