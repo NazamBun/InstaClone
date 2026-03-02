@@ -8,6 +8,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,7 +30,8 @@ fun HomeFeedContent(
     onVoteLeft: (String) -> Unit,
     onVoteRight: (String) -> Unit,
     onOpenComments: (String) -> Unit,
-    onShare: (VsPost) -> Unit
+    onShare: (VsPost) -> Unit,
+    onLoadMore: () -> Unit
 ) {
     val visiblePosts =
         if (ui.selectedCategoryId.isBlank()) ui.posts
@@ -59,6 +61,14 @@ fun HomeFeedContent(
             else -> {
                 val pagerState = rememberPagerState(pageCount = { visiblePosts.size })
 
+                // ✅ Quand on arrive presque à la fin → load more
+                LaunchedEffect(pagerState.currentPage, visiblePosts.size, ui.isLoadingMore, ui.endReached) {
+                    val nearEnd = pagerState.currentPage >= (visiblePosts.size - 3).coerceAtLeast(0)
+                    if (nearEnd && !ui.isLoadingMore && !ui.endReached && ui.selectedCategoryId.isBlank()) {
+                        onLoadMore()
+                    }
+                }
+
                 VerticalPager(
                     state = pagerState,
                     modifier = Modifier.fillMaxSize()
@@ -83,6 +93,13 @@ fun HomeFeedContent(
                         onMessageClick = {},
                         onShareClick = { onShare(post) },
                         extraBottomPadding = extraBottomPadding
+                    )
+                }
+
+                if (ui.isLoadingMore) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.BottomCenter),
+                        color = Color(0xFFFF4EB8)
                     )
                 }
             }

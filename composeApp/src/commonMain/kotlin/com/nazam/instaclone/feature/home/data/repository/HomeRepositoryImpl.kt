@@ -25,21 +25,26 @@ class HomeRepositoryImpl(
 ) : HomeRepository {
 
     companion object {
-        // ✅ maintenant on lit la VIEW (feed pro)
         private const val POSTS_FEED_VIEW = "posts_feed"
-        private const val POSTS_TABLE = "posts" // utile pour insert
+        private const val POSTS_TABLE = "posts"
         private const val COMMENTS_TABLE = "comments"
+        private const val DEFAULT_LIMIT = 30
     }
 
-    // ----------------------------
-    // POSTS
-    // ----------------------------
+    override suspend fun getFeed(): Result<List<VsPost>> {
+        return getFeedPage(offset = 0, limit = DEFAULT_LIMIT)
+    }
 
-    override suspend fun getFeed(): Result<List<VsPost>> =
+    override suspend fun getFeedPage(offset: Int, limit: Int): Result<List<VsPost>> =
         runCatching {
+            val from = offset.coerceAtLeast(0)
+            val to = (offset + limit - 1).coerceAtLeast(from)
+
             val response = client
                 .postgrest[POSTS_FEED_VIEW]
-                .select()
+                .select {
+                    range(from = from.toLong(), to = to.toLong())
+                }
 
             val dtos: List<PostDto> = json.decodeFromString(
                 ListSerializer(PostDto.serializer()),
@@ -47,13 +52,11 @@ class HomeRepositoryImpl(
             )
 
             dtos.map { dto ->
-                // ✅ on se base sur user_choice (renvoyé par la VIEW)
                 val userVote = when (dto.user_choice) {
                     "left" -> VoteChoice.LEFT
                     "right" -> VoteChoice.RIGHT
                     else -> VoteChoice.NONE
                 }
-
                 PostMapper.toDomain(dto, userVote)
             }
         }
@@ -90,7 +93,6 @@ class HomeRepositoryImpl(
                 response.data
             )
 
-            // après création, l'utilisateur n'a pas voté
             PostMapper.toDomain(list.first(), VoteChoice.NONE)
         }
 
@@ -105,7 +107,6 @@ class HomeRepositoryImpl(
             val user = client.auth.currentUserOrNull()
                 ?: throw IllegalStateException("AUTH_REQUIRED")
 
-            // ✅ RPC vote_post (doit exister côté Supabase)
             val response = client
                 .postgrest.rpc(
                     function = "vote_post",
@@ -121,7 +122,6 @@ class HomeRepositoryImpl(
                 response.data
             )
 
-            // ✅ on force le vote local direct (réactif UI)
             val userVote = when (choice) {
                 "left" -> VoteChoice.LEFT
                 "right" -> VoteChoice.RIGHT
@@ -130,10 +130,6 @@ class HomeRepositoryImpl(
 
             PostMapper.toDomain(list.first(), userVote)
         }
-
-    // ----------------------------
-    // COMMENTS
-    // ----------------------------
 
     override suspend fun getComments(postId: String): Result<List<Comment>> =
         runCatching {
@@ -179,10 +175,6 @@ class HomeRepositoryImpl(
 
             CommentMapper.toDomain(list.first())
         }
-
-    // ----------------------------
-    // DTO interne INSERT
-    // ----------------------------
 
     @Serializable
     private data class CreatePostDto(

@@ -6,6 +6,9 @@ import com.nazam.instaclone.feature.home.domain.model.VsPost
 
 data class HomeUiState(
     val isLoading: Boolean = false,
+    val isLoadingMore: Boolean = false,
+    val endReached: Boolean = false,
+
     val isLoggedIn: Boolean = false,
 
     val currentUserId: String? = null,
@@ -29,5 +32,6 @@ data class HomeUiState(
     val comments: List<Comment> = emptyList(),
     val newCommentText: String = "",
 
+    // Filtre local (catégorie)
     val selectedCategoryId: String = ""
 )

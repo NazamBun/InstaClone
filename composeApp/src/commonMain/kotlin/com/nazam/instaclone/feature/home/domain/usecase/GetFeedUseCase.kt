@@ -6,5 +6,7 @@ import com.nazam.instaclone.feature.home.domain.repository.HomeRepository
 class GetFeedUseCase(
     private val repository: HomeRepository
 ) {
-    suspend fun execute(): Result<List<VsPost>> = repository.getFeed()
+    suspend fun execute(offset: Int, limit: Int): Result<List<VsPost>> {
+        return repository.getFeedPage(offset, limit)
+    }
 }

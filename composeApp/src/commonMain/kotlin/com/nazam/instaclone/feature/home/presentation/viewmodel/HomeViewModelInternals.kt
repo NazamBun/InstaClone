@@ -29,29 +29,51 @@ import kotlinx.coroutines.withContext
 
 internal fun HomeViewModel.loadFeedInternal(
     dispatchers: AppDispatchers,
-    getFeedUseCase: GetFeedUseCase
+    getFeedUseCase: GetFeedUseCase,
+    reset: Boolean
 ) {
-    scope.launch {
-        _uiState.update { it.copy(isLoading = true) }
+    val state = uiState.value
 
-        val result = withContext(dispatchers.default) { getFeedUseCase.execute() }
+    if (reset && state.isLoading) return
+    if (!reset && (state.isLoadingMore || state.endReached)) return
+
+    val pageSize = 10
+    val offset = if (reset) 0 else state.posts.size
+
+    scope.launch {
+        _uiState.update {
+            if (reset) it.copy(isLoading = true, endReached = false)
+            else it.copy(isLoadingMore = true)
+        }
+
+        val result = withContext(dispatchers.default) {
+            getFeedUseCase.execute(offset = offset, limit = pageSize)
+        }
 
         result
-            .onSuccess { posts ->
-                _uiState.update { it.copy(isLoading = false, posts = posts) }
-
-                emitMessage(
-                    UiText.ResourceArgs(
-                        res = Res.string.home_feed_loaded,
-                        args = listOf(posts.size)
+            .onSuccess { page ->
+                _uiState.update { s ->
+                    val merged = if (reset) page else (s.posts + page)
+                    s.copy(
+                        isLoading = false,
+                        isLoadingMore = false,
+                        posts = merged,
+                        endReached = page.isEmpty()
                     )
-                )
+                }
 
-                // ✅ Si un vote était en attente après login, on le lance maintenant.
-                runPendingVoteIfPossible()
+                if (reset) {
+                    emitMessage(
+                        UiText.ResourceArgs(
+                            res = Res.string.home_feed_loaded,
+                            args = listOf(uiState.value.posts.size)
+                        )
+                    )
+                    runPendingVoteIfPossible()
+                }
             }
             .onFailure { error ->
-                _uiState.update { it.copy(isLoading = false) }
+                _uiState.update { it.copy(isLoading = false, isLoadingMore = false) }
 
                 val msg = error.message?.takeIf { it.isNotBlank() }
                 emitMessage(

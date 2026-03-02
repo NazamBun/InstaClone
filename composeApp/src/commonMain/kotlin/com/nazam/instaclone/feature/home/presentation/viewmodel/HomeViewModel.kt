@@ -83,7 +83,9 @@ class HomeViewModel(
         }
     }
 
-    fun loadFeed() = loadFeedInternal(dispatchers, getFeedUseCase)
+    fun loadFeed() = loadFeedInternal(dispatchers, getFeedUseCase, reset = true)
+
+    fun loadMore() = loadFeedInternal(dispatchers, getFeedUseCase, reset = false)
 
     fun voteLeft(postId: String) =
         voteInternal(dispatchers, postId, true, voteLeftUseCase, voteRightUseCase)
@@ -158,16 +160,10 @@ class HomeViewModel(
     }
 
     fun refreshFilter() {
-        val universe = UniverseStore.get()
         val categoryFilter = HomeFilterStore.getCategory()
 
-        val effectiveCategoryId = when {
-            categoryFilter.isNotBlank() -> categoryFilter
-            universe == Universe.FOOTBALL -> "football"
-            else -> ""
-        }
-
-        _uiState.update { it.copy(selectedCategoryId = effectiveCategoryId) }
+        # V1: Home = tout. Pas de priorite football.
+        _uiState.update { it.copy(selectedCategoryId = categoryFilter) }
     }
 
     fun onChooseCategoryFilterClicked() {
