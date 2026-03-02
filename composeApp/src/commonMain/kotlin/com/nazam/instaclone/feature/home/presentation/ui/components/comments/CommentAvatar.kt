@@ -21,7 +21,7 @@ fun CommentAvatar(url: String?, letter: String) {
             .clip(CircleShape)
             .background(
                 Brush.linearGradient(
-                    listOf(Color(0xFFFF4EB8), Color(0xFFFF9F3F))
+                    listOf(Color(0xFF2F5BFF), Color(0xFFFF9F3F))
                 )
             ),
         contentAlignment = Alignment.Center

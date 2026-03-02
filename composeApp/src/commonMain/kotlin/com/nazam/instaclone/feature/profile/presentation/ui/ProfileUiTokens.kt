@@ -9,7 +9,7 @@ import androidx.compose.ui.graphics.Color
 internal object ProfileUiTokens {
     val ScreenBg = Color(0xFF050509)
     val CardBg = Color(0xFF0B0B10)
-    val Accent = Color(0xFFFF4EB8)
+    val Accent = Color(0xFF2F5BFF)
 
     val TextPrimary = Color.White
     val TextSecondary = Color(0xFFBBBBBB)

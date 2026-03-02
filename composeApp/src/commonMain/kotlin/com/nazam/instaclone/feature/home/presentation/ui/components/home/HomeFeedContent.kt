@@ -42,7 +42,7 @@ fun HomeFeedContent(
             ui.isLoading -> {
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center),
-                    color = Color(0xFFFF4EB8)
+                    color = Color(0xFF2F5BFF)
                 )
             }
 
@@ -99,7 +99,7 @@ fun HomeFeedContent(
                 if (ui.isLoadingMore) {
                     CircularProgressIndicator(
                         modifier = Modifier.align(Alignment.BottomCenter),
-                        color = Color(0xFFFF4EB8)
+                        color = Color(0xFF2F5BFF)
                     )
                 }
             }

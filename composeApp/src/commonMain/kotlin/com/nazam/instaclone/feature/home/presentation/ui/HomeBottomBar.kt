@@ -38,7 +38,7 @@ fun HomeBottomBar(
     modifier: Modifier = Modifier
 ) {
     val background = Color(0xFF050509)
-    val accent = Color(0xFFFF4EB8)
+    val accent = Color(0xFF2F5BFF)
     val normal = Color.White
 
     val normalizedSelected =

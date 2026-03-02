@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.Color
 internal object ExploreUiTokens {
     val ScreenBackground = Color(0xFF050509)
 
-    val Accent = Color(0xFFFF4EB8)
+    val Accent = Color(0xFF2F5BFF)
 
     val ChipBgNormal = Color(0xFF14141A)
 

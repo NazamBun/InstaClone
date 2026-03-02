@@ -17,6 +17,6 @@ fun VsPostVotingOverlay() {
             .background(Color(0x66000000)),
         contentAlignment = Alignment.Center
     ) {
-        CircularProgressIndicator(color = Color(0xFFFF4EB8))
+        CircularProgressIndicator(color = Color(0xFF2F5BFF))
     }
 }

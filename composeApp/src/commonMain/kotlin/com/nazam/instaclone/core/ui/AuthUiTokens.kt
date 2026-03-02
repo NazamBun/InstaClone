@@ -16,7 +16,7 @@ object AuthUiTokens {
     val TextPrimary = Color.White
     val TextSecondary = Color(0xB3FFFFFF)
 
-    val Accent = Color(0xFFFF4EB8)
+    val Accent = Color(0xFF2F5BFF)
 
     val CardRadius = 24.dp
 

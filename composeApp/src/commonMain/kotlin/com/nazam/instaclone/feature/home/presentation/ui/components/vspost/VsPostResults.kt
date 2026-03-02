@@ -106,7 +106,7 @@ fun VsPostResults(
                 PercentBar(
                     ratio = rightRatio,
                     reverse = false,
-                    fill = Brush.horizontalGradient(listOf(Color(0xFFFF9F3F), Color(0xFFFF4EB8)))
+                    fill = Brush.horizontalGradient(listOf(Color(0xFFFF9F3F), Color(0xFF2F5BFF)))
                 )
             }
         }

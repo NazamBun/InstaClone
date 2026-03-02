@@ -60,7 +60,7 @@ fun VsPostVoteImages(
         label = "rightScale"
     ).value
 
-    val borderColor = Color(0xFFFF4EB8)
+    val borderColor = Color(0xFF2F5BFF)
     val borderWidth = 3.dp
 
     val isLeftSelected = post.userVote == VoteChoice.LEFT
