@@ -59,9 +59,6 @@ fun VsPostResults(
     val leftPercentInt = leftPercent.roundToInt()
     val rightPercentInt = rightPercent.roundToInt()
 
-    val leftRatio = (leftPercent / 100f).coerceIn(0f, 1f)
-    val rightRatio = (rightPercent / 100f).coerceIn(0f, 1f)
-
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -84,10 +81,11 @@ fun VsPostResults(
                     fontSize = 12.sp
                 )
                 Spacer(Modifier.height(6.dp))
-                PercentBar(
-                    ratio = leftRatio,
-                    showFlameTrigger = leftPercentInt >= 100,
-                    reverse = true,
+
+                PercentBarWithFlame(
+                    ratio = leftPercent / 100f,
+                    showFlameTrigger = leftPercentInt == 100,
+                    flameOnStart = true, // ✅ au bout gauche
                     fill = Brush.horizontalGradient(listOf(Color(0xFF7B61FF), Color(0xFFB95CFF)))
                 )
             }
@@ -108,10 +106,11 @@ fun VsPostResults(
                     fontSize = 12.sp
                 )
                 Spacer(Modifier.height(6.dp))
-                PercentBar(
-                    ratio = rightRatio,
-                    showFlameTrigger = rightPercentInt >= 100,
-                    reverse = false,
+
+                PercentBarWithFlame(
+                    ratio = rightPercent / 100f,
+                    showFlameTrigger = rightPercentInt == 100,
+                    flameOnStart = false, // ✅ au bout droit
                     fill = Brush.horizontalGradient(listOf(Color(0xFFFF9F3F), Color(0xFF2F5BFF)))
                 )
             }
@@ -120,19 +119,22 @@ fun VsPostResults(
 }
 
 @Composable
-private fun PercentBar(
+private fun PercentBarWithFlame(
     ratio: Float,
     showFlameTrigger: Boolean,
-    reverse: Boolean,
+    flameOnStart: Boolean,
     fill: Brush
 ) {
+    val safeRatio = ratio.coerceIn(0f, 1f)
     val animatedRatio = androidx.compose.animation.core.animateFloatAsState(
-        targetValue = ratio.coerceIn(0f, 1f),
+        targetValue = safeRatio,
         animationSpec = tween(450),
         label = "barRatio"
     ).value
 
     var showFlame by remember { mutableStateOf(false) }
+
+    // ✅ La flamme apparaît 1 fois, puis disparaît
     LaunchedEffect(showFlameTrigger) {
         if (showFlameTrigger) {
             showFlame = true
@@ -141,7 +143,6 @@ private fun PercentBar(
         }
     }
 
-    // ✅ IMPORTANT : on dessine la barre, puis la flamme APRES (donc au-dessus).
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -155,14 +156,15 @@ private fun PercentBar(
         )
 
         // Fill
-        val inner = Modifier
-            .fillMaxHeight()
-            .fillMaxWidth(animatedRatio)
-            .background(fill, RoundedCornerShape(50))
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .fillMaxWidth(animatedRatio)
+                .align(Alignment.CenterStart)
+                .background(fill, RoundedCornerShape(50))
+        )
 
-        if (reverse) Box(modifier = inner.align(Alignment.CenterEnd)) else Box(modifier = inner)
-
-        // ✅ Flame au-dessus de TOUT (zIndex + dernier)
+        // ✅ Flame au-dessus (jamais au milieu)
         AnimatedVisibility(
             visible = showFlame,
             enter = fadeIn(tween(180)),
@@ -171,8 +173,8 @@ private fun PercentBar(
             Flame(
                 modifier = Modifier
                     .zIndex(999f)
-                    .align(if (reverse) Alignment.CenterStart else Alignment.CenterEnd)
-                    .offset(y = (-20).dp)
+                    .align(if (flameOnStart) Alignment.CenterStart else Alignment.CenterEnd)
+                    .offset(x = if (flameOnStart) (-6).dp else 6.dp, y = (-22).dp)
             )
         }
     }
@@ -190,7 +192,7 @@ private fun Flame(modifier: Modifier = Modifier) {
 
     Text(
         text = "🔥",
-        fontSize = 20.sp,
+        fontSize = 22.sp,
         modifier = modifier.scale(pulse).alpha(0.98f)
     )
 }

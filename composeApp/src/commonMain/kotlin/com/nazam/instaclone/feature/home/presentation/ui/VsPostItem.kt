@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.nazam.instaclone.feature.home.domain.model.VoteChoice
@@ -45,18 +46,18 @@ fun VsPostItem(
 ) {
     val density = LocalDensity.current
 
-    // On garde l'ancien vote pour détecter un vrai changement.
+    // ✅ On garde l'ancien vote pour détecter un vrai changement.
     var lastVote by remember(post.id) { mutableStateOf(post.userVote) }
 
-    // Dernière position tap (dans le Box parent)
+    // ✅ Dernière position tap (dans le Box parent)
     var lastTapLeft by remember(post.id) { mutableStateOf<Offset?>(null) }
     var lastTapRight by remember(post.id) { mutableStateOf<Offset?>(null) }
 
-    // Position finale du "+1"
+    // ✅ Position finale du "+1"
     var plusOnePos by remember(post.id) { mutableStateOf<Offset?>(null) }
     var showPlusOne by remember(post.id) { mutableStateOf(false) }
 
-    // Quand le vote est confirmé (userVote change), on montre le +1 au bon endroit
+    // ✅ Quand le vote est confirmé (userVote change), on montre le +1 au bon endroit
     LaunchedEffect(post.id, post.userVote) {
         val newVote = post.userVote
         val oldVote = lastVote
@@ -87,20 +88,18 @@ fun VsPostItem(
             onRightTapPosition = { tap -> lastTapRight = tap }
         )
 
-        // "+1" exactement près du doigt
+        // ✅ "+1" exactement près du doigt
         plusOnePos?.let { p ->
-            val shiftX = with(density) { 10.dp.toPx() } // centre un peu le texte
-            val shiftY = with(density) { 24.dp.toPx() } // le fait partir un peu au-dessus du doigt
+            val shiftX = with(density) { 10.dp.toPx() }
+            val shiftY = with(density) { 24.dp.toPx() }
 
             VotePlusOneOverlay(
                 visible = showPlusOne,
                 modifier = Modifier
                     .zIndex(3f)
-                    .then(
-                        Modifier.offsetPx(
-                            x = (p.x - shiftX).roundToInt(),
-                            y = (p.y - shiftY).roundToInt()
-                        )
+                    .offsetPx(
+                        x = (p.x - shiftX).roundToInt(),
+                        y = (p.y - shiftY).roundToInt()
                     )
             )
         }
@@ -129,9 +128,7 @@ fun VsPostItem(
             modifier = Modifier.align(Alignment.Center)
         )
 
-        VsPostVsBadge(
-            modifier = Modifier.align(Alignment.Center)
-        )
+        VsPostVsBadge(modifier = Modifier.align(Alignment.Center))
 
         VsPostResults(
             post = post,
@@ -142,12 +139,6 @@ fun VsPostItem(
     }
 }
 
-/**
- * Petit helper : offset en pixels (pratique pour des coordonnées de tap)
- */
+/** ✅ Helper : offset en pixels (pour des coordonnées de tap) */
 private fun Modifier.offsetPx(x: Int, y: Int): Modifier =
-    this.then(
-        androidx.compose.ui.Modifier.offset {
-            androidx.compose.ui.unit.IntOffset(x, y)
-        }
-    )
+    this.then(Modifier.offset { IntOffset(x, y) })
