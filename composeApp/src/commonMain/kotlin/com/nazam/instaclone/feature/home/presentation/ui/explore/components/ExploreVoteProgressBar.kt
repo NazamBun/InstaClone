@@ -52,7 +52,9 @@ internal fun ExploreVoteProgressBar(
         }
     }
 
+    // ✅ Canvas d’abord, flamme après (donc au-dessus)
     Box(modifier = modifier.fillMaxWidth().height(height)) {
+
         Canvas(modifier = Modifier.fillMaxWidth().height(height)) {
             val radius = CornerRadius(x = size.height / 2f, y = size.height / 2f)
 
@@ -79,9 +81,9 @@ internal fun ExploreVoteProgressBar(
         ) {
             Flame(
                 modifier = Modifier
-                    .zIndex(10f)
+                    .zIndex(999f)
                     .align(Alignment.CenterEnd)
-                    .offset(y = (-18).dp)
+                    .offset(y = (-20).dp)
             )
         }
     }
@@ -99,7 +101,7 @@ private fun Flame(modifier: Modifier = Modifier) {
 
     Text(
         text = "🔥",
-        fontSize = 18.sp,
+        fontSize = 20.sp,
         modifier = modifier.scale(pulse).alpha(0.98f)
     )
 }

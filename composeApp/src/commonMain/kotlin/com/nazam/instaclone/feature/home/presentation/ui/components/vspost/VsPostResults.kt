@@ -132,7 +132,6 @@ private fun PercentBar(
         label = "barRatio"
     ).value
 
-    // ✅ la flamme apparait 2.2s puis disparaît
     var showFlame by remember { mutableStateOf(false) }
     LaunchedEffect(showFlameTrigger) {
         if (showFlameTrigger) {
@@ -142,12 +141,20 @@ private fun PercentBar(
         }
     }
 
+    // ✅ IMPORTANT : on dessine la barre, puis la flamme APRES (donc au-dessus).
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(6.dp)
-            .background(Color(0x33FFFFFF), RoundedCornerShape(50))
     ) {
+        // Track
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .background(Color(0x33FFFFFF), RoundedCornerShape(50))
+        )
+
+        // Fill
         val inner = Modifier
             .fillMaxHeight()
             .fillMaxWidth(animatedRatio)
@@ -155,6 +162,7 @@ private fun PercentBar(
 
         if (reverse) Box(modifier = inner.align(Alignment.CenterEnd)) else Box(modifier = inner)
 
+        // ✅ Flame au-dessus de TOUT (zIndex + dernier)
         AnimatedVisibility(
             visible = showFlame,
             enter = fadeIn(tween(180)),
@@ -162,9 +170,9 @@ private fun PercentBar(
         ) {
             Flame(
                 modifier = Modifier
-                    .zIndex(10f) // ✅ toujours au-dessus
+                    .zIndex(999f)
                     .align(if (reverse) Alignment.CenterStart else Alignment.CenterEnd)
-                    .offset(y = (-18).dp)
+                    .offset(y = (-20).dp)
             )
         }
     }
@@ -182,7 +190,7 @@ private fun Flame(modifier: Modifier = Modifier) {
 
     Text(
         text = "🔥",
-        fontSize = 18.sp, // ✅ plus gros
+        fontSize = 20.sp,
         modifier = modifier.scale(pulse).alpha(0.98f)
     )
 }
