@@ -2,11 +2,14 @@ package com.nazam.instaclone.feature.home.presentation.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
@@ -15,6 +18,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -57,16 +61,39 @@ fun HomeBottomBar(
         onClick: () -> Unit,
         icon: @Composable () -> Unit
     ) {
-        androidx.compose.foundation.layout.Box(
+        Box(
             modifier = Modifier
                 .weight(1f)
                 .heightIn(min = 56.dp)
                 .clickable(onClick = onClick)
                 .padding(vertical = 12.dp),
-            contentAlignment = androidx.compose.ui.Alignment.Center
+            contentAlignment = Alignment.Center
         ) {
-            androidx.compose.runtime.CompositionLocalProvider {
-                icon()
+            icon()
+        }
+    }
+
+    @Composable
+    fun RowScope.CenterCreateButton(onClick: () -> Unit) {
+        // ✅ Gros + central (visible seulement si canCreatePost == true)
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .heightIn(min = 56.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .background(accent, CircleShape)
+                    .clickable(onClick = onClick),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = null,
+                    tint = Color.White
+                )
             }
         }
     }
@@ -107,17 +134,7 @@ fun HomeBottomBar(
         }
 
         if (canCreatePost) {
-            IconItem(
-                screen = Screen.CreatePost,
-                contentDescription = stringResource(Res.string.bottom_create),
-                onClick = onCreatePostClick
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Add,
-                    contentDescription = null,
-                    tint = tintFor(Screen.CreatePost)
-                )
-            }
+            CenterCreateButton(onClick = onCreatePostClick)
         }
 
         IconItem(
