@@ -7,7 +7,6 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -48,6 +47,9 @@ fun VsPostResults(
     val leftPercent = ((post.leftVotesCount * 100f) / total).coerceIn(0f, 100f)
     val rightPercent = ((post.rightVotesCount * 100f) / total).coerceIn(0f, 100f)
 
+    val leftPercentInt = leftPercent.roundToInt()
+    val rightPercentInt = rightPercent.roundToInt()
+
     val leftRatio = (leftPercent / 100f).coerceIn(0f, 1f)
     val rightRatio = (rightPercent / 100f).coerceIn(0f, 1f)
 
@@ -67,13 +69,14 @@ fun VsPostResults(
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text = stringResource(Res.string.percent_value, leftPercent.roundToInt()),
+                    text = stringResource(Res.string.percent_value, leftPercentInt),
                     color = Color.White,
                     fontSize = 12.sp
                 )
                 Spacer(Modifier.height(6.dp))
                 PercentBar(
                     ratio = leftRatio,
+                    showFlame = leftPercentInt >= 100,
                     reverse = true,
                     fill = Brush.horizontalGradient(listOf(Color(0xFF7B61FF), Color(0xFFB95CFF)))
                 )
@@ -90,13 +93,14 @@ fun VsPostResults(
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text = stringResource(Res.string.percent_value, rightPercent.roundToInt()),
+                    text = stringResource(Res.string.percent_value, rightPercentInt),
                     color = Color.White,
                     fontSize = 12.sp
                 )
                 Spacer(Modifier.height(6.dp))
                 PercentBar(
                     ratio = rightRatio,
+                    showFlame = rightPercentInt >= 100,
                     reverse = false,
                     fill = Brush.horizontalGradient(listOf(Color(0xFFFF9F3F), Color(0xFF2F5BFF)))
                 )
@@ -108,17 +112,17 @@ fun VsPostResults(
 @Composable
 private fun PercentBar(
     ratio: Float,
+    showFlame: Boolean,
     reverse: Boolean,
     fill: Brush
 ) {
-    // Animation du remplissage
     val t = androidx.compose.animation.core.animateFloatAsState(
         targetValue = ratio.coerceIn(0f, 1f),
         animationSpec = tween(450),
         label = "barRatio"
     ).value
 
-    BoxWithConstraints(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(6.dp)
@@ -131,46 +135,29 @@ private fun PercentBar(
 
         if (reverse) Box(modifier = inner.align(Alignment.CenterEnd)) else Box(modifier = inner)
 
-        // 🔥 seulement à 100%
-        FlameAtEnd(
-            show = t >= 0.999f,
-            progress = t,
-            reverse = reverse,
-            maxWidthDp = this.maxWidth
-        )
+        if (showFlame) {
+            Flame(
+                modifier = Modifier
+                    .align(if (reverse) Alignment.CenterStart else Alignment.CenterEnd)
+                    .offset(y = (-14).dp)
+            )
+        }
     }
 }
 
 @Composable
-private fun FlameAtEnd(
-    show: Boolean,
-    progress: Float,
-    reverse: Boolean,
-    maxWidthDp: Dp
-) {
-    if (!show) return
-
-    // Petit "bounce" discret
+private fun Flame(modifier: Modifier = Modifier) {
     val infinite = rememberInfiniteTransition(label = "flame")
     val s by infinite.animateFloat(
         initialValue = 1f,
         targetValue = 1.18f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(420),
-            repeatMode = RepeatMode.Reverse
-        ),
+        animationSpec = infiniteRepeatable(tween(420), RepeatMode.Reverse),
         label = "flameScale"
     )
-
-    // Position du bout de la barre
-    val x = if (reverse) maxWidthDp * (1f - progress) else maxWidthDp * progress
 
     Text(
         text = "🔥",
         fontSize = 12.sp,
-        modifier = Modifier
-            .offset(x = x - 8.dp, y = (-16).dp) // 8dp ≈ demi-largeur emoji
-            .scale(s)
-            .alpha(0.95f)
+        modifier = modifier.scale(s).alpha(0.95f)
     )
 }
