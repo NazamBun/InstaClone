@@ -1,10 +1,13 @@
 package com.nazam.instaclone.feature.home.presentation.ui.explore.components
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,16 +15,22 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.scale
+import androidx.compose.ui.zIndex
+import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
 @Composable
@@ -33,6 +42,15 @@ internal fun ExploreVoteProgressBar(
     val safe = progress.coerceIn(0f, 1f)
     val percentInt = (safe * 100f).roundToInt()
     val gradientBrush = Brush.horizontalGradient(colors = ExploreUiTokens.ProgressGradient)
+
+    var showFlame by remember { mutableStateOf(false) }
+    LaunchedEffect(percentInt) {
+        if (percentInt >= 100) {
+            showFlame = true
+            delay(2200)
+            showFlame = false
+        }
+    }
 
     Box(modifier = modifier.fillMaxWidth().height(height)) {
         Canvas(modifier = Modifier.fillMaxWidth().height(height)) {
@@ -54,11 +72,16 @@ internal fun ExploreVoteProgressBar(
             }
         }
 
-        if (percentInt >= 100) {
+        AnimatedVisibility(
+            visible = showFlame,
+            enter = fadeIn(tween(180)),
+            exit = fadeOut(tween(260))
+        ) {
             Flame(
                 modifier = Modifier
+                    .zIndex(10f)
                     .align(Alignment.CenterEnd)
-                    .offset(y = (-14).dp)
+                    .offset(y = (-18).dp)
             )
         }
     }
@@ -66,17 +89,17 @@ internal fun ExploreVoteProgressBar(
 
 @Composable
 private fun Flame(modifier: Modifier = Modifier) {
-    val infinite = rememberInfiniteTransition(label = "flameExplore")
-    val s by infinite.animateFloat(
+    val infinite = rememberInfiniteTransition(label = "flameExplorePulse")
+    val pulse by infinite.animateFloat(
         initialValue = 1f,
-        targetValue = 1.18f,
+        targetValue = 1.25f,
         animationSpec = infiniteRepeatable(tween(420), RepeatMode.Reverse),
-        label = "flameScaleExplore"
+        label = "flameExploreScale"
     )
 
     Text(
         text = "🔥",
-        fontSize = 12.sp,
-        modifier = modifier.scale(s).alpha(0.95f)
+        fontSize = 18.sp,
+        modifier = modifier.scale(pulse).alpha(0.98f)
     )
 }

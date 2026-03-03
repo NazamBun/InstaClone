@@ -1,10 +1,13 @@
 package com.nazam.instaclone.feature.home.presentation.ui.components.vspost
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,7 +22,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -29,10 +36,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import com.nazam.instaclone.feature.home.domain.model.VsPost
 import instaclone.composeapp.generated.resources.Res
 import instaclone.composeapp.generated.resources.percent_value
 import instaclone.composeapp.generated.resources.vspost_votes_count
+import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
 
@@ -60,6 +69,7 @@ fun VsPostResults(
             .alpha(resultsAlpha)
     ) {
         Row(modifier = Modifier.fillMaxWidth()) {
+
             Column(modifier = Modifier.weight(1f)) {
                 Text(post.leftLabel, color = Color.White)
                 Text(
@@ -76,7 +86,7 @@ fun VsPostResults(
                 Spacer(Modifier.height(6.dp))
                 PercentBar(
                     ratio = leftRatio,
-                    showFlame = leftPercentInt >= 100,
+                    showFlameTrigger = leftPercentInt >= 100,
                     reverse = true,
                     fill = Brush.horizontalGradient(listOf(Color(0xFF7B61FF), Color(0xFFB95CFF)))
                 )
@@ -100,7 +110,7 @@ fun VsPostResults(
                 Spacer(Modifier.height(6.dp))
                 PercentBar(
                     ratio = rightRatio,
-                    showFlame = rightPercentInt >= 100,
+                    showFlameTrigger = rightPercentInt >= 100,
                     reverse = false,
                     fill = Brush.horizontalGradient(listOf(Color(0xFFFF9F3F), Color(0xFF2F5BFF)))
                 )
@@ -112,15 +122,25 @@ fun VsPostResults(
 @Composable
 private fun PercentBar(
     ratio: Float,
-    showFlame: Boolean,
+    showFlameTrigger: Boolean,
     reverse: Boolean,
     fill: Brush
 ) {
-    val t = androidx.compose.animation.core.animateFloatAsState(
+    val animatedRatio = androidx.compose.animation.core.animateFloatAsState(
         targetValue = ratio.coerceIn(0f, 1f),
         animationSpec = tween(450),
         label = "barRatio"
     ).value
+
+    // ✅ la flamme apparait 2.2s puis disparaît
+    var showFlame by remember { mutableStateOf(false) }
+    LaunchedEffect(showFlameTrigger) {
+        if (showFlameTrigger) {
+            showFlame = true
+            delay(2200)
+            showFlame = false
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -130,16 +150,21 @@ private fun PercentBar(
     ) {
         val inner = Modifier
             .fillMaxHeight()
-            .fillMaxWidth(t)
+            .fillMaxWidth(animatedRatio)
             .background(fill, RoundedCornerShape(50))
 
         if (reverse) Box(modifier = inner.align(Alignment.CenterEnd)) else Box(modifier = inner)
 
-        if (showFlame) {
+        AnimatedVisibility(
+            visible = showFlame,
+            enter = fadeIn(tween(180)),
+            exit = fadeOut(tween(260))
+        ) {
             Flame(
                 modifier = Modifier
+                    .zIndex(10f) // ✅ toujours au-dessus
                     .align(if (reverse) Alignment.CenterStart else Alignment.CenterEnd)
-                    .offset(y = (-14).dp)
+                    .offset(y = (-18).dp)
             )
         }
     }
@@ -147,17 +172,17 @@ private fun PercentBar(
 
 @Composable
 private fun Flame(modifier: Modifier = Modifier) {
-    val infinite = rememberInfiniteTransition(label = "flame")
-    val s by infinite.animateFloat(
+    val infinite = rememberInfiniteTransition(label = "flamePulse")
+    val pulse by infinite.animateFloat(
         initialValue = 1f,
-        targetValue = 1.18f,
+        targetValue = 1.25f,
         animationSpec = infiniteRepeatable(tween(420), RepeatMode.Reverse),
         label = "flameScale"
     )
 
     Text(
         text = "🔥",
-        fontSize = 12.sp,
-        modifier = modifier.scale(s).alpha(0.95f)
+        fontSize = 18.sp, // ✅ plus gros
+        modifier = modifier.scale(pulse).alpha(0.98f)
     )
 }
