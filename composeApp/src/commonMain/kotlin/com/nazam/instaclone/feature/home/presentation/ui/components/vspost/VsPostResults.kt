@@ -1,23 +1,30 @@
 package com.nazam.instaclone.feature.home.presentation.ui.components.vspost
 
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
@@ -38,20 +45,8 @@ fun VsPostResults(
     modifier: Modifier = Modifier
 ) {
     val total = post.totalVotesCount.coerceAtLeast(1)
-    val leftPercentTarget = (post.leftVotesCount * 100f) / total
-    val rightPercentTarget = (post.rightVotesCount * 100f) / total
-
-    val leftPercent = animateFloatAsState(
-        targetValue = leftPercentTarget,
-        animationSpec = tween(450),
-        label = "leftPercent"
-    ).value
-
-    val rightPercent = animateFloatAsState(
-        targetValue = rightPercentTarget,
-        animationSpec = tween(450),
-        label = "rightPercent"
-    ).value
+    val leftPercent = ((post.leftVotesCount * 100f) / total).coerceIn(0f, 100f)
+    val rightPercent = ((post.rightVotesCount * 100f) / total).coerceIn(0f, 100f)
 
     val leftRatio = (leftPercent / 100f).coerceIn(0f, 1f)
     val rightRatio = (rightPercent / 100f).coerceIn(0f, 1f)
@@ -86,10 +81,7 @@ fun VsPostResults(
 
             Spacer(Modifier.width(12.dp))
 
-            Column(
-                modifier = Modifier.weight(1f),
-                horizontalAlignment = Alignment.End
-            ) {
+            Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.End) {
                 Text(post.rightLabel, color = Color.White)
                 Text(
                     text = stringResource(Res.string.vspost_votes_count, post.rightVotesCount),
@@ -119,13 +111,14 @@ private fun PercentBar(
     reverse: Boolean,
     fill: Brush
 ) {
-    val animatedRatio = animateFloatAsState(
-        targetValue = ratio,
+    // Animation du remplissage
+    val t = androidx.compose.animation.core.animateFloatAsState(
+        targetValue = ratio.coerceIn(0f, 1f),
         animationSpec = tween(450),
         label = "barRatio"
     ).value
 
-    Box(
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxWidth()
             .height(6.dp)
@@ -133,13 +126,51 @@ private fun PercentBar(
     ) {
         val inner = Modifier
             .fillMaxHeight()
-            .fillMaxWidth(animatedRatio)
+            .fillMaxWidth(t)
             .background(fill, RoundedCornerShape(50))
 
-        if (reverse) {
-            Box(modifier = inner.align(Alignment.CenterEnd))
-        } else {
-            Box(modifier = inner)
-        }
+        if (reverse) Box(modifier = inner.align(Alignment.CenterEnd)) else Box(modifier = inner)
+
+        // 🔥 seulement à 100%
+        FlameAtEnd(
+            show = t >= 0.999f,
+            progress = t,
+            reverse = reverse,
+            maxWidthDp = this.maxWidth
+        )
     }
+}
+
+@Composable
+private fun FlameAtEnd(
+    show: Boolean,
+    progress: Float,
+    reverse: Boolean,
+    maxWidthDp: Dp
+) {
+    if (!show) return
+
+    // Petit "bounce" discret
+    val infinite = rememberInfiniteTransition(label = "flame")
+    val s by infinite.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.18f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(420),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "flameScale"
+    )
+
+    // Position du bout de la barre
+    val x = if (reverse) maxWidthDp * (1f - progress) else maxWidthDp * progress
+
+    Text(
+        text = "🔥",
+        fontSize = 12.sp,
+        modifier = Modifier
+            .offset(x = x - 8.dp, y = (-16).dp) // 8dp ≈ demi-largeur emoji
+            .scale(s)
+            .alpha(0.95f)
+    )
 }
