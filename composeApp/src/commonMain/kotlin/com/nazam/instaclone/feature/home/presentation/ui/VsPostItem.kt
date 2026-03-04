@@ -12,6 +12,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
@@ -21,6 +23,7 @@ import com.nazam.instaclone.feature.home.domain.model.VoteChoice
 import com.nazam.instaclone.feature.home.domain.model.VsPost
 import com.nazam.instaclone.feature.home.presentation.ui.components.vspost.VotePlusOneOverlay
 import com.nazam.instaclone.feature.home.presentation.ui.components.vspost.VsPostActionRail
+import com.nazam.instaclone.feature.home.presentation.ui.components.vspost.VsPostFlameOverlay
 import com.nazam.instaclone.feature.home.presentation.ui.components.vspost.VsPostHeader
 import com.nazam.instaclone.feature.home.presentation.ui.components.vspost.VsPostOverlayGradient
 import com.nazam.instaclone.feature.home.presentation.ui.components.vspost.VsPostQuestionCard
@@ -46,18 +49,20 @@ fun VsPostItem(
 ) {
     val density = LocalDensity.current
 
-    // ✅ On garde l'ancien vote pour détecter un vrai changement.
-    var lastVote by remember(post.id) { mutableStateOf(post.userVote) }
+    // ✅ Pour convertir Window -> Local
+    var rootInWindow by remember(post.id) { mutableStateOf(Offset.Zero) }
 
-    // ✅ Dernière position tap (dans le Box parent)
+    // ✅ "+1"
+    var lastVote by remember(post.id) { mutableStateOf(post.userVote) }
     var lastTapLeft by remember(post.id) { mutableStateOf<Offset?>(null) }
     var lastTapRight by remember(post.id) { mutableStateOf<Offset?>(null) }
-
-    // ✅ Position finale du "+1"
     var plusOnePos by remember(post.id) { mutableStateOf<Offset?>(null) }
     var showPlusOne by remember(post.id) { mutableStateOf(false) }
 
-    // ✅ Quand le vote est confirmé (userVote change), on montre le +1 au bon endroit
+    // ✅ Flamme (AU-DESSUS de tout)
+    var flamePosPx by remember(post.id) { mutableStateOf<IntOffset?>(null) }
+    var showFlame by remember(post.id) { mutableStateOf(false) }
+
     LaunchedEffect(post.id, post.userVote) {
         val newVote = post.userVote
         val oldVote = lastVote
@@ -77,8 +82,49 @@ fun VsPostItem(
         lastVote = newVote
     }
 
-    Box(modifier = modifier.fillMaxSize()) {
+    fun triggerFlame(endInWindow: Offset) {
+        val local = endInWindow - rootInWindow
+        // petit décalage pour que ça soit joli (au-dessus de la barre)
+        val dx = with(density) { 6.dp.toPx() }
+        val dy = with(density) { 26.dp.toPx() }
 
+        flamePosPx = IntOffset(
+            x = (local.x - dx).roundToInt(),
+            y = (local.y - dy).roundToInt()
+        )
+
+        showFlame = true
+        // disparaît en fondu après un petit moment
+        // (AnimatedVisibility gère le fadeOut)
+        // on coupe juste le visible
+        // pour éviter "flammes partout"
+        // ✅ 1 seule flamme à la fois
+        // ✅ durée simple
+        // (si retrigger, ça remplace)
+        // note: pas besoin de job, on fait simple
+        // -> ça marche bien en pratique
+        // (si tu veux ultra propre ensuite on fera un Job)
+        // ----------------
+        // durée
+        // ----------------
+        // 1.8s
+        // ----------------
+        // fin
+        // ----------------
+    }
+
+    LaunchedEffect(showFlame) {
+        if (showFlame) {
+            delay(1800)
+            showFlame = false
+        }
+    }
+
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .onGloballyPositioned { rootInWindow = it.positionInWindow() }
+    ) {
         VsPostVoteImages(
             post = post,
             isVoting = isVoting,
@@ -88,7 +134,7 @@ fun VsPostItem(
             onRightTapPosition = { tap -> lastTapRight = tap }
         )
 
-        // ✅ "+1" exactement près du doigt
+        // ✅ "+1" près du doigt
         plusOnePos?.let { p ->
             val shiftX = with(density) { 10.dp.toPx() }
             val shiftY = with(density) { 24.dp.toPx() }
@@ -96,7 +142,7 @@ fun VsPostItem(
             VotePlusOneOverlay(
                 visible = showPlusOne,
                 modifier = Modifier
-                    .zIndex(3f)
+                    .zIndex(20f)
                     .offsetPx(
                         x = (p.x - shiftX).roundToInt(),
                         y = (p.y - shiftY).roundToInt()
@@ -134,8 +180,20 @@ fun VsPostItem(
             post = post,
             resultsAlpha = resultsAlpha,
             extraBottomPadding = extraBottomPadding,
-            modifier = Modifier.zIndex(50f).align(Alignment.BottomCenter)
+            modifier = Modifier.align(Alignment.BottomCenter),
+            onLeftReached100EndInWindow = { triggerFlame(it) },
+            onRightReached100EndInWindow = { triggerFlame(it) }
         )
+
+        // ✅ Flamme TOUJOURS au-dessus de tout
+        flamePosPx?.let { pos ->
+            VsPostFlameOverlay(
+                visible = showFlame,
+                modifier = Modifier
+                    .zIndex(10_000f)
+                    .offset { pos }
+            )
+        }
     }
 }
 

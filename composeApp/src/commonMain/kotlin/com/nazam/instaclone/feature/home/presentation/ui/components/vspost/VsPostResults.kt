@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
@@ -29,7 +30,9 @@ fun VsPostResults(
     post: VsPost,
     resultsAlpha: Float,
     extraBottomPadding: Dp,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onLeftReached100EndInWindow: (Offset) -> Unit = {},
+    onRightReached100EndInWindow: (Offset) -> Unit = {}
 ) {
     val total = post.totalVotesCount.coerceAtLeast(1)
     val leftPercent = ((post.leftVotesCount * 100f) / total).coerceIn(0f, 100f)
@@ -46,7 +49,7 @@ fun VsPostResults(
     ) {
         Row(modifier = Modifier.fillMaxWidth()) {
 
-            // ✅ Colonne gauche (barre part du milieu -> gauche)
+            // ✅ Gauche : part du milieu -> gauche
             Column(modifier = Modifier.weight(1f)) {
                 Text(post.leftLabel, color = Color.White)
                 Text(
@@ -65,13 +68,14 @@ fun VsPostResults(
                 VsPostPercentBar(
                     ratio = leftPercent / 100f,
                     reverse = true,
-                    fill = Brush.horizontalGradient(listOf(Color(0xFF7B61FF), Color(0xFFB95CFF)))
+                    fill = Brush.horizontalGradient(listOf(Color(0xFF7B61FF), Color(0xFFB95CFF))),
+                    onReached100EndInWindow = onLeftReached100EndInWindow
                 )
             }
 
             Spacer(Modifier.width(12.dp))
 
-            // ✅ Colonne droite (barre part du milieu -> droite)
+            // ✅ Droite : part du milieu -> droite
             Column(
                 modifier = Modifier.weight(1f),
                 horizontalAlignment = Alignment.End
@@ -93,7 +97,8 @@ fun VsPostResults(
                 VsPostPercentBar(
                     ratio = rightPercent / 100f,
                     reverse = false,
-                    fill = Brush.horizontalGradient(listOf(Color(0xFFFF9F3F), Color(0xFF2F5BFF)))
+                    fill = Brush.horizontalGradient(listOf(Color(0xFFFF9F3F), Color(0xFF2F5BFF))),
+                    onReached100EndInWindow = onRightReached100EndInWindow
                 )
             }
         }

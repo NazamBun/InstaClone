@@ -1,21 +1,13 @@
 package com.nazam.instaclone.feature.home.presentation.ui.components.vspost
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -24,51 +16,49 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.zIndex
-import kotlinx.coroutines.delay
 
+/**
+ * Barre % (KMP friendly).
+ * - reverse=true : la barre part du milieu -> gauche
+ * - reverse=false: la barre part du milieu -> droite
+ *
+ * IMPORTANT :
+ * - Ici on NE dessine PAS la flamme.
+ * - On envoie juste la position de fin (en window) quand on atteint 100%.
+ */
 @Composable
 internal fun VsPostPercentBar(
     ratio: Float,
     reverse: Boolean,
     fill: Brush,
+    onReached100EndInWindow: (Offset) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val safe = ratio.coerceIn(0f, 1f)
-    val animatedRatio = androidx.compose.animation.core.animateFloatAsState(
+
+    val animated by animateFloatAsState(
         targetValue = safe,
         animationSpec = tween(450),
         label = "vsPercentBarRatio"
-    ).value
+    )
 
-    // ✅ 1 seule fois quand on atteint 100%
-    var alreadyShown by remember { mutableStateOf(false) }
-    var showFlame by remember { mutableStateOf(false) }
-
-    LaunchedEffect(safe) {
-        val reached100 = safe >= 1f
-        if (reached100 && !alreadyShown) {
-            alreadyShown = true
-            showFlame = true
-            delay(1800)
-            showFlame = false
-        }
-        if (!reached100) {
-            alreadyShown = false
-            showFlame = false
-        }
-    }
+    var endInWindow by remember { mutableStateOf<Offset?>(null) }
+    var alreadySent by remember { mutableStateOf(false) }
 
     Box(
         modifier = modifier
             .fillMaxWidth()
             .height(6.dp)
+            .onGloballyPositioned { coords ->
+                val x = if (reverse) 0f else coords.size.width.toFloat()
+                val y = coords.size.height / 2f
+                endInWindow = coords.localToWindow(Offset(x, y))
+            }
     ) {
         // Track
         Box(
@@ -77,10 +67,10 @@ internal fun VsPostPercentBar(
                 .background(Color(0x33FFFFFF), RoundedCornerShape(50))
         )
 
-        // Fill : ✅ part du milieu (barre gauche vers gauche, barre droite vers droite)
+        // Fill (part du milieu)
         val fillMod = Modifier
             .fillMaxHeight()
-            .fillMaxWidth(animatedRatio)
+            .fillMaxWidth(animated)
             .background(fill, RoundedCornerShape(50))
 
         if (reverse) {
@@ -88,35 +78,15 @@ internal fun VsPostPercentBar(
         } else {
             Box(modifier = fillMod.align(Alignment.CenterStart))
         }
-
-        // ✅ IMPORTANT : align/zIndex/offset doivent être sur AnimatedVisibility (enfant direct du Box)
-        AnimatedVisibility(
-            visible = showFlame,
-            enter = fadeIn(tween(160)),
-            exit = fadeOut(tween(220)),
-            modifier = Modifier
-                .zIndex(9999f)
-                .align(if (reverse) Alignment.CenterStart else Alignment.CenterEnd)
-                .offset(x = if (reverse) (-6).dp else 6.dp, y = (-24).dp)
-        ) {
-            VsPostFlame()
-        }
     }
-}
 
-@Composable
-private fun VsPostFlame() {
-    val infinite = rememberInfiniteTransition(label = "vsFlamePulse")
-    val pulse by infinite.animateFloat(
-        initialValue = 1f,
-        targetValue = 1.25f,
-        animationSpec = infiniteRepeatable(tween(420), RepeatMode.Reverse),
-        label = "vsFlameScale"
-    )
-
-    Text(
-        text = "🔥",
-        fontSize = 30.sp,
-        modifier = Modifier.scale(pulse).alpha(0.98f)
-    )
+    // ✅ On envoie 1 seule fois la position quand on atteint 100%
+    LaunchedEffect(safe, endInWindow) {
+        val reached = safe >= 1f
+        if (reached && !alreadySent) {
+            endInWindow?.let { onReached100EndInWindow(it) }
+            alreadySent = true
+        }
+        if (!reached) alreadySent = false
+    }
 }
