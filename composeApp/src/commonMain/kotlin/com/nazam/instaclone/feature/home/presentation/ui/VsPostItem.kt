@@ -62,6 +62,7 @@ fun VsPostItem(
     // ✅ Flamme (AU-DESSUS de tout)
     var flamePosPx by remember(post.id) { mutableStateOf<IntOffset?>(null) }
     var showFlame by remember(post.id) { mutableStateOf(false) }
+    var flameTriggerKey by remember(post.id) { mutableStateOf(0) }
 
     LaunchedEffect(post.id, post.userVote) {
         val newVote = post.userVote
@@ -93,28 +94,12 @@ fun VsPostItem(
             y = (local.y - dy).roundToInt()
         )
 
-        showFlame = true
-        // disparaît en fondu après un petit moment
-        // (AnimatedVisibility gère le fadeOut)
-        // on coupe juste le visible
-        // pour éviter "flammes partout"
-        // ✅ 1 seule flamme à la fois
-        // ✅ durée simple
-        // (si retrigger, ça remplace)
-        // note: pas besoin de job, on fait simple
-        // -> ça marche bien en pratique
-        // (si tu veux ultra propre ensuite on fera un Job)
-        // ----------------
-        // durée
-        // ----------------
-        // 1.8s
-        // ----------------
-        // fin
-        // ----------------
+        flameTriggerKey += 1
     }
 
-    LaunchedEffect(showFlame) {
-        if (showFlame) {
+    LaunchedEffect(flameTriggerKey) {
+        if (flameTriggerKey != 0) {
+            showFlame = true
             delay(1800)
             showFlame = false
         }
@@ -189,6 +174,7 @@ fun VsPostItem(
         flamePosPx?.let { pos ->
             VsPostFlameOverlay(
                 visible = showFlame,
+                triggerKey = flameTriggerKey,
                 modifier = Modifier
                     .zIndex(10_000f)
                     .offset { pos }

@@ -1,51 +1,60 @@
 package com.nazam.instaclone.feature.home.presentation.ui.components.vspost
 
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.offset
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-/**
- * Petit "+1" animé.
- * - visible = true -> il apparaît
- * - visible = false -> il disparaît
- */
 @Composable
 fun VotePlusOneOverlay(
     visible: Boolean,
     modifier: Modifier = Modifier
 ) {
-    AnimatedVisibility(
-        visible = visible,
-        enter = fadeIn(animationSpec = tween(120)) + scaleIn(initialScale = 0.85f, animationSpec = tween(180)),
-        exit = fadeOut(animationSpec = tween(180)) + scaleOut(targetScale = 0.9f, animationSpec = tween(180))
-    ) {
-        Box(
-            modifier = modifier
-                .background(Color(0xFF2F5BFF), RoundedCornerShape(999.dp))
-                .padding(horizontal = 12.dp, vertical = 8.dp)
-                .alpha(0.95f)
-        ) {
-            Text(
-                text = "+1",
-                color = Color.White,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold
-            )
+    val alpha = remember { Animatable(0f) }
+    val y = remember { Animatable(0f) }
+
+    LaunchedEffect(visible) {
+        if (visible) {
+            alpha.snapTo(0f)
+            y.snapTo(0f)
+
+            alpha.animateTo(1f, tween(120))
+            y.animateTo(-24f, tween(520))
+            alpha.animateTo(0f, tween(220))
+        } else {
+            alpha.snapTo(0f)
+            y.snapTo(0f)
         }
     }
+
+    if (alpha.value <= 0f) return
+
+    // ✅ Dégradé bleu moderne (cohérent avec ton UI)
+    val gradient = Brush.verticalGradient(
+        colors = listOf(
+            Color(0xFF4F7CFF), // bleu clair
+            Color(0xFF2F5BFF)  // bleu accent
+        )
+    )
+
+    Text(
+        text = "+1",
+        fontSize = 18.sp,
+        fontWeight = FontWeight.Bold,
+        style = TextStyle(brush = gradient),
+        modifier = modifier
+            .offset(y = y.value.dp)
+            .alpha(alpha.value)
+    )
 }
