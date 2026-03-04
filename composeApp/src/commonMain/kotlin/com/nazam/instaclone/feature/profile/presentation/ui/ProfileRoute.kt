@@ -68,8 +68,10 @@ fun ProfileRoute(
         }
 
         state.ui != null -> {
+            val ui = state.ui
+            if (ui == null) return
             ProfileScreen(
-                ui = state.ui!!,
+                ui = ui,
                 contentPadding = contentPadding,
                 onFollowClick = onFollowClick,
                 onMessageClick = onMessageClick,
