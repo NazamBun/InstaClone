@@ -134,7 +134,7 @@ fun VsPostItem(
             post = post,
             resultsAlpha = resultsAlpha,
             extraBottomPadding = extraBottomPadding,
-            modifier = Modifier.align(Alignment.BottomCenter)
+            modifier = Modifier.zIndex(50f).align(Alignment.BottomCenter)
         )
     }
 }

@@ -33,16 +33,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import kotlinx.coroutines.delay
 
-/**
- * Barre de % (KMP friendly)
- * - reverse = true : la barre part du milieu vers la gauche (barre gauche)
- * - reverse = false : la barre part du milieu vers la droite (barre droite)
- *
- * Flame :
- * - 1 seule fois
- * - uniquement si ratio == 1f (100%)
- * - au bout (gauche si reverse, droite sinon)
- */
 @Composable
 internal fun VsPostPercentBar(
     ratio: Float,
@@ -57,7 +47,7 @@ internal fun VsPostPercentBar(
         label = "vsPercentBarRatio"
     ).value
 
-    // ✅ trigger 1 seule fois quand on atteint 100%
+    // ✅ 1 seule fois quand on atteint 100%
     var alreadyShown by remember { mutableStateOf(false) }
     var showFlame by remember { mutableStateOf(false) }
 
@@ -87,38 +77,35 @@ internal fun VsPostPercentBar(
                 .background(Color(0x33FFFFFF), RoundedCornerShape(50))
         )
 
-        // Fill : ✅ part du milieu (côté interne)
+        // Fill : ✅ part du milieu (barre gauche vers gauche, barre droite vers droite)
         val fillMod = Modifier
             .fillMaxHeight()
             .fillMaxWidth(animatedRatio)
             .background(fill, RoundedCornerShape(50))
 
         if (reverse) {
-            // barre gauche : elle part du milieu -> gauche
             Box(modifier = fillMod.align(Alignment.CenterEnd))
         } else {
-            // barre droite : elle part du milieu -> droite
             Box(modifier = fillMod.align(Alignment.CenterStart))
         }
 
-        // Flame : ✅ au bout EXTERNE, au-dessus
+        // ✅ IMPORTANT : align/zIndex/offset doivent être sur AnimatedVisibility (enfant direct du Box)
         AnimatedVisibility(
             visible = showFlame,
             enter = fadeIn(tween(160)),
-            exit = fadeOut(tween(220))
+            exit = fadeOut(tween(220)),
+            modifier = Modifier
+                .zIndex(9999f)
+                .align(if (reverse) Alignment.CenterStart else Alignment.CenterEnd)
+                .offset(x = if (reverse) (-6).dp else 6.dp, y = (-24).dp)
         ) {
-            VsPostFlame(
-                modifier = Modifier
-                    .zIndex(999f)
-                    .align(if (reverse) Alignment.CenterStart else Alignment.CenterEnd)
-                    .offset(x = if (reverse) (-6).dp else 6.dp, y = (-22).dp)
-            )
+            VsPostFlame()
         }
     }
 }
 
 @Composable
-private fun VsPostFlame(modifier: Modifier = Modifier) {
+private fun VsPostFlame() {
     val infinite = rememberInfiniteTransition(label = "vsFlamePulse")
     val pulse by infinite.animateFloat(
         initialValue = 1f,
@@ -130,6 +117,6 @@ private fun VsPostFlame(modifier: Modifier = Modifier) {
     Text(
         text = "🔥",
         fontSize = 30.sp,
-        modifier = modifier.scale(pulse).alpha(0.98f)
+        modifier = Modifier.scale(pulse).alpha(0.98f)
     )
 }
