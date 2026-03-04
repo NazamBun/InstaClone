@@ -20,6 +20,12 @@ object ProfileMapper {
         val username = dto?.username?.takeIf { it.isNotBlank() }
             ?: displayName.lowercase().replace(" ", "")
 
+        // ✅ KMP simple : on prend juste "YYYY-MM-DD" si disponible
+        val joined = dto?.createdAt
+            ?.takeIf { it.length >= 10 }
+            ?.substring(0, 10)
+            ?: "—"
+
         return Profile(
             userId = userId,
             email = email,
@@ -30,7 +36,7 @@ object ProfileMapper {
             website = dto?.website.orEmpty(),
             avatarUrl = dto?.avatarUrl,
             coverUrl = dto?.coverUrl,
-            joinedLabel = "—"
+            joinedLabel = joined
         )
     }
 }

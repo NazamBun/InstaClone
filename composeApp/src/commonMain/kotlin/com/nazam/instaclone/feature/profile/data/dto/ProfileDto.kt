@@ -16,5 +16,8 @@ data class ProfileDto(
     @SerialName("location") val location: String? = null,
     @SerialName("website") val website: String? = null,
     @SerialName("avatar_url") val avatarUrl: String? = null,
-    @SerialName("cover_url") val coverUrl: String? = null
+    @SerialName("cover_url") val coverUrl: String? = null,
+
+    // ✅ optionnel : si ta table profiles a "created_at"
+    @SerialName("created_at") val createdAt: String? = null
 )
