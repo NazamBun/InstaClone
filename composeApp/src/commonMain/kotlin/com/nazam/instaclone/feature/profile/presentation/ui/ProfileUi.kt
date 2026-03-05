@@ -19,5 +19,8 @@ data class ProfileUi(
     val followingCount: Int,
     val avatarUrl: String? = null,
     val coverUrl: String? = null,
-    val posts: List<VsPost> = emptyList()
+    val posts: List<VsPost> = emptyList(),
+
+    /** true si c'est mon profil */
+    val isSelfProfile: Boolean = false
 )

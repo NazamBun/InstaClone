@@ -46,6 +46,7 @@ class ProfileViewModel(
 
     fun load() {
         scope.launch {
+
             _uiState.update { it.copy(isLoading = true, error = null) }
 
             val user = withContext(dispatchers.io) { getCurrentUserUseCase.execute() }
@@ -64,6 +65,7 @@ class ProfileViewModel(
             val profileResult = withContext(dispatchers.io) {
                 getMyProfileUseCase.execute(userId = user.id, emailFallback = user.email)
             }
+
             val postsResult = withContext(dispatchers.io) {
                 getMyPostsUseCase.execute(email = user.email)
             }
@@ -82,6 +84,8 @@ class ProfileViewModel(
                 return@launch
             }
 
+            val isSelf = profile.userId == user.id
+
             _uiState.update {
                 it.copy(
                     isLoading = false,
@@ -97,7 +101,8 @@ class ProfileViewModel(
                         followingCount = 0,
                         avatarUrl = profile.avatarUrl,
                         coverUrl = profile.coverUrl,
-                        posts = posts
+                        posts = posts,
+                        isSelfProfile = isSelf
                     ),
                     error = null
                 )
@@ -107,6 +112,7 @@ class ProfileViewModel(
 
     fun logout() {
         scope.launch {
+
             _uiState.update { it.copy(isLoading = true, error = null) }
 
             val result = withContext(dispatchers.io) { logoutUseCase.execute() }
@@ -114,11 +120,10 @@ class ProfileViewModel(
             result
                 .onSuccess {
                     NavigationStore.clear()
-
-                    // ✅ session = déconnecté (App() se met à jour)
                     sessionManager.setUser(null)
 
-                    _uiState.update { ProfileUiState(isLoading = false, ui = null, error = null) }
+                    _uiState.update { ProfileUiState(isLoading = false) }
+
                     _events.tryEmit(ProfileUiEvent.Navigate(Screen.Login))
                 }
                 .onFailure {

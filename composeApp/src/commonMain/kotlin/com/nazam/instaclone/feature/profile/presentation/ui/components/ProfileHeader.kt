@@ -153,11 +153,28 @@ fun ProfileHeader(
             modifier = Modifier.padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Button(onClick = onFollowClick, modifier = Modifier.weight(1f)) {
-                Text(stringResource(Res.string.profile_follow))
-            }
-            OutlinedButton(onClick = onMessageClick, modifier = Modifier.weight(1f)) {
-                Text(stringResource(Res.string.profile_message))
+
+            if (ui.isSelfProfile) {
+                Button(
+                    onClick = onEditAvatarClick,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Modifier le profil")
+                }
+            } else {
+                Button(
+                    onClick = onFollowClick,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(stringResource(Res.string.profile_follow))
+                }
+
+                OutlinedButton(
+                    onClick = onMessageClick,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(stringResource(Res.string.profile_message))
+                }
             }
 
             Box {
