@@ -35,6 +35,7 @@ fun ProfileRoute(
     onFollowClick: () -> Unit,
     onMessageClick: () -> Unit,
     onMoreClick: () -> Unit,
+    onEditProfileClick: () -> Unit,
     onEditCoverClick: () -> Unit,
     onEditAvatarClick: () -> Unit,
     onPostClick: (VsPost) -> Unit
@@ -76,6 +77,7 @@ fun ProfileRoute(
                 onMessageClick = onMessageClick,
                 onMoreClick = onMoreClick,
                 onLogoutClick = vm::logout,
+                onEditProfileClick = onEditProfileClick,
                 onEditCoverClick = onEditCoverClick,
                 onEditAvatarClick = onEditAvatarClick,
                 onPostClick = onPostClick
@@ -85,7 +87,7 @@ fun ProfileRoute(
         else -> {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(text = state.error?.asString() ?: "")
+                    Text(text = state.error?.asString().orEmpty())
                     Button(
                         onClick = vm::load,
                         modifier = Modifier.padding(top = 12.dp)

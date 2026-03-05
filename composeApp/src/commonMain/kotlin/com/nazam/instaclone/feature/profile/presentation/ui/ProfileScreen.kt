@@ -3,7 +3,9 @@ package com.nazam.instaclone.feature.profile.presentation.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.nazam.instaclone.feature.home.domain.model.VsPost
 import com.nazam.instaclone.feature.profile.presentation.ui.components.ProfileGrid
@@ -12,8 +14,8 @@ import com.nazam.instaclone.feature.profile.presentation.ui.components.ProfileSt
 import com.nazam.instaclone.feature.profile.presentation.ui.components.ProfileTabs
 
 /**
- * ProfileScreen (orchestrateur)
- * - 1 seul rôle : assembler les blocs UI
+ * Écran Profil (simple)
+ * - assemble les composants
  * - KMP friendly
  */
 @Composable
@@ -24,13 +26,14 @@ fun ProfileScreen(
     onMessageClick: () -> Unit,
     onMoreClick: () -> Unit,
     onLogoutClick: () -> Unit,
+    onEditProfileClick: () -> Unit,
     onEditCoverClick: () -> Unit,
     onEditAvatarClick: () -> Unit,
     onPostClick: (VsPost) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val t = ProfileUiTokens
-    var selectedTab by remember { mutableStateOf(ProfileTab.POSTS) }
+    val selectedTab = remember { mutableStateOf(ProfileTab.POSTS) }
 
     LazyColumn(
         modifier = modifier.background(t.ScreenBg),
@@ -43,6 +46,7 @@ fun ProfileScreen(
                 onMessageClick = onMessageClick,
                 onMoreClick = onMoreClick,
                 onLogoutClick = onLogoutClick,
+                onEditProfileClick = onEditProfileClick,
                 onEditCoverClick = onEditCoverClick,
                 onEditAvatarClick = onEditAvatarClick
             )
@@ -52,13 +56,13 @@ fun ProfileScreen(
 
         item {
             ProfileTabs(
-                selectedTab = selectedTab,
-                onTabSelected = { selectedTab = it }
+                selectedTab = selectedTab.value,
+                onTabSelected = { selectedTab.value = it }
             )
         }
 
         item {
-            // Pour l'instant : même liste pour tous les tabs (on branchera plus tard)
+            // Pour l'instant: même liste pour tous les tabs
             ProfileGrid(
                 posts = ui.posts,
                 onPostClick = onPostClick
