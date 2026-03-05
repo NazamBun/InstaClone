@@ -1,9 +1,11 @@
 package com.nazam.instaclone.feature.profile.presentation.ui
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,6 +22,7 @@ import com.nazam.instaclone.feature.home.domain.model.VsPost
 import com.nazam.instaclone.feature.profile.presentation.viewmodel.ProfileUiEvent
 import com.nazam.instaclone.feature.profile.presentation.viewmodel.ProfileViewModel
 import instaclone.composeapp.generated.resources.Res
+import instaclone.composeapp.generated.resources.action_retry
 import instaclone.composeapp.generated.resources.profile_loading
 import kotlinx.coroutines.flow.collectLatest
 import org.jetbrains.compose.resources.stringResource
@@ -31,7 +34,7 @@ fun ProfileRoute(
     onNavigate: (Screen) -> Unit,
     onFollowClick: () -> Unit,
     onMessageClick: () -> Unit,
-    onMoreClick: () -> Unit,          // ✅ on le remet
+    onMoreClick: () -> Unit,
     onEditCoverClick: () -> Unit,
     onEditAvatarClick: () -> Unit,
     onPostClick: (VsPost) -> Unit
@@ -53,11 +56,8 @@ fun ProfileRoute(
 
     when {
         state.isLoading -> {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                androidx.compose.foundation.layout.Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     CircularProgressIndicator()
                     Text(
                         text = stringResource(Res.string.profile_loading),
@@ -68,15 +68,14 @@ fun ProfileRoute(
         }
 
         state.ui != null -> {
-            val ui = state.ui
-            if (ui == null) return
+            val ui = state.ui ?: return
             ProfileScreen(
                 ui = ui,
                 contentPadding = contentPadding,
                 onFollowClick = onFollowClick,
                 onMessageClick = onMessageClick,
-                onMoreClick = onMoreClick,      // ✅ passé ici
-                onLogoutClick = vm::logout,     // ✅ nouveau
+                onMoreClick = onMoreClick,
+                onLogoutClick = vm::logout,
                 onEditCoverClick = onEditCoverClick,
                 onEditAvatarClick = onEditAvatarClick,
                 onPostClick = onPostClick
@@ -84,11 +83,16 @@ fun ProfileRoute(
         }
 
         else -> {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(text = state.error?.asString() ?: "")
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(text = state.error?.asString() ?: "")
+                    Button(
+                        onClick = vm::load,
+                        modifier = Modifier.padding(top = 12.dp)
+                    ) {
+                        Text(stringResource(Res.string.action_retry))
+                    }
+                }
             }
         }
     }
