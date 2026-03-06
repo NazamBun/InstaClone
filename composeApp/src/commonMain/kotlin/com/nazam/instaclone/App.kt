@@ -133,6 +133,7 @@ fun App() {
                         onNavigate = ::navigateTo,
                         onFollowClick = {},
                         onMessageClick = {},
+                        onEditProfileClick = {},
                         onEditCoverClick = {},
                         onEditAvatarClick = {},
                         onPostClick = { _ -> },

@@ -165,6 +165,7 @@
     <!-- Profile -->
     <string name="profile_follow">Suivre</string>
     <string name="profile_message">Message</string>
+    <string name="profile_edit_profile">Modifier le profil</string>
     <string name="profile_more">…</string>
 
     <string name="profile_edit_cover">Modifier la couverture</string>

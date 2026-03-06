@@ -25,6 +25,7 @@ import instaclone.composeapp.generated.resources.Res
 import instaclone.composeapp.generated.resources.dialog_no
 import instaclone.composeapp.generated.resources.dialog_yes
 import instaclone.composeapp.generated.resources.profile_edit_cover
+import instaclone.composeapp.generated.resources.profile_edit_profile
 import instaclone.composeapp.generated.resources.profile_follow
 import instaclone.composeapp.generated.resources.profile_logout
 import instaclone.composeapp.generated.resources.profile_logout_message
@@ -40,6 +41,7 @@ fun ProfileHeader(
     onMessageClick: () -> Unit,
     onMoreClick: () -> Unit,
     onLogoutClick: () -> Unit,
+    onEditProfileClick: () -> Unit,
     onEditCoverClick: () -> Unit,
     onEditAvatarClick: () -> Unit
 ) {
@@ -156,12 +158,13 @@ fun ProfileHeader(
 
             if (ui.isSelfProfile) {
                 Button(
-                    onClick = onEditAvatarClick,
+                    onClick = onEditProfileClick,
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("Modifier le profil")
+                    Text(stringResource(Res.string.profile_edit_profile))
                 }
             } else {
+
                 Button(
                     onClick = onFollowClick,
                     modifier = Modifier.weight(1f)
