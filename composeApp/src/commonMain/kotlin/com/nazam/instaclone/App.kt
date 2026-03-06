@@ -30,6 +30,7 @@ import com.nazam.instaclone.feature.home.presentation.ui.categories.CategoriesRo
 import com.nazam.instaclone.feature.home.presentation.ui.explore.ExplorePagerRoute
 import com.nazam.instaclone.feature.home.presentation.ui.explore.ExploreRoute
 import com.nazam.instaclone.feature.profile.presentation.ui.ProfileRoute
+import com.nazam.instaclone.feature.profile.presentation.ui.edit.EditProfileRoute
 import instaclone.composeapp.generated.resources.Res
 import instaclone.composeapp.generated.resources.placeholder_notifications_soon
 import org.jetbrains.compose.resources.stringResource
@@ -50,6 +51,7 @@ fun App() {
 
     fun isProtected(screen: Screen): Boolean {
         return screen == Screen.Profile ||
+            screen == Screen.EditProfile ||
             screen == Screen.CreatePost ||
             screen == Screen.Notifications
     }
@@ -133,7 +135,7 @@ fun App() {
                         onNavigate = ::navigateTo,
                         onFollowClick = {},
                         onMessageClick = {},
-                        onEditProfileClick = {},
+                        onEditProfileClick = { navigateTo(Screen.EditProfile) },
                         onEditCoverClick = {},
                         onEditAvatarClick = {},
                         onPostClick = { _ -> },
@@ -154,7 +156,12 @@ private fun SimplePlaceholder(
         modifier = Modifier
             .fillMaxSize()
             .padding(contentPadding)
-    ) {
+    )
+
+                    Screen.EditProfile -> EditProfileRoute(
+                        contentPadding = padding,
+                        onNavigate = ::navigateTo
+                    ) {
         androidx.compose.material3.Text(text = title)
     }
 }

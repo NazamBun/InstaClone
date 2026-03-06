@@ -4,6 +4,7 @@ import com.nazam.instaclone.feature.home.data.dto.PostDto
 import com.nazam.instaclone.feature.home.data.mapper.PostMapper
 import com.nazam.instaclone.feature.home.domain.model.VsPost
 import com.nazam.instaclone.feature.profile.data.dto.ProfileDto
+import com.nazam.instaclone.feature.profile.data.dto.UpdateProfileDto
 import com.nazam.instaclone.feature.profile.data.mapper.ProfileMapper
 import com.nazam.instaclone.feature.profile.domain.model.Profile
 import com.nazam.instaclone.feature.profile.domain.repository.ProfileRepository

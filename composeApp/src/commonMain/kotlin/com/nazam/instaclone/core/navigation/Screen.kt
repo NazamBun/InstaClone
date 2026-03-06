@@ -12,5 +12,6 @@ enum class Screen {
     CreatePost,
     Categories,
     Notifications,
-    Profile
+    Profile,
+    EditProfile
 }

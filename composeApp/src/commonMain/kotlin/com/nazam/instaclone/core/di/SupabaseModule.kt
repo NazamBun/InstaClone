@@ -34,7 +34,9 @@ import com.nazam.instaclone.feature.profile.data.repository.ProfileRepositoryImp
 import com.nazam.instaclone.feature.profile.domain.repository.ProfileRepository
 import com.nazam.instaclone.feature.profile.domain.usecase.GetMyPostsUseCase
 import com.nazam.instaclone.feature.profile.domain.usecase.GetMyProfileUseCase
+import com.nazam.instaclone.feature.profile.domain.usecase.UpdateMyProfileUseCase
 import com.nazam.instaclone.feature.profile.presentation.viewmodel.ProfileViewModel
+import com.nazam.instaclone.feature.profile.presentation.ui.edit.EditProfileViewModel
 import kotlinx.serialization.json.Json
 import org.koin.dsl.module
 
@@ -140,6 +142,16 @@ val appModule = module {
             getMyPostsUseCase = get(),
             logoutUseCase = get(),
             sessionManager = get()
+        )
+    }
+}
+
+    factory {
+        EditProfileViewModel(
+            dispatchers = get(),
+            getCurrentUserUseCase = get(),
+            getMyProfileUseCase = get(),
+            updateMyProfileUseCase = get()
         )
     }
 }
