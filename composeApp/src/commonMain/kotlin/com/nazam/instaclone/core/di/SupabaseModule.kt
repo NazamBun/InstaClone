@@ -34,6 +34,7 @@ import com.nazam.instaclone.feature.profile.data.repository.ProfileRepositoryImp
 import com.nazam.instaclone.feature.profile.domain.repository.ProfileRepository
 import com.nazam.instaclone.feature.profile.domain.usecase.GetMyPostsUseCase
 import com.nazam.instaclone.feature.profile.domain.usecase.GetMyProfileUseCase
+import com.nazam.instaclone.feature.profile.domain.usecase.UpdateAvatarUseCase
 import com.nazam.instaclone.feature.profile.domain.usecase.UpdateMyProfileUseCase
 import com.nazam.instaclone.feature.profile.presentation.ui.edit.EditProfileViewModel
 import com.nazam.instaclone.feature.profile.presentation.viewmodel.ProfileViewModel
@@ -129,7 +130,9 @@ val appModule = module {
             getMyProfileUseCase = get(),
             getMyPostsUseCase = get(),
             logoutUseCase = get(),
-            sessionManager = get()
+            sessionManager = get(),
+            uploadPostImageUseCase = get(),
+            updateAvatarUseCase = get()
         )
     }
 

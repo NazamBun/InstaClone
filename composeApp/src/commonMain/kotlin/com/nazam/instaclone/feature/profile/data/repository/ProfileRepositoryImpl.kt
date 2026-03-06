@@ -24,18 +24,46 @@ class ProfileRepositoryImpl(
         private const val POSTS_FEED_VIEW = "posts_feed"
     }
 
-    override suspend fun updateAvatar(
+    override suspend fun getMyProfile(
         userId: String,
-        avatarUrl: String
-    ): Result<Unit> {
+        emailFallback: String
+    ): Result<Profile> {
         return runCatching {
-            client.postgrest[PROFILES_TABLE].update(
-                mapOf("avatar_url" to avatarUrl)
-            ) {
-                filter { eq("id", userId) }
-            }
+            val response = client
+                .postgrest[PROFILES_TABLE]
+                .select {
+                    filter { eq("id", userId) }
+                    limit(1)
+                }
 
-            Unit
+            val dtos: List<ProfileDto> = json.decodeFromString(
+                ListSerializer(ProfileDto.serializer()),
+                response.data
+            )
+
+            val dto = dtos.firstOrNull()
+            ProfileMapper.toDomain(
+                dto = dto,
+                userId = userId,
+                email = emailFallback
+            )
+        }
+    }
+
+    override suspend fun getMyPosts(email: String): Result<List<VsPost>> {
+        return runCatching {
+            val response = client
+                .postgrest[POSTS_FEED_VIEW]
+                .select {
+                    filter { eq("author_name", email) }
+                }
+
+            val dtos: List<PostDto> = json.decodeFromString(
+                ListSerializer(PostDto.serializer()),
+                response.data
+            )
+
+            dtos.map { dto -> PostMapper.toDomain(dto) }
         }
     }
 
@@ -53,6 +81,21 @@ class ProfileRepositoryImpl(
             )
 
             client.postgrest[PROFILES_TABLE].update(payload) {
+                filter { eq("id", userId) }
+            }
+
+            Unit
+        }
+    }
+
+    override suspend fun updateAvatar(
+        userId: String,
+        avatarUrl: String
+    ): Result<Unit> {
+        return runCatching {
+            client.postgrest[PROFILES_TABLE].update(
+                mapOf("avatar_url" to avatarUrl)
+            ) {
                 filter { eq("id", userId) }
             }
 

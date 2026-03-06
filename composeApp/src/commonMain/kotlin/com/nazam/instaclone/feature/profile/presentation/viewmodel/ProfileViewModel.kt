@@ -7,8 +7,11 @@ import com.nazam.instaclone.core.session.SessionManager
 import com.nazam.instaclone.core.ui.UiText
 import com.nazam.instaclone.feature.auth.domain.usecase.GetCurrentUserUseCase
 import com.nazam.instaclone.feature.auth.domain.usecase.LogoutUseCase
+import com.nazam.instaclone.feature.home.domain.model.UploadProgress
+import com.nazam.instaclone.feature.home.domain.usecase.UploadPostImageUseCase
 import com.nazam.instaclone.feature.profile.domain.usecase.GetMyPostsUseCase
 import com.nazam.instaclone.feature.profile.domain.usecase.GetMyProfileUseCase
+import com.nazam.instaclone.feature.profile.domain.usecase.UpdateAvatarUseCase
 import com.nazam.instaclone.feature.profile.presentation.model.ProfileUiState
 import com.nazam.instaclone.feature.profile.presentation.ui.ProfileUi
 import instaclone.composeapp.generated.resources.Res
@@ -19,6 +22,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -29,7 +33,9 @@ class ProfileViewModel(
     private val getMyProfileUseCase: GetMyProfileUseCase,
     private val getMyPostsUseCase: GetMyPostsUseCase,
     private val logoutUseCase: LogoutUseCase,
-    private val sessionManager: SessionManager
+    private val sessionManager: SessionManager,
+    private val uploadPostImageUseCase: UploadPostImageUseCase,
+    private val updateAvatarUseCase: UpdateAvatarUseCase
 ) {
     private val job = SupervisorJob()
     private val scope = CoroutineScope(dispatchers.main + job)
@@ -46,11 +52,9 @@ class ProfileViewModel(
 
     fun load() {
         scope.launch {
-
             _uiState.update { it.copy(isLoading = true, error = null) }
 
             val user = withContext(dispatchers.io) { getCurrentUserUseCase.execute() }
-
             if (user == null) {
                 _uiState.update {
                     it.copy(
@@ -65,7 +69,6 @@ class ProfileViewModel(
             val profileResult = withContext(dispatchers.io) {
                 getMyProfileUseCase.execute(userId = user.id, emailFallback = user.email)
             }
-
             val postsResult = withContext(dispatchers.io) {
                 getMyPostsUseCase.execute(email = user.email)
             }
@@ -84,8 +87,6 @@ class ProfileViewModel(
                 return@launch
             }
 
-            val isSelf = profile.userId == user.id
-
             _uiState.update {
                 it.copy(
                     isLoading = false,
@@ -102,7 +103,7 @@ class ProfileViewModel(
                         avatarUrl = profile.avatarUrl,
                         coverUrl = profile.coverUrl,
                         posts = posts,
-                        isSelfProfile = isSelf
+                        isSelfProfile = profile.userId == user.id
                     ),
                     error = null
                 )
@@ -110,9 +111,68 @@ class ProfileViewModel(
         }
     }
 
+    fun onAvatarSelected(localUri: String) {
+        scope.launch {
+            _uiState.update { it.copy(isLoading = true, error = null) }
+
+            val user = withContext(dispatchers.io) { getCurrentUserUseCase.execute() }
+            if (user == null) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = UiText.Resource(Res.string.profile_load_error)
+                    )
+                }
+                return@launch
+            }
+
+            var publicUrl: String? = null
+            var uploadError: String? = null
+
+            withContext(dispatchers.io) {
+                uploadPostImageUseCase.execute(localUri).collect { progress ->
+                    when (progress) {
+                        is UploadProgress.Success -> publicUrl = progress.publicUrl
+                        is UploadProgress.Error -> {
+                            uploadError = progress.message.ifBlank { "Upload avatar impossible" }
+                        }
+                        else -> Unit
+                    }
+                }
+            }
+
+            if (uploadError != null || publicUrl.isNullOrBlank()) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = UiText.DynamicString(uploadError ?: "Upload avatar impossible")
+                    )
+                }
+                return@launch
+            }
+
+            val result = withContext(dispatchers.io) {
+                updateAvatarUseCase.execute(
+                    userId = user.id,
+                    avatarUrl = publicUrl!!
+                )
+            }
+
+            result
+                .onSuccess { load() }
+                .onFailure {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            error = UiText.Resource(Res.string.profile_load_error)
+                        )
+                    }
+                }
+        }
+    }
+
     fun logout() {
         scope.launch {
-
             _uiState.update { it.copy(isLoading = true, error = null) }
 
             val result = withContext(dispatchers.io) { logoutUseCase.execute() }
@@ -121,9 +181,7 @@ class ProfileViewModel(
                 .onSuccess {
                     NavigationStore.clear()
                     sessionManager.setUser(null)
-
                     _uiState.update { ProfileUiState(isLoading = false) }
-
                     _events.tryEmit(ProfileUiEvent.Navigate(Screen.Login))
                 }
                 .onFailure {
