@@ -4,7 +4,6 @@ import com.nazam.instaclone.feature.home.data.dto.PostDto
 import com.nazam.instaclone.feature.home.data.mapper.PostMapper
 import com.nazam.instaclone.feature.home.domain.model.VsPost
 import com.nazam.instaclone.feature.profile.data.dto.ProfileDto
-import com.nazam.instaclone.feature.profile.data.dto.UpdateProfileDto
 import com.nazam.instaclone.feature.profile.data.mapper.ProfileMapper
 import com.nazam.instaclone.feature.profile.domain.model.Profile
 import com.nazam.instaclone.feature.profile.domain.model.UpdateProfile
@@ -29,19 +28,9 @@ class ProfileRepositoryImpl(
         emailFallback: String
     ): Result<Profile> {
         return runCatching {
-            val response = client
-                .postgrest[PROFILES_TABLE]
-                .select {
-                    filter { eq("id", userId) }
-                    limit(1)
-                }
-
-            val dtos: List<ProfileDto> = json.decodeFromString(
-                ListSerializer(ProfileDto.serializer()),
-                response.data
-            )
-
+            val dtos = fetchProfiles(userId)
             val dto = dtos.firstOrNull()
+
             ProfileMapper.toDomain(
                 dto = dto,
                 userId = userId,
@@ -72,16 +61,22 @@ class ProfileRepositoryImpl(
         update: UpdateProfile
     ): Result<Unit> {
         return runCatching {
-            val payload = UpdateProfileDto(
-                displayName = update.displayName.trim(),
-                username = update.username.trim(),
-                bio = update.bio.trim(),
-                location = update.location.trim(),
-                website = update.website.trim()
+            val payload = mapOf(
+                "display_name" to update.displayName.trim(),
+                "username" to update.username.trim(),
+                "bio" to update.bio.trim(),
+                "location" to update.location.trim(),
+                "website" to update.website.trim()
             )
 
-            client.postgrest[PROFILES_TABLE].update(payload) {
-                filter { eq("id", userId) }
+            if (hasProfile(userId)) {
+                client.postgrest[PROFILES_TABLE].update(payload) {
+                    filter { eq("id", userId) }
+                }
+            } else {
+                client.postgrest[PROFILES_TABLE].insert(
+                    payload + ("id" to userId)
+                )
             }
 
             Unit
@@ -93,13 +88,37 @@ class ProfileRepositoryImpl(
         avatarUrl: String
     ): Result<Unit> {
         return runCatching {
-            client.postgrest[PROFILES_TABLE].update(
-                mapOf("avatar_url" to avatarUrl)
-            ) {
-                filter { eq("id", userId) }
+            val payload = mapOf("avatar_url" to avatarUrl)
+
+            if (hasProfile(userId)) {
+                client.postgrest[PROFILES_TABLE].update(payload) {
+                    filter { eq("id", userId) }
+                }
+            } else {
+                client.postgrest[PROFILES_TABLE].insert(
+                    payload + ("id" to userId)
+                )
             }
 
             Unit
         }
+    }
+
+    private suspend fun hasProfile(userId: String): Boolean {
+        return fetchProfiles(userId).isNotEmpty()
+    }
+
+    private suspend fun fetchProfiles(userId: String): List<ProfileDto> {
+        val response = client
+            .postgrest[PROFILES_TABLE]
+            .select {
+                filter { eq("id", userId) }
+                limit(1)
+            }
+
+        return json.decodeFromString(
+            ListSerializer(ProfileDto.serializer()),
+            response.data
+        )
     }
 }

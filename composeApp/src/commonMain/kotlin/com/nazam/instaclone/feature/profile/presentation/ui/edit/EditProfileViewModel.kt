@@ -109,9 +109,14 @@ class EditProfileViewModel(
                     SnackbarStore.show(UiText.Resource(Res.string.profile_updated))
                     _events.tryEmit(Screen.Profile)
                 }
-                .onFailure {
+                .onFailure { throwable ->
                     _uiState.update {
-                        it.copy(isSaving = false, error = UiText.Resource(Res.string.profile_load_error))
+                        it.copy(
+                            isSaving = false,
+                            error = UiText.DynamicString(
+                                throwable.message ?: "Erreur inconnue pendant la sauvegarde du profil"
+                            )
+                        )
                     }
                 }
         }
