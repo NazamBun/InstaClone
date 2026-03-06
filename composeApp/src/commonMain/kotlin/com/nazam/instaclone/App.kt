@@ -17,9 +17,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.nazam.instaclone.core.access.CreatePostAccess
 import com.nazam.instaclone.core.navigation.NavigationStore
 import com.nazam.instaclone.core.navigation.Screen
-import com.nazam.instaclone.core.access.CreatePostAccess
 import com.nazam.instaclone.core.session.SessionManager
 import com.nazam.instaclone.feature.auth.presentation.ui.LoginRoute
 import com.nazam.instaclone.feature.auth.presentation.ui.SignupRoute
@@ -56,26 +56,16 @@ fun App() {
             screen == Screen.Notifications
     }
 
-    /**
-     * Redirection vers Login en gardant :
-     * - afterLogin : où aller après login
-     * - authReturn : où revenir si l’utilisateur appuie sur la flèche retour
-     *
-     * ✅ IMPORTANT : authReturn ne doit pas être écrasé si déjà défini
-     */
     fun requireAuth(target: Screen, returnScreen: Screen) {
         NavigationStore.setAuthReturnIfEmpty(returnScreen)
         NavigationStore.setAfterLogin(target)
         navigateTo(Screen.Login)
     }
 
-    // ✅ Charge la session une seule fois au démarrage
     LaunchedEffect(Unit) {
         sessionManager.refresh()
     }
 
-    // ✅ Garde : si écran protégé + pas connecté -> Login
-    // Ici, si on arrive “direct” sur un écran protégé (cas rare), on met Home en fallback.
     LaunchedEffect(currentScreen, isLoggedIn) {
         if (!isLoggedIn && isProtected(currentScreen)) {
             requireAuth(target = currentScreen, returnScreen = Screen.Home)
@@ -115,13 +105,23 @@ fun App() {
         ) { padding: PaddingValues ->
             Box(modifier = Modifier.fillMaxSize()) {
                 when (currentScreen) {
-                    Screen.Home -> HomeRoute(onNavigate = ::navigateTo, contentPadding = padding)
-                    Screen.Explore -> ExploreRoute(onNavigate = ::navigateTo, contentPadding = padding)
-                    Screen.ExplorePager -> ExplorePagerRoute(onNavigate = ::navigateTo, contentPadding = padding)
+                    Screen.Home -> HomeRoute(
+                        onNavigate = ::navigateTo,
+                        contentPadding = padding
+                    )
+
+                    Screen.Explore -> ExploreRoute(
+                        onNavigate = ::navigateTo,
+                        contentPadding = padding
+                    )
+
+                    Screen.ExplorePager -> ExplorePagerRoute(
+                        onNavigate = ::navigateTo,
+                        contentPadding = padding
+                    )
 
                     Screen.CreatePost -> CreatePostRoute(onNavigate = ::navigateTo)
                     Screen.Categories -> CategoriesRoute(onNavigate = ::navigateTo)
-
                     Screen.Login -> LoginRoute(onNavigate = ::navigateTo)
                     Screen.Signup -> SignupRoute(onNavigate = ::navigateTo)
 
@@ -141,6 +141,11 @@ fun App() {
                         onPostClick = { _ -> },
                         onMoreClick = {}
                     )
+
+                    Screen.EditProfile -> EditProfileRoute(
+                        contentPadding = padding,
+                        onNavigate = ::navigateTo
+                    )
                 }
             }
         }
@@ -156,12 +161,7 @@ private fun SimplePlaceholder(
         modifier = Modifier
             .fillMaxSize()
             .padding(contentPadding)
-    )
-
-                    Screen.EditProfile -> EditProfileRoute(
-                        contentPadding = padding,
-                        onNavigate = ::navigateTo
-                    ) {
+    ) {
         androidx.compose.material3.Text(text = title)
     }
 }

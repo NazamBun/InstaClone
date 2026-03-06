@@ -7,17 +7,13 @@ import com.nazam.instaclone.feature.profile.data.dto.ProfileDto
 import com.nazam.instaclone.feature.profile.data.dto.UpdateProfileDto
 import com.nazam.instaclone.feature.profile.data.mapper.ProfileMapper
 import com.nazam.instaclone.feature.profile.domain.model.Profile
+import com.nazam.instaclone.feature.profile.domain.model.UpdateProfile
 import com.nazam.instaclone.feature.profile.domain.repository.ProfileRepository
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 
-/**
- * ProfileRepositoryImpl
- * - profil : table "profiles"
- * - mes posts : view "posts_feed" filtrée par author_name (= email)
- */
 class ProfileRepositoryImpl(
     private val client: SupabaseClient,
     private val json: Json
@@ -28,9 +24,11 @@ class ProfileRepositoryImpl(
         private const val POSTS_FEED_VIEW = "posts_feed"
     }
 
-    override suspend fun getMyProfile(userId: String, emailFallback: String): Result<Profile> {
+    override suspend fun getMyProfile(
+        userId: String,
+        emailFallback: String
+    ): Result<Profile> {
         return runCatching {
-            // 1 ligne max
             val response = client
                 .postgrest[PROFILES_TABLE]
                 .select {
@@ -53,7 +51,6 @@ class ProfileRepositoryImpl(
             val response = client
                 .postgrest[POSTS_FEED_VIEW]
                 .select {
-                    // ✅ Comme tes posts sont créés avec author_name = email
                     filter { eq("author_name", email) }
                 }
 
@@ -62,11 +59,28 @@ class ProfileRepositoryImpl(
                 response.data
             )
 
-            dtos.map { dto ->
-                // user_choice est déjà géré par HomeRepository (mais ici on veut juste l’affichage)
-                // donc on laisse VoteChoice.NONE pour l’instant.
-                PostMapper.toDomain(dto)
+            dtos.map { dto -> PostMapper.toDomain(dto) }
+        }
+    }
+
+    override suspend fun updateMyProfile(
+        userId: String,
+        update: UpdateProfile
+    ): Result<Unit> {
+        return runCatching {
+            val payload = UpdateProfileDto(
+                displayName = update.displayName.trim(),
+                username = update.username.trim(),
+                bio = update.bio.trim(),
+                location = update.location.trim(),
+                website = update.website.trim()
+            )
+
+            client.postgrest[PROFILES_TABLE].update(payload) {
+                filter { eq("id", userId) }
             }
+
+            Unit
         }
     }
 }

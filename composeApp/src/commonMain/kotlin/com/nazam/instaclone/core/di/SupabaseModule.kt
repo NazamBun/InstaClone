@@ -35,37 +35,29 @@ import com.nazam.instaclone.feature.profile.domain.repository.ProfileRepository
 import com.nazam.instaclone.feature.profile.domain.usecase.GetMyPostsUseCase
 import com.nazam.instaclone.feature.profile.domain.usecase.GetMyProfileUseCase
 import com.nazam.instaclone.feature.profile.domain.usecase.UpdateMyProfileUseCase
-import com.nazam.instaclone.feature.profile.presentation.viewmodel.ProfileViewModel
 import com.nazam.instaclone.feature.profile.presentation.ui.edit.EditProfileViewModel
+import com.nazam.instaclone.feature.profile.presentation.viewmodel.ProfileViewModel
 import kotlinx.serialization.json.Json
 import org.koin.dsl.module
 
 val appModule = module {
 
-    // ✅ Supabase client
     single { SupabaseClientProvider.client }
-
-    // ✅ Json
     single { Json { ignoreUnknownKeys = true } }
-
-    // ✅ Dispatchers (KMP)
     single<AppDispatchers> { DefaultAppDispatchers() }
-
-    // ✅ ImageBytesReader (fallback KMP)
     single<ImageBytesReader> { DefaultImageBytesReader() }
 
-    // ✅ Post media upload
-    single<PostMediaRepository> { PostMediaRepositoryImpl(client = get(), bytesReader = get()) }
+    single<PostMediaRepository> {
+        PostMediaRepositoryImpl(client = get(), bytesReader = get())
+    }
     factory { UploadPostImageUseCase(get()) }
 
-    // ✅ Auth
     single<AuthRepository> { AuthRepositoryImpl(get()) }
     factory { LoginUseCase(get()) }
     factory { SignupUseCase(get()) }
     factory { LogoutUseCase(get()) }
     factory { GetCurrentUserUseCase(get()) }
 
-    // ✅ Session (source unique)
     single<SessionManager> {
         DefaultSessionManager(
             dispatchers = get(),
@@ -73,7 +65,6 @@ val appModule = module {
         )
     }
 
-    // ✅ Home
     single<HomeRepository> { HomeRepositoryImpl(client = get(), json = get()) }
     factory { GetFeedUseCase(get()) }
     factory { VoteLeftUseCase(get()) }
@@ -82,12 +73,11 @@ val appModule = module {
     factory { GetCommentsUseCase(get()) }
     factory { AddCommentUseCase(get()) }
 
-    // ✅ Profile (Clean)
     single<ProfileRepository> { ProfileRepositoryImpl(client = get(), json = get()) }
     factory { GetMyProfileUseCase(get()) }
     factory { GetMyPostsUseCase(get()) }
+    factory { UpdateMyProfileUseCase(get()) }
 
-    // ✅ ViewModels
     factory {
         HomeViewModel(
             dispatchers = get(),
@@ -129,11 +119,8 @@ val appModule = module {
     }
 
     factory { CategoriesViewModel() }
-
-    // ✅ Explore : on garde la valeur même si on change d'écran
     single { ExploreViewModel() }
 
-    // ✅ Profile VM
     factory {
         ProfileViewModel(
             dispatchers = get(),
@@ -144,7 +131,6 @@ val appModule = module {
             sessionManager = get()
         )
     }
-}
 
     factory {
         EditProfileViewModel(
