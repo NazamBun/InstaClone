@@ -77,6 +77,7 @@ val appModule = module {
     factory { GetMyProfileUseCase(get()) }
     factory { GetMyPostsUseCase(get()) }
     factory { UpdateMyProfileUseCase(get()) }
+    factory { UpdateAvatarUseCase(get()) }
 
     factory {
         HomeViewModel(

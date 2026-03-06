@@ -24,42 +24,18 @@ class ProfileRepositoryImpl(
         private const val POSTS_FEED_VIEW = "posts_feed"
     }
 
-    override suspend fun getMyProfile(
+    override suspend fun updateAvatar(
         userId: String,
-        emailFallback: String
-    ): Result<Profile> {
+        avatarUrl: String
+    ): Result<Unit> {
         return runCatching {
-            val response = client
-                .postgrest[PROFILES_TABLE]
-                .select {
-                    filter { eq("id", userId) }
-                    limit(1)
-                }
+            client.postgrest[PROFILES_TABLE].update(
+                mapOf("avatar_url" to avatarUrl)
+            ) {
+                filter { eq("id", userId) }
+            }
 
-            val dtos: List<ProfileDto> = json.decodeFromString(
-                ListSerializer(ProfileDto.serializer()),
-                response.data
-            )
-
-            val dto = dtos.firstOrNull()
-            ProfileMapper.toDomain(dto = dto, userId = userId, email = emailFallback)
-        }
-    }
-
-    override suspend fun getMyPosts(email: String): Result<List<VsPost>> {
-        return runCatching {
-            val response = client
-                .postgrest[POSTS_FEED_VIEW]
-                .select {
-                    filter { eq("author_name", email) }
-                }
-
-            val dtos: List<PostDto> = json.decodeFromString(
-                ListSerializer(PostDto.serializer()),
-                response.data
-            )
-
-            dtos.map { dto -> PostMapper.toDomain(dto) }
+            Unit
         }
     }
 

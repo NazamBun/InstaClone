@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.nazam.instaclone.core.navigation.Screen
 import com.nazam.instaclone.core.ui.asString
 import com.nazam.instaclone.feature.home.domain.model.VsPost
+import com.nazam.instaclone.core.media.rememberImagePicker
 import com.nazam.instaclone.feature.profile.presentation.viewmodel.ProfileUiEvent
 import com.nazam.instaclone.feature.profile.presentation.viewmodel.ProfileViewModel
 import instaclone.composeapp.generated.resources.Res
@@ -42,6 +43,8 @@ fun ProfileRoute(
 ) {
     val vm: ProfileViewModel = koinInject()
     val state by vm.uiState.collectAsState()
+
+    val pickAvatar = rememberImagePicker(onImagePicked = vm::onAvatarSelected)
 
     DisposableEffect(Unit) {
         onDispose { vm.clear() }
@@ -79,7 +82,7 @@ fun ProfileRoute(
                 onLogoutClick = vm::logout,
                 onEditProfileClick = onEditProfileClick,
                 onEditCoverClick = onEditCoverClick,
-                onEditAvatarClick = onEditAvatarClick,
+                onEditAvatarClick = pickAvatar,
                 onPostClick = onPostClick
             )
         }

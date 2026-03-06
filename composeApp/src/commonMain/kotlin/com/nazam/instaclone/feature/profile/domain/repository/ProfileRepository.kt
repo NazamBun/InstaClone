@@ -14,4 +14,7 @@ interface ProfileRepository {
 
     // Update profil
     suspend fun updateMyProfile(userId: String, update: UpdateProfile): Result<Unit>
+
+
+    suspend fun updateAvatar(userId: String, avatarUrl: String): Result<Unit>
 }
