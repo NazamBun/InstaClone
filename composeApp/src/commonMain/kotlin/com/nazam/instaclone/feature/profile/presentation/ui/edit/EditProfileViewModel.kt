@@ -2,6 +2,7 @@ package com.nazam.instaclone.feature.profile.presentation.ui.edit
 
 import com.nazam.instaclone.core.dispatchers.AppDispatchers
 import com.nazam.instaclone.core.navigation.Screen
+import com.nazam.instaclone.core.ui.SnackbarStore
 import com.nazam.instaclone.core.ui.UiText
 import com.nazam.instaclone.feature.auth.domain.usecase.GetCurrentUserUseCase
 import com.nazam.instaclone.feature.profile.domain.model.UpdateProfile
@@ -9,6 +10,7 @@ import com.nazam.instaclone.feature.profile.domain.usecase.GetMyProfileUseCase
 import com.nazam.instaclone.feature.profile.domain.usecase.UpdateMyProfileUseCase
 import instaclone.composeapp.generated.resources.Res
 import instaclone.composeapp.generated.resources.profile_load_error
+import instaclone.composeapp.generated.resources.profile_updated
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -44,7 +46,9 @@ class EditProfileViewModel(
 
             val user = withContext(dispatchers.io) { getCurrentUserUseCase.execute() }
             if (user == null) {
-                _uiState.update { it.copy(isLoading = false, error = UiText.Resource(Res.string.profile_load_error)) }
+                _uiState.update {
+                    it.copy(isLoading = false, error = UiText.Resource(Res.string.profile_load_error))
+                }
                 return@launch
             }
 
@@ -54,7 +58,9 @@ class EditProfileViewModel(
 
             val profile = result.getOrNull()
             if (profile == null) {
-                _uiState.update { it.copy(isLoading = false, error = UiText.Resource(Res.string.profile_load_error)) }
+                _uiState.update {
+                    it.copy(isLoading = false, error = UiText.Resource(Res.string.profile_load_error))
+                }
                 return@launch
             }
 
@@ -80,8 +86,7 @@ class EditProfileViewModel(
 
     fun save() {
         scope.launch {
-            val user = withContext(dispatchers.io) { getCurrentUserUseCase.execute() }
-            if (user == null) return@launch
+            val user = withContext(dispatchers.io) { getCurrentUserUseCase.execute() } ?: return@launch
 
             val s = _uiState.value
             _uiState.update { it.copy(isSaving = true, error = null) }
@@ -101,10 +106,13 @@ class EditProfileViewModel(
             result
                 .onSuccess {
                     _uiState.update { it.copy(isSaving = false) }
+                    SnackbarStore.show(UiText.Resource(Res.string.profile_updated))
                     _events.tryEmit(Screen.Profile)
                 }
                 .onFailure {
-                    _uiState.update { it.copy(isSaving = false, error = UiText.Resource(Res.string.profile_load_error)) }
+                    _uiState.update {
+                        it.copy(isSaving = false, error = UiText.Resource(Res.string.profile_load_error))
+                    }
                 }
         }
     }

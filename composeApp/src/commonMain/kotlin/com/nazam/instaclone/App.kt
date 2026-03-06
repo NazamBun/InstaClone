@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -21,6 +23,7 @@ import com.nazam.instaclone.core.access.CreatePostAccess
 import com.nazam.instaclone.core.navigation.NavigationStore
 import com.nazam.instaclone.core.navigation.Screen
 import com.nazam.instaclone.core.session.SessionManager
+import com.nazam.instaclone.core.ui.SnackbarEffect
 import com.nazam.instaclone.feature.auth.presentation.ui.LoginRoute
 import com.nazam.instaclone.feature.auth.presentation.ui.SignupRoute
 import com.nazam.instaclone.feature.home.presentation.ui.CreatePostRoute
@@ -44,6 +47,9 @@ fun App() {
     val currentUser by sessionManager.user.collectAsState()
     val isLoggedIn = currentUser != null
     val canCreatePost = CreatePostAccess.canCreate(currentUser)
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    SnackbarEffect(hostState = snackbarHostState)
 
     fun navigateTo(screen: Screen) {
         currentScreen = screen
@@ -79,6 +85,7 @@ fun App() {
             modifier = Modifier
                 .fillMaxSize()
                 .windowInsetsPadding(WindowInsets.safeDrawing),
+            snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
             bottomBar = {
                 if (shouldShowBottomBar) {
                     HomeBottomBar(
@@ -105,23 +112,13 @@ fun App() {
         ) { padding: PaddingValues ->
             Box(modifier = Modifier.fillMaxSize()) {
                 when (currentScreen) {
-                    Screen.Home -> HomeRoute(
-                        onNavigate = ::navigateTo,
-                        contentPadding = padding
-                    )
-
-                    Screen.Explore -> ExploreRoute(
-                        onNavigate = ::navigateTo,
-                        contentPadding = padding
-                    )
-
-                    Screen.ExplorePager -> ExplorePagerRoute(
-                        onNavigate = ::navigateTo,
-                        contentPadding = padding
-                    )
+                    Screen.Home -> HomeRoute(onNavigate = ::navigateTo, contentPadding = padding)
+                    Screen.Explore -> ExploreRoute(onNavigate = ::navigateTo, contentPadding = padding)
+                    Screen.ExplorePager -> ExplorePagerRoute(onNavigate = ::navigateTo, contentPadding = padding)
 
                     Screen.CreatePost -> CreatePostRoute(onNavigate = ::navigateTo)
                     Screen.Categories -> CategoriesRoute(onNavigate = ::navigateTo)
+
                     Screen.Login -> LoginRoute(onNavigate = ::navigateTo)
                     Screen.Signup -> SignupRoute(onNavigate = ::navigateTo)
 
@@ -135,11 +132,11 @@ fun App() {
                         onNavigate = ::navigateTo,
                         onFollowClick = {},
                         onMessageClick = {},
+                        onMoreClick = {},
                         onEditProfileClick = { navigateTo(Screen.EditProfile) },
                         onEditCoverClick = {},
                         onEditAvatarClick = {},
-                        onPostClick = { _ -> },
-                        onMoreClick = {}
+                        onPostClick = { _ -> }
                     )
 
                     Screen.EditProfile -> EditProfileRoute(

@@ -183,6 +183,7 @@
     <string name="vs_title_format">%1$s vs %2$s</string>
     <string name="profile_loading">Chargement du profil...</string>
     <string name="profile_load_error">Impossible de charger le profil</string>
+    <string name="profile_updated">Profil mis à jour</string>
 
     <!-- ✅ Profile - Logout (NOUVEAU) -->
     <string name="profile_logout">Déconnexion</string>
