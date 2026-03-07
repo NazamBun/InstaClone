@@ -18,9 +18,10 @@ class ProfileRepositoryImpl(
     private val json: Json
 ) : ProfileRepository {
 
-    companion object {
-        private const val PROFILES_TABLE = "profiles"
-        private const val POSTS_FEED_VIEW = "posts_feed"
+    private companion object {
+        const val PROFILES_TABLE = "profiles"
+        const val POSTS_FEED_VIEW = "posts_feed"
+        const val FOLLOWS_TABLE = "follows"
     }
 
     override suspend fun getMyProfile(
@@ -28,9 +29,7 @@ class ProfileRepositoryImpl(
         emailFallback: String
     ): Result<Profile> {
         return runCatching {
-            val dtos = fetchProfiles(userId)
-            val dto = dtos.firstOrNull()
-
+            val dto = fetchProfiles(userId).firstOrNull()
             ProfileMapper.toDomain(
                 dto = dto,
                 userId = userId,
@@ -52,7 +51,7 @@ class ProfileRepositoryImpl(
                 response.data
             )
 
-            dtos.map { dto -> PostMapper.toDomain(dto) }
+            dtos.map(PostMapper::toDomain)
         }
     }
 
@@ -61,22 +60,26 @@ class ProfileRepositoryImpl(
         update: UpdateProfile
     ): Result<Unit> {
         return runCatching {
-            val payload = mapOf(
-                "display_name" to update.displayName.trim(),
-                "username" to update.username.trim(),
-                "bio" to update.bio.trim(),
-                "location" to update.location.trim(),
-                "website" to update.website.trim()
+            val payload = mutableMapOf<String, Any>(
+                "display_name" to update.displayName.trim()
             )
+
+            val username = update.username.trim()
+            val bio = update.bio.trim()
+            val location = update.location.trim()
+            val website = update.website.trim()
+
+            if (username.isNotBlank()) payload["username"] = username
+            if (bio.isNotBlank()) payload["bio"] = bio
+            if (location.isNotBlank()) payload["location"] = location
+            if (website.isNotBlank()) payload["website"] = website
 
             if (hasProfile(userId)) {
                 client.postgrest[PROFILES_TABLE].update(payload) {
                     filter { eq("id", userId) }
                 }
             } else {
-                client.postgrest[PROFILES_TABLE].insert(
-                    payload + ("id" to userId)
-                )
+                client.postgrest[PROFILES_TABLE].insert(payload + ("id" to userId))
             }
 
             Unit
@@ -95,12 +98,34 @@ class ProfileRepositoryImpl(
                     filter { eq("id", userId) }
                 }
             } else {
-                client.postgrest[PROFILES_TABLE].insert(
-                    payload + ("id" to userId)
-                )
+                client.postgrest[PROFILES_TABLE].insert(payload + ("id" to userId))
             }
 
             Unit
+        }
+    }
+
+    override suspend fun getFollowersCount(userId: String): Result<Int> {
+        return runCatching {
+            val response = client
+                .postgrest[FOLLOWS_TABLE]
+                .select {
+                    filter { eq("following_id", userId) }
+                }
+
+            response.data.countOccurrences("follower_id")
+        }
+    }
+
+    override suspend fun getFollowingCount(userId: String): Result<Int> {
+        return runCatching {
+            val response = client
+                .postgrest[FOLLOWS_TABLE]
+                .select {
+                    filter { eq("follower_id", userId) }
+                }
+
+            response.data.countOccurrences("following_id")
         }
     }
 
@@ -120,5 +145,9 @@ class ProfileRepositoryImpl(
             ListSerializer(ProfileDto.serializer()),
             response.data
         )
+    }
+
+    private fun String.countOccurrences(key: String): Int {
+        return "\"$key\"".toRegex().findAll(this).count()
     }
 }

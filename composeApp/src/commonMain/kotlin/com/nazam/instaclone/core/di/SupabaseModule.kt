@@ -32,6 +32,8 @@ import com.nazam.instaclone.feature.home.presentation.viewmodel.ExploreViewModel
 import com.nazam.instaclone.feature.home.presentation.viewmodel.HomeViewModel
 import com.nazam.instaclone.feature.profile.data.repository.ProfileRepositoryImpl
 import com.nazam.instaclone.feature.profile.domain.repository.ProfileRepository
+import com.nazam.instaclone.feature.profile.domain.usecase.GetFollowersCountUseCase
+import com.nazam.instaclone.feature.profile.domain.usecase.GetFollowingCountUseCase
 import com.nazam.instaclone.feature.profile.domain.usecase.GetMyPostsUseCase
 import com.nazam.instaclone.feature.profile.domain.usecase.GetMyProfileUseCase
 import com.nazam.instaclone.feature.profile.domain.usecase.UpdateAvatarUseCase
@@ -42,7 +44,6 @@ import kotlinx.serialization.json.Json
 import org.koin.dsl.module
 
 val appModule = module {
-
     single { SupabaseClientProvider.client }
     single { Json { ignoreUnknownKeys = true } }
     single<AppDispatchers> { DefaultAppDispatchers() }
@@ -77,6 +78,8 @@ val appModule = module {
     single<ProfileRepository> { ProfileRepositoryImpl(client = get(), json = get()) }
     factory { GetMyProfileUseCase(get()) }
     factory { GetMyPostsUseCase(get()) }
+    factory { GetFollowersCountUseCase(get()) }
+    factory { GetFollowingCountUseCase(get()) }
     factory { UpdateMyProfileUseCase(get()) }
     factory { UpdateAvatarUseCase(get()) }
 
@@ -129,6 +132,8 @@ val appModule = module {
             getCurrentUserUseCase = get(),
             getMyProfileUseCase = get(),
             getMyPostsUseCase = get(),
+            getFollowersCountUseCase = get(),
+            getFollowingCountUseCase = get(),
             logoutUseCase = get(),
             sessionManager = get(),
             uploadPostImageUseCase = get(),

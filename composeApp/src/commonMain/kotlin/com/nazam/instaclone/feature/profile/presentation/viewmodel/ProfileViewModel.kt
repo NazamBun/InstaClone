@@ -9,6 +9,8 @@ import com.nazam.instaclone.feature.auth.domain.usecase.GetCurrentUserUseCase
 import com.nazam.instaclone.feature.auth.domain.usecase.LogoutUseCase
 import com.nazam.instaclone.feature.home.domain.model.UploadProgress
 import com.nazam.instaclone.feature.home.domain.usecase.UploadPostImageUseCase
+import com.nazam.instaclone.feature.profile.domain.usecase.GetFollowersCountUseCase
+import com.nazam.instaclone.feature.profile.domain.usecase.GetFollowingCountUseCase
 import com.nazam.instaclone.feature.profile.domain.usecase.GetMyPostsUseCase
 import com.nazam.instaclone.feature.profile.domain.usecase.GetMyProfileUseCase
 import com.nazam.instaclone.feature.profile.domain.usecase.UpdateAvatarUseCase
@@ -32,6 +34,8 @@ class ProfileViewModel(
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
     private val getMyProfileUseCase: GetMyProfileUseCase,
     private val getMyPostsUseCase: GetMyPostsUseCase,
+    private val getFollowersCountUseCase: GetFollowersCountUseCase,
+    private val getFollowingCountUseCase: GetFollowingCountUseCase,
     private val logoutUseCase: LogoutUseCase,
     private val sessionManager: SessionManager,
     private val uploadPostImageUseCase: UploadPostImageUseCase,
@@ -57,11 +61,7 @@ class ProfileViewModel(
             val user = withContext(dispatchers.io) { getCurrentUserUseCase.execute() }
             if (user == null) {
                 _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        ui = null,
-                        error = UiText.Resource(Res.string.profile_load_error)
-                    )
+                    it.copy(isLoading = false, ui = null, error = UiText.Resource(Res.string.profile_load_error))
                 }
                 return@launch
             }
@@ -72,17 +72,19 @@ class ProfileViewModel(
             val postsResult = withContext(dispatchers.io) {
                 getMyPostsUseCase.execute(email = user.email)
             }
+            val followersResult = withContext(dispatchers.io) {
+                getFollowersCountUseCase.execute(userId = user.id)
+            }
+            val followingResult = withContext(dispatchers.io) {
+                getFollowingCountUseCase.execute(userId = user.id)
+            }
 
             val profile = profileResult.getOrNull()
             val posts = postsResult.getOrNull().orEmpty()
 
             if (profile == null) {
                 _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        ui = null,
-                        error = UiText.Resource(Res.string.profile_load_error)
-                    )
+                    it.copy(isLoading = false, ui = null, error = UiText.Resource(Res.string.profile_load_error))
                 }
                 return@launch
             }
@@ -98,8 +100,8 @@ class ProfileViewModel(
                         website = profile.website,
                         joinedLabel = profile.joinedLabel,
                         postsCount = posts.size,
-                        followersCount = 0,
-                        followingCount = 0,
+                        followersCount = followersResult.getOrDefault(0),
+                        followingCount = followingResult.getOrDefault(0),
                         avatarUrl = profile.avatarUrl,
                         coverUrl = profile.coverUrl,
                         posts = posts,
@@ -118,10 +120,7 @@ class ProfileViewModel(
             val user = withContext(dispatchers.io) { getCurrentUserUseCase.execute() }
             if (user == null) {
                 _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        error = UiText.Resource(Res.string.profile_load_error)
-                    )
+                    it.copy(isLoading = false, error = UiText.Resource(Res.string.profile_load_error))
                 }
                 return@launch
             }
@@ -133,9 +132,7 @@ class ProfileViewModel(
                 uploadPostImageUseCase.execute(localUri).collect { progress ->
                     when (progress) {
                         is UploadProgress.Success -> publicUrl = progress.publicUrl
-                        is UploadProgress.Error -> {
-                            uploadError = progress.message.ifBlank { "Upload avatar impossible" }
-                        }
+                        is UploadProgress.Error -> uploadError = progress.message.ifBlank { "Upload avatar impossible" }
                         else -> Unit
                     }
                 }
@@ -143,29 +140,20 @@ class ProfileViewModel(
 
             if (uploadError != null || publicUrl.isNullOrBlank()) {
                 _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        error = UiText.DynamicString(uploadError ?: "Upload avatar impossible")
-                    )
+                    it.copy(isLoading = false, error = UiText.DynamicString(uploadError ?: "Upload avatar impossible"))
                 }
                 return@launch
             }
 
             val result = withContext(dispatchers.io) {
-                updateAvatarUseCase.execute(
-                    userId = user.id,
-                    avatarUrl = publicUrl!!
-                )
+                updateAvatarUseCase.execute(userId = user.id, avatarUrl = publicUrl!!)
             }
 
             result
                 .onSuccess { load() }
                 .onFailure {
                     _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            error = UiText.Resource(Res.string.profile_load_error)
-                        )
+                        it.copy(isLoading = false, error = UiText.Resource(Res.string.profile_load_error))
                     }
                 }
         }
@@ -186,10 +174,7 @@ class ProfileViewModel(
                 }
                 .onFailure {
                     _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            error = UiText.Resource(Res.string.profile_load_error)
-                        )
+                        it.copy(isLoading = false, error = UiText.Resource(Res.string.profile_load_error))
                     }
                 }
         }
