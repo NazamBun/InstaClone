@@ -3,7 +3,11 @@ package com.nazam.instaclone.feature.profile.data.repository
 import com.nazam.instaclone.feature.home.data.dto.PostDto
 import com.nazam.instaclone.feature.home.data.mapper.PostMapper
 import com.nazam.instaclone.feature.home.domain.model.VsPost
+import com.nazam.instaclone.feature.profile.data.dto.ProfileAvatarDto
+import com.nazam.instaclone.feature.profile.data.dto.ProfileAvatarInsertDto
 import com.nazam.instaclone.feature.profile.data.dto.ProfileDto
+import com.nazam.instaclone.feature.profile.data.dto.ProfileInsertDto
+import com.nazam.instaclone.feature.profile.data.dto.ProfileWriteDto
 import com.nazam.instaclone.feature.profile.data.mapper.ProfileMapper
 import com.nazam.instaclone.feature.profile.domain.model.Profile
 import com.nazam.instaclone.feature.profile.domain.model.UpdateProfile
@@ -30,11 +34,7 @@ class ProfileRepositoryImpl(
     ): Result<Profile> {
         return runCatching {
             val dto = fetchProfiles(userId).firstOrNull()
-            ProfileMapper.toDomain(
-                dto = dto,
-                userId = userId,
-                email = emailFallback
-            )
+            ProfileMapper.toDomain(dto, userId, emailFallback)
         }
     }
 
@@ -60,26 +60,29 @@ class ProfileRepositoryImpl(
         update: UpdateProfile
     ): Result<Unit> {
         return runCatching {
-            val payload = mutableMapOf<String, Any>(
-                "display_name" to update.displayName.trim()
+            val payload = ProfileWriteDto(
+                displayName = update.displayName.trim(),
+                username = update.username.trim(),
+                bio = update.bio.trim(),
+                location = update.location.trim(),
+                website = update.website.trim()
             )
-
-            val username = update.username.trim()
-            val bio = update.bio.trim()
-            val location = update.location.trim()
-            val website = update.website.trim()
-
-            if (username.isNotBlank()) payload["username"] = username
-            if (bio.isNotBlank()) payload["bio"] = bio
-            if (location.isNotBlank()) payload["location"] = location
-            if (website.isNotBlank()) payload["website"] = website
 
             if (hasProfile(userId)) {
                 client.postgrest[PROFILES_TABLE].update(payload) {
                     filter { eq("id", userId) }
                 }
             } else {
-                client.postgrest[PROFILES_TABLE].insert(payload + ("id" to userId))
+                client.postgrest[PROFILES_TABLE].insert(
+                    ProfileInsertDto(
+                        id = userId,
+                        displayName = payload.displayName,
+                        username = payload.username,
+                        bio = payload.bio,
+                        location = payload.location,
+                        website = payload.website
+                    )
+                )
             }
 
             Unit
@@ -91,14 +94,21 @@ class ProfileRepositoryImpl(
         avatarUrl: String
     ): Result<Unit> {
         return runCatching {
-            val payload = mapOf("avatar_url" to avatarUrl)
+            val payload = ProfileAvatarDto(
+                avatarUrl = avatarUrl
+            )
 
             if (hasProfile(userId)) {
                 client.postgrest[PROFILES_TABLE].update(payload) {
                     filter { eq("id", userId) }
                 }
             } else {
-                client.postgrest[PROFILES_TABLE].insert(payload + ("id" to userId))
+                client.postgrest[PROFILES_TABLE].insert(
+                    ProfileAvatarInsertDto(
+                        id = userId,
+                        avatarUrl = avatarUrl
+                    )
+                )
             }
 
             Unit
