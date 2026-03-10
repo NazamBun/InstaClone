@@ -8,6 +8,7 @@ data class VsPost(
     val id: String,
 
     // Auteur
+    val authorId: String?,
     val authorName: String,
     val authorAvatarUrl: String?,
 
@@ -27,6 +28,6 @@ data class VsPost(
     val rightVotesCount: Int,
     val totalVotesCount: Int,
 
-    // ✅ Vote de l’utilisateur courant
+    // Vote utilisateur courant
     val userVote: VoteChoice = VoteChoice.NONE
 )

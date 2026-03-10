@@ -7,6 +7,6 @@ class GetMyProfileUseCase(
     private val repository: ProfileRepository
 ) {
     suspend fun execute(userId: String, emailFallback: String): Result<Profile> {
-        return repository.getMyProfile(userId = userId, emailFallback = emailFallback)
+        return repository.getProfile(userId = userId, emailFallback = emailFallback)
     }
 }

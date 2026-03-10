@@ -28,128 +28,103 @@ class ProfileRepositoryImpl(
         const val FOLLOWS_TABLE = "follows"
     }
 
-    override suspend fun getMyProfile(
+    override suspend fun getProfile(
         userId: String,
         emailFallback: String
-    ): Result<Profile> {
-        return runCatching {
-            val dto = fetchProfiles(userId).firstOrNull()
-            ProfileMapper.toDomain(dto, userId, emailFallback)
-        }
+    ): Result<Profile> = runCatching {
+        val dto = fetchProfiles(userId).firstOrNull()
+        ProfileMapper.toDomain(dto, userId, emailFallback)
     }
 
-    override suspend fun getMyPosts(email: String): Result<List<VsPost>> {
-        return runCatching {
-            val response = client
-                .postgrest[POSTS_FEED_VIEW]
-                .select {
-                    filter { eq("author_name", email) }
-                }
-
-            val dtos: List<PostDto> = json.decodeFromString(
-                ListSerializer(PostDto.serializer()),
-                response.data
-            )
-
-            dtos.map(PostMapper::toDomain)
+    override suspend fun getPostsByAuthorId(authorId: String): Result<List<VsPost>> = runCatching {
+        val response = client.postgrest[POSTS_FEED_VIEW].select {
+            filter { eq("author_id", authorId) }
         }
+
+        val dtos: List<PostDto> = json.decodeFromString(
+            ListSerializer(PostDto.serializer()),
+            response.data
+        )
+
+        dtos.map(PostMapper::toDomain)
     }
 
     override suspend fun updateMyProfile(
         userId: String,
         update: UpdateProfile
-    ): Result<Unit> {
-        return runCatching {
-            val payload = ProfileWriteDto(
-                displayName = update.displayName.trim(),
-                username = update.username.trim(),
-                bio = update.bio.trim(),
-                location = update.location.trim(),
-                website = update.website.trim()
-            )
+    ): Result<Unit> = runCatching {
+        val payload = ProfileWriteDto(
+            displayName = update.displayName.trim(),
+            username = update.username.trim(),
+            bio = update.bio.trim(),
+            location = update.location.trim(),
+            website = update.website.trim()
+        )
 
-            if (hasProfile(userId)) {
-                client.postgrest[PROFILES_TABLE].update(payload) {
-                    filter { eq("id", userId) }
-                }
-            } else {
-                client.postgrest[PROFILES_TABLE].insert(
-                    ProfileInsertDto(
-                        id = userId,
-                        displayName = payload.displayName,
-                        username = payload.username,
-                        bio = payload.bio,
-                        location = payload.location,
-                        website = payload.website
-                    )
-                )
+        if (hasProfile(userId)) {
+            client.postgrest[PROFILES_TABLE].update(payload) {
+                filter { eq("id", userId) }
             }
-
-            Unit
+        } else {
+            client.postgrest[PROFILES_TABLE].insert(
+                ProfileInsertDto(
+                    id = userId,
+                    displayName = payload.displayName,
+                    username = payload.username,
+                    bio = payload.bio,
+                    location = payload.location,
+                    website = payload.website
+                )
+            )
         }
+
+        Unit
     }
 
     override suspend fun updateAvatar(
         userId: String,
         avatarUrl: String
-    ): Result<Unit> {
-        return runCatching {
-            val payload = ProfileAvatarDto(
-                avatarUrl = avatarUrl
-            )
+    ): Result<Unit> = runCatching {
+        val payload = ProfileAvatarDto(avatarUrl = avatarUrl)
 
-            if (hasProfile(userId)) {
-                client.postgrest[PROFILES_TABLE].update(payload) {
-                    filter { eq("id", userId) }
-                }
-            } else {
-                client.postgrest[PROFILES_TABLE].insert(
-                    ProfileAvatarInsertDto(
-                        id = userId,
-                        avatarUrl = avatarUrl
-                    )
-                )
+        if (hasProfile(userId)) {
+            client.postgrest[PROFILES_TABLE].update(payload) {
+                filter { eq("id", userId) }
             }
-
-            Unit
+        } else {
+            client.postgrest[PROFILES_TABLE].insert(
+                ProfileAvatarInsertDto(
+                    id = userId,
+                    avatarUrl = avatarUrl
+                )
+            )
         }
+
+        Unit
     }
 
-    override suspend fun getFollowersCount(userId: String): Result<Int> {
-        return runCatching {
-            val response = client
-                .postgrest[FOLLOWS_TABLE]
-                .select {
-                    filter { eq("following_id", userId) }
-                }
-
-            response.data.countOccurrences("follower_id")
+    override suspend fun getFollowersCount(userId: String): Result<Int> = runCatching {
+        val response = client.postgrest[FOLLOWS_TABLE].select {
+            filter { eq("following_id", userId) }
         }
+        response.data.countOccurrences("follower_id")
     }
 
-    override suspend fun getFollowingCount(userId: String): Result<Int> {
-        return runCatching {
-            val response = client
-                .postgrest[FOLLOWS_TABLE]
-                .select {
-                    filter { eq("follower_id", userId) }
-                }
-
-            response.data.countOccurrences("following_id")
+    override suspend fun getFollowingCount(userId: String): Result<Int> = runCatching {
+        val response = client.postgrest[FOLLOWS_TABLE].select {
+            filter { eq("follower_id", userId) }
         }
+        response.data.countOccurrences("following_id")
     }
 
-    private suspend fun hasProfile(userId: String): Boolean {
-        return fetchProfiles(userId).isNotEmpty()
-    }
+    private suspend fun hasProfile(userId: String): Boolean =
+        fetchProfiles(userId).isNotEmpty()
 
     private suspend fun fetchProfiles(userId: String): List<ProfileDto> {
-        val response = client
-            .postgrest[PROFILES_TABLE]
-            .select {
-                filter { eq("id", userId) }
-                limit(1)
-            }
+        val response = client.postgrest[PROFILES_TABLE].select {
+            filter { eq("id", userId) }
+            limit(1)
+        }
 
         return json.decodeFromString(
             ListSerializer(ProfileDto.serializer()),
@@ -157,7 +132,6 @@ class ProfileRepositoryImpl(
         )
     }
 
-    private fun String.countOccurrences(key: String): Int {
-        return "\"$key\"".toRegex().findAll(this).count()
-    }
+    private fun String.countOccurrences(key: String): Int =
+        "\"$key\"".toRegex().findAll(this).count()
 }

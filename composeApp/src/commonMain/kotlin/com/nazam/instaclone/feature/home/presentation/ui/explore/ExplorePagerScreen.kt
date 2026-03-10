@@ -22,14 +22,6 @@ import instaclone.composeapp.generated.resources.explore_back
 import instaclone.composeapp.generated.resources.explore_empty_category
 import org.jetbrains.compose.resources.stringResource
 
-/**
- * ExplorePagerScreen :
- * - Swipe horizontal (gauche/droite)
- * - Si categoryId est vide (deep link) : on déduit la catégorie depuis le post
- *
- * ✅ KMP friendly
- * ✅ Simple
- */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ExplorePagerScreen(
@@ -43,13 +35,9 @@ fun ExplorePagerScreen(
     val storeCategoryId = ExplorePagerStore.getCategoryId()
     val startPostId = ExplorePagerStore.getStartPostId()
 
-    // ✅ Si deep link (catégorie vide), on essaye de trouver la catégorie du post
-    val effectiveCategoryId: String =
-        if (storeCategoryId.isNotBlank()) {
-            storeCategoryId
-        } else {
-            ui.posts.firstOrNull { it.id == startPostId }?.category.orEmpty()
-        }
+    val effectiveCategoryId =
+        if (storeCategoryId.isNotBlank()) storeCategoryId
+        else ui.posts.firstOrNull { it.id == startPostId }?.category.orEmpty()
 
     val postsInCategory =
         if (effectiveCategoryId.isBlank()) ui.posts
@@ -63,14 +51,13 @@ fun ExplorePagerScreen(
                 .padding(contentPadding),
             contentAlignment = Alignment.Center
         ) {
-            Text(text = stringResource(Res.string.explore_empty_category), color = Color.White)
+            Text(stringResource(Res.string.explore_empty_category), color = Color.White)
         }
         return
     }
 
-    val startIndex = postsInCategory.indexOfFirst { it.id == startPostId }.let { idx ->
-        if (idx >= 0) idx else 0
-    }
+    val startIndex = postsInCategory.indexOfFirst { it.id == startPostId }
+        .let { if (it >= 0) it else 0 }
 
     val pagerState = rememberPagerState(
         initialPage = startIndex,
@@ -89,7 +76,7 @@ fun ExplorePagerScreen(
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .padding(horizontal = 16.dp, vertical = 12.dp)
-                .clickable { onBackClick() }
+                .clickable(onClick = onBackClick)
         )
 
         HorizontalPager(
@@ -97,18 +84,18 @@ fun ExplorePagerScreen(
             modifier = Modifier.fillMaxSize()
         ) { index ->
             val post = postsInCategory[index]
-            val isVoting = ui.votingPostId == post.id
 
             VsPostItem(
                 post = post,
-                isVoting = isVoting,
+                isVoting = ui.votingPostId == post.id,
                 onVoteLeft = { onVoteLeft(post.id) },
                 onVoteRight = { onVoteRight(post.id) },
+                onAuthorClick = {},
                 resultsAlpha = 1f,
                 modifier = Modifier.fillMaxSize(),
                 onCommentsClick = { onOpenComments(post.id) },
                 onMessageClick = {},
-                onShareClick = {}, // on pourra le brancher après si tu veux
+                onShareClick = {},
                 extraBottomPadding = 0.dp
             )
         }

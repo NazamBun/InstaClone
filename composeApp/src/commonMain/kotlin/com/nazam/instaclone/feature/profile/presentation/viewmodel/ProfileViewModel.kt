@@ -15,6 +15,7 @@ import com.nazam.instaclone.feature.profile.domain.usecase.GetMyPostsUseCase
 import com.nazam.instaclone.feature.profile.domain.usecase.GetMyProfileUseCase
 import com.nazam.instaclone.feature.profile.domain.usecase.UpdateAvatarUseCase
 import com.nazam.instaclone.feature.profile.presentation.model.ProfileUiState
+import com.nazam.instaclone.feature.profile.presentation.navigation.ProfileTargetStore
 import com.nazam.instaclone.feature.profile.presentation.ui.ProfileUi
 import instaclone.composeapp.generated.resources.Res
 import instaclone.composeapp.generated.resources.profile_load_error
@@ -58,30 +59,31 @@ class ProfileViewModel(
         scope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
 
-            val user = withContext(dispatchers.io) { getCurrentUserUseCase.execute() }
-            if (user == null) {
+            val currentUser = withContext(dispatchers.io) { getCurrentUserUseCase.execute() }
+            if (currentUser == null) {
                 _uiState.update {
                     it.copy(isLoading = false, ui = null, error = UiText.Resource(Res.string.profile_load_error))
                 }
                 return@launch
             }
 
+            val targetUserId = ProfileTargetStore.getUserId() ?: currentUser.id
+            val targetEmail = ProfileTargetStore.getEmailFallback() ?: currentUser.email
+
             val profileResult = withContext(dispatchers.io) {
-                getMyProfileUseCase.execute(userId = user.id, emailFallback = user.email)
+                getMyProfileUseCase.execute(userId = targetUserId, emailFallback = targetEmail)
             }
             val postsResult = withContext(dispatchers.io) {
-                getMyPostsUseCase.execute(email = user.email)
+                getMyPostsUseCase.execute(authorId = targetUserId)
             }
             val followersResult = withContext(dispatchers.io) {
-                getFollowersCountUseCase.execute(userId = user.id)
+                getFollowersCountUseCase.execute(userId = targetUserId)
             }
             val followingResult = withContext(dispatchers.io) {
-                getFollowingCountUseCase.execute(userId = user.id)
+                getFollowingCountUseCase.execute(userId = targetUserId)
             }
 
             val profile = profileResult.getOrNull()
-            val posts = postsResult.getOrNull().orEmpty()
-
             if (profile == null) {
                 _uiState.update {
                     it.copy(isLoading = false, ui = null, error = UiText.Resource(Res.string.profile_load_error))
@@ -99,13 +101,13 @@ class ProfileViewModel(
                         location = profile.location,
                         website = profile.website,
                         joinedLabel = profile.joinedLabel,
-                        postsCount = posts.size,
+                        postsCount = postsResult.getOrDefault(emptyList()).size,
                         followersCount = followersResult.getOrDefault(0),
                         followingCount = followingResult.getOrDefault(0),
                         avatarUrl = profile.avatarUrl,
                         coverUrl = profile.coverUrl,
-                        posts = posts,
-                        isSelfProfile = profile.userId == user.id
+                        posts = postsResult.getOrDefault(emptyList()),
+                        isSelfProfile = targetUserId == currentUser.id
                     ),
                     error = null
                 )
@@ -117,14 +119,7 @@ class ProfileViewModel(
         scope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
 
-            val user = withContext(dispatchers.io) { getCurrentUserUseCase.execute() }
-            if (user == null) {
-                _uiState.update {
-                    it.copy(isLoading = false, error = UiText.Resource(Res.string.profile_load_error))
-                }
-                return@launch
-            }
-
+            val user = withContext(dispatchers.io) { getCurrentUserUseCase.execute() } ?: return@launch
             var publicUrl: String? = null
             var uploadError: String? = null
 
@@ -145,17 +140,14 @@ class ProfileViewModel(
                 return@launch
             }
 
-            val result = withContext(dispatchers.io) {
+            withContext(dispatchers.io) {
                 updateAvatarUseCase.execute(userId = user.id, avatarUrl = publicUrl!!)
-            }
-
-            result
-                .onSuccess { load() }
-                .onFailure {
-                    _uiState.update {
-                        it.copy(isLoading = false, error = UiText.Resource(Res.string.profile_load_error))
-                    }
-                }
+            }.onSuccess { load() }
+             .onFailure {
+                 _uiState.update {
+                     it.copy(isLoading = false, error = UiText.Resource(Res.string.profile_load_error))
+                 }
+             }
         }
     }
 
@@ -163,12 +155,11 @@ class ProfileViewModel(
         scope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
 
-            val result = withContext(dispatchers.io) { logoutUseCase.execute() }
-
-            result
+            withContext(dispatchers.io) { logoutUseCase.execute() }
                 .onSuccess {
                     NavigationStore.clear()
                     sessionManager.setUser(null)
+                    ProfileTargetStore.openSelf()
                     _uiState.update { ProfileUiState(isLoading = false) }
                     _events.tryEmit(ProfileUiEvent.Navigate(Screen.Login))
                 }
@@ -180,7 +171,5 @@ class ProfileViewModel(
         }
     }
 
-    fun clear() {
-        job.cancel()
-    }
+    fun clear() = job.cancel()
 }

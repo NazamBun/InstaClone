@@ -1,6 +1,6 @@
 package com.nazam.instaclone.feature.home.presentation.ui.components.vspost
 
-import com.nazam.instaclone.core.ui.asString
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
@@ -10,22 +10,24 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.nazam.instaclone.core.ui.asString
 import com.nazam.instaclone.feature.home.domain.model.VoteCategories
 
 @Composable
 fun VsPostHeader(
     authorName: String,
     category: String,
+    onAuthorClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // category = categoryId (ex: "sport"), on veut afficher "Sport"
     val categoryLabel = VoteCategories.labelFor(category).asString()
 
     Column(modifier = modifier.padding(16.dp)) {
         Text(
             text = authorName,
             color = Color.White,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.clickable(onClick = onAuthorClick)
         )
         Text(
             text = categoryLabel,

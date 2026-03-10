@@ -30,6 +30,7 @@ fun HomeFeedContent(
     onVoteLeft: (String) -> Unit,
     onVoteRight: (String) -> Unit,
     onOpenComments: (String) -> Unit,
+    onOpenAuthor: (VsPost) -> Unit,
     onShare: (VsPost) -> Unit,
     onLoadMore: () -> Unit
 ) {
@@ -61,8 +62,12 @@ fun HomeFeedContent(
             else -> {
                 val pagerState = rememberPagerState(pageCount = { visiblePosts.size })
 
-                // ✅ Quand on arrive presque à la fin → load more
-                LaunchedEffect(pagerState.currentPage, visiblePosts.size, ui.isLoadingMore, ui.endReached) {
+                LaunchedEffect(
+                    pagerState.currentPage,
+                    visiblePosts.size,
+                    ui.isLoadingMore,
+                    ui.endReached
+                ) {
                     val nearEnd = pagerState.currentPage >= (visiblePosts.size - 3).coerceAtLeast(0)
                     if (nearEnd && !ui.isLoadingMore && !ui.endReached && ui.selectedCategoryId.isBlank()) {
                         onLoadMore()
@@ -74,11 +79,9 @@ fun HomeFeedContent(
                     modifier = Modifier.fillMaxSize()
                 ) { index ->
                     val post = visiblePosts[index]
-
                     val rawOffset =
                         (pagerState.currentPage - index) + pagerState.currentPageOffsetFraction
                     val pageOffset = abs(rawOffset)
-
                     val resultsAlpha = (1f - pageOffset * 1.5f).coerceIn(0f, 1f)
                     val isVoting = ui.votingPostId == post.id
 
@@ -87,6 +90,7 @@ fun HomeFeedContent(
                         isVoting = isVoting,
                         onVoteLeft = { onVoteLeft(post.id) },
                         onVoteRight = { onVoteRight(post.id) },
+                        onAuthorClick = onOpenAuthor,
                         resultsAlpha = resultsAlpha,
                         modifier = Modifier.fillMaxSize(),
                         onCommentsClick = { onOpenComments(post.id) },

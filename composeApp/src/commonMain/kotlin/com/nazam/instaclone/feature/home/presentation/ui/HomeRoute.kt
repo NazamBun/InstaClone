@@ -21,6 +21,7 @@ import com.nazam.instaclone.feature.home.domain.model.VsPost
 import com.nazam.instaclone.feature.home.presentation.ui.components.share.ShareBottomSheet
 import com.nazam.instaclone.feature.home.presentation.viewmodel.HomeUiEvent
 import com.nazam.instaclone.feature.home.presentation.viewmodel.HomeViewModel
+import com.nazam.instaclone.feature.profile.presentation.navigation.ProfileTargetStore
 import instaclone.composeapp.generated.resources.Res
 import instaclone.composeapp.generated.resources.share_copied
 import kotlinx.coroutines.flow.collectLatest
@@ -36,17 +37,14 @@ fun HomeRoute(
     val ui by viewModel.uiState.collectAsState()
 
     val snackbarHostState = remember { SnackbarHostState() }
-
     val shareLauncher = rememberShareLauncher()
     val shareCardRenderer = rememberShareCardRenderer()
     val clipboard = rememberClipboardManager()
 
     var pendingMessage by remember { mutableStateOf<UiText?>(null) }
     var shareSheetPost by remember { mutableStateOf<VsPost?>(null) }
-
-    // ✅ Pour afficher un snackbar "Copié ✅" sans appeler stringResource dans un callback
-    val copiedLabel = stringResource(Res.string.share_copied)
     var pendingSnackText by remember { mutableStateOf<String?>(null) }
+    val copiedLabel = stringResource(Res.string.share_copied)
 
     LaunchedEffect(Unit) {
         viewModel.events.collectLatest { event ->
@@ -58,7 +56,6 @@ fun HomeRoute(
         }
     }
 
-    // Snackbar (messages UiText existants)
     pendingMessage?.let { msg ->
         val text = msg.asString()
         LaunchedEffect(text) {
@@ -67,7 +64,6 @@ fun HomeRoute(
         }
     }
 
-    // Snackbar (copié)
     pendingSnackText?.let { text ->
         LaunchedEffect(text) {
             snackbarHostState.showSnackbar(text)
@@ -75,15 +71,11 @@ fun HomeRoute(
         }
     }
 
-    // ✅ ShareSheet pro
     shareSheetPost?.let { post ->
         val content = ViralShareTextFactory.contentFromPost(post)
-
         val png = shareCardRenderer.renderPng(post)
-        val imageOrNull = png.takeIf { it.isNotEmpty() }
-
         val finalPayload: SharePayload = content.payload.copy(
-            imagePng = imageOrNull,
+            imagePng = png.takeIf { it.isNotEmpty() },
             imageFileName = "vs_${post.id}.png"
         )
 
@@ -109,23 +101,26 @@ fun HomeRoute(
         ui = ui,
         snackbarHostState = snackbarHostState,
         contentPadding = contentPadding,
-
         onCreatePostClick = viewModel::onCreatePostClicked,
-
         onVoteLeft = viewModel::voteLeft,
         onVoteRight = viewModel::voteRight,
         onOpenComments = viewModel::openComments,
         onCloseComments = viewModel::closeComments,
+        onOpenAuthor = { post ->
+            val authorId = post.authorId ?: return@HomeScreen
+            ProfileTargetStore.open(
+                userId = authorId,
+                emailFallback = post.authorName
+            )
+            onNavigate(Screen.Profile)
+        },
         onShare = viewModel::onShareClicked,
-
         onNewCommentChange = viewModel::onNewCommentChange,
         onSendCommentClick = viewModel::onSendCommentClicked,
         onCommentInputRequested = viewModel::onCommentInputRequested,
-
         onConsumeDialog = viewModel::consumeDialog,
         onDialogConfirm = viewModel::onDialogConfirmClicked,
         onDialogSecondary = viewModel::onDialogSecondaryClicked,
-
         onLoadMore = viewModel::loadMore
     )
 }

@@ -34,23 +34,19 @@ fun HomeScreen(
     ui: HomeUiState,
     snackbarHostState: SnackbarHostState,
     contentPadding: PaddingValues,
-
     onCreatePostClick: () -> Unit,
-
     onVoteLeft: (String) -> Unit,
     onVoteRight: (String) -> Unit,
     onOpenComments: (String) -> Unit,
     onCloseComments: () -> Unit,
+    onOpenAuthor: (VsPost) -> Unit,
     onShare: (VsPost) -> Unit,
-
     onNewCommentChange: (String) -> Unit,
     onSendCommentClick: () -> Unit,
     onCommentInputRequested: () -> Unit,
-
     onConsumeDialog: () -> Unit,
     onDialogConfirm: () -> Unit,
     onDialogSecondary: () -> Unit,
-
     onLoadMore: () -> Unit
 ) {
     val density = LocalDensity.current
@@ -88,6 +84,7 @@ fun HomeScreen(
             onVoteLeft = onVoteLeft,
             onVoteRight = onVoteRight,
             onOpenComments = onOpenComments,
+            onOpenAuthor = onOpenAuthor,
             onShare = onShare,
             onLoadMore = onLoadMore
         )

@@ -40,6 +40,7 @@ fun VsPostItem(
     isVoting: Boolean,
     onVoteLeft: () -> Unit,
     onVoteRight: () -> Unit,
+    onAuthorClick: (VsPost) -> Unit,
     resultsAlpha: Float,
     modifier: Modifier = Modifier,
     onCommentsClick: () -> Unit = {},
@@ -49,17 +50,12 @@ fun VsPostItem(
 ) {
     val density = LocalDensity.current
 
-    // ✅ Pour convertir Window -> Local
     var rootInWindow by remember(post.id) { mutableStateOf(Offset.Zero) }
-
-    // ✅ "+1"
     var lastVote by remember(post.id) { mutableStateOf(post.userVote) }
     var lastTapLeft by remember(post.id) { mutableStateOf<Offset?>(null) }
     var lastTapRight by remember(post.id) { mutableStateOf<Offset?>(null) }
     var plusOnePos by remember(post.id) { mutableStateOf<Offset?>(null) }
     var showPlusOne by remember(post.id) { mutableStateOf(false) }
-
-    // ✅ Flamme (AU-DESSUS de tout)
     var flamePosPx by remember(post.id) { mutableStateOf<IntOffset?>(null) }
     var showFlame by remember(post.id) { mutableStateOf(false) }
     var flameTriggerKey by remember(post.id) { mutableStateOf(0) }
@@ -74,7 +70,6 @@ fun VsPostItem(
                 VoteChoice.RIGHT -> lastTapRight
                 VoteChoice.NONE -> null
             }
-
             showPlusOne = true
             delay(750)
             showPlusOne = false
@@ -85,7 +80,6 @@ fun VsPostItem(
 
     fun triggerFlame(endInWindow: Offset) {
         val local = endInWindow - rootInWindow
-        // petit décalage pour que ça soit joli (au-dessus de la barre)
         val dx = with(density) { 6.dp.toPx() }
         val dy = with(density) { 26.dp.toPx() }
 
@@ -93,7 +87,6 @@ fun VsPostItem(
             x = (local.x - dx).roundToInt(),
             y = (local.y - dy).roundToInt()
         )
-
         flameTriggerKey += 1
     }
 
@@ -119,7 +112,6 @@ fun VsPostItem(
             onRightTapPosition = { tap -> lastTapRight = tap }
         )
 
-        // ✅ "+1" près du doigt
         plusOnePos?.let { p ->
             val shiftX = with(density) { 10.dp.toPx() }
             val shiftY = with(density) { 24.dp.toPx() }
@@ -144,6 +136,7 @@ fun VsPostItem(
         VsPostHeader(
             authorName = post.authorName,
             category = post.category,
+            onAuthorClick = { onAuthorClick(post) },
             modifier = Modifier.align(Alignment.TopStart)
         )
 
@@ -170,7 +163,6 @@ fun VsPostItem(
             onRightReached100EndInWindow = { triggerFlame(it) }
         )
 
-        // ✅ Flamme TOUJOURS au-dessus de tout
         flamePosPx?.let { pos ->
             VsPostFlameOverlay(
                 visible = showFlame,
@@ -183,6 +175,6 @@ fun VsPostItem(
     }
 }
 
-/** ✅ Helper : offset en pixels (pour des coordonnées de tap) */
-private fun Modifier.offsetPx(x: Int, y: Int): Modifier =
-    this.then(Modifier.offset { IntOffset(x, y) })
+private fun Modifier.offsetPx(x: Int, y: Int): Modifier {
+    return this.then(Modifier.offset { IntOffset(x, y) })
+}

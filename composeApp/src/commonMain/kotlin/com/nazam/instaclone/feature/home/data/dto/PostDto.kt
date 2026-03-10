@@ -1,5 +1,6 @@
 package com.nazam.instaclone.feature.home.data.dto
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.jsonArray
@@ -9,6 +10,7 @@ data class PostDto(
     val id: String,
     val question: String? = null,
     val category: String? = null,
+    @SerialName("author_id") val authorId: String? = null,
     val author_name: String? = null,
     val author_avatar: String? = null,
     val created_at: String? = null,
@@ -22,7 +24,6 @@ data class PostDto(
     val voted_right_ids: JsonElement? = null,
     val user_choice: String? = null
 ) {
-
     fun votedLeftList(): List<String> {
         return voted_left_ids
             ?.jsonArray

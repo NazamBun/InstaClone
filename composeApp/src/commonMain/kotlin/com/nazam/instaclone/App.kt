@@ -32,6 +32,7 @@ import com.nazam.instaclone.feature.home.presentation.ui.HomeRoute
 import com.nazam.instaclone.feature.home.presentation.ui.categories.CategoriesRoute
 import com.nazam.instaclone.feature.home.presentation.ui.explore.ExplorePagerRoute
 import com.nazam.instaclone.feature.home.presentation.ui.explore.ExploreRoute
+import com.nazam.instaclone.feature.profile.presentation.navigation.ProfileTargetStore
 import com.nazam.instaclone.feature.profile.presentation.ui.ProfileRoute
 import com.nazam.instaclone.feature.profile.presentation.ui.edit.EditProfileRoute
 import instaclone.composeapp.generated.resources.Res
@@ -53,6 +54,11 @@ fun App() {
 
     fun navigateTo(screen: Screen) {
         currentScreen = screen
+    }
+
+    fun openMyProfile() {
+        ProfileTargetStore.openSelf()
+        navigateTo(Screen.Profile)
     }
 
     fun isProtected(screen: Screen): Boolean {
@@ -103,7 +109,7 @@ fun App() {
                             else requireAuth(target = Screen.Notifications, returnScreen = currentScreen)
                         },
                         onProfileOrLoginClick = {
-                            if (isLoggedIn) navigateTo(Screen.Profile)
+                            if (isLoggedIn) openMyProfile()
                             else requireAuth(target = Screen.Profile, returnScreen = currentScreen)
                         }
                     )
@@ -115,18 +121,14 @@ fun App() {
                     Screen.Home -> HomeRoute(onNavigate = ::navigateTo, contentPadding = padding)
                     Screen.Explore -> ExploreRoute(onNavigate = ::navigateTo, contentPadding = padding)
                     Screen.ExplorePager -> ExplorePagerRoute(onNavigate = ::navigateTo, contentPadding = padding)
-
                     Screen.CreatePost -> CreatePostRoute(onNavigate = ::navigateTo)
                     Screen.Categories -> CategoriesRoute(onNavigate = ::navigateTo)
-
                     Screen.Login -> LoginRoute(onNavigate = ::navigateTo)
                     Screen.Signup -> SignupRoute(onNavigate = ::navigateTo)
-
                     Screen.Notifications -> SimplePlaceholder(
                         title = stringResource(Res.string.placeholder_notifications_soon),
                         contentPadding = padding
                     )
-
                     Screen.Profile -> ProfileRoute(
                         contentPadding = padding,
                         onNavigate = ::navigateTo,
@@ -138,7 +140,6 @@ fun App() {
                         onEditAvatarClick = {},
                         onPostClick = { _ -> }
                     )
-
                     Screen.EditProfile -> EditProfileRoute(
                         contentPadding = padding,
                         onNavigate = ::navigateTo

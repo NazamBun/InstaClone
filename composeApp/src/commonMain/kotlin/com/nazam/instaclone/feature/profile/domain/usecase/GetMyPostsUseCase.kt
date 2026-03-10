@@ -6,7 +6,7 @@ import com.nazam.instaclone.feature.profile.domain.repository.ProfileRepository
 class GetMyPostsUseCase(
     private val repository: ProfileRepository
 ) {
-    suspend fun execute(email: String): Result<List<VsPost>> {
-        return repository.getMyPosts(email)
+    suspend fun execute(authorId: String): Result<List<VsPost>> {
+        return repository.getPostsByAuthorId(authorId)
     }
 }
