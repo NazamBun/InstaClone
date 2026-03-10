@@ -88,7 +88,11 @@ fun ProfileHeader(
     }
 
     Column {
-        Box(modifier = Modifier.fillMaxWidth().height(190.dp)) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(190.dp)
+        ) {
             if (!ui.coverUrl.isNullOrBlank()) {
                 NetworkImage(
                     url = ui.coverUrl,
@@ -98,11 +102,13 @@ fun ProfileHeader(
                 Box(Modifier.matchParentSize().background(t.SoftOverlay))
             } else {
                 Box(
-                    Modifier.matchParentSize().background(
-                        Brush.linearGradient(
-                            listOf(t.CoverGradientStart, t.CoverGradientEnd)
+                    Modifier
+                        .matchParentSize()
+                        .background(
+                            Brush.linearGradient(
+                                listOf(t.CoverGradientStart, t.CoverGradientEnd)
+                            )
                         )
-                    )
                 )
             }
 
@@ -141,7 +147,9 @@ fun ProfileHeader(
                     NetworkImage(
                         url = ui.avatarUrl,
                         contentDescription = null,
-                        modifier = Modifier.size(108.dp).clip(CircleShape)
+                        modifier = Modifier
+                            .size(108.dp)
+                            .clip(CircleShape)
                     )
                 }
             }
