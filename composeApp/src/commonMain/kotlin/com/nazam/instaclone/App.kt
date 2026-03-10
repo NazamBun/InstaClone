@@ -61,17 +61,17 @@ fun App() {
         navigateTo(Screen.Profile)
     }
 
+    fun requireAuth(target: Screen, returnScreen: Screen) {
+        NavigationStore.setAuthReturnIfEmpty(returnScreen)
+        NavigationStore.setAfterLogin(target)
+        navigateTo(Screen.Login)
+    }
+
     fun isProtected(screen: Screen): Boolean {
         return screen == Screen.Profile ||
             screen == Screen.EditProfile ||
             screen == Screen.CreatePost ||
             screen == Screen.Notifications
-    }
-
-    fun requireAuth(target: Screen, returnScreen: Screen) {
-        NavigationStore.setAuthReturnIfEmpty(returnScreen)
-        NavigationStore.setAfterLogin(target)
-        navigateTo(Screen.Login)
     }
 
     LaunchedEffect(Unit) {
@@ -84,7 +84,10 @@ fun App() {
         }
     }
 
-    val shouldShowBottomBar = currentScreen != Screen.Login && currentScreen != Screen.Signup
+    val shouldShowBottomBar =
+        currentScreen != Screen.Login &&
+            currentScreen != Screen.Signup &&
+            currentScreen != Screen.UserProfile
 
     MaterialTheme {
         Scaffold(
@@ -102,15 +105,15 @@ fun App() {
                         onExploreClick = { navigateTo(Screen.Explore) },
                         onCreatePostClick = {
                             if (isLoggedIn) navigateTo(Screen.CreatePost)
-                            else requireAuth(target = Screen.CreatePost, returnScreen = currentScreen)
+                            else requireAuth(Screen.CreatePost, currentScreen)
                         },
                         onNotificationsClick = {
                             if (isLoggedIn) navigateTo(Screen.Notifications)
-                            else requireAuth(target = Screen.Notifications, returnScreen = currentScreen)
+                            else requireAuth(Screen.Notifications, currentScreen)
                         },
                         onProfileOrLoginClick = {
                             if (isLoggedIn) openMyProfile()
-                            else requireAuth(target = Screen.Profile, returnScreen = currentScreen)
+                            else requireAuth(Screen.Profile, currentScreen)
                         }
                     )
                 }
@@ -125,13 +128,17 @@ fun App() {
                     Screen.Categories -> CategoriesRoute(onNavigate = ::navigateTo)
                     Screen.Login -> LoginRoute(onNavigate = ::navigateTo)
                     Screen.Signup -> SignupRoute(onNavigate = ::navigateTo)
+
                     Screen.Notifications -> SimplePlaceholder(
                         title = stringResource(Res.string.placeholder_notifications_soon),
                         contentPadding = padding
                     )
+
                     Screen.Profile -> ProfileRoute(
                         contentPadding = padding,
                         onNavigate = ::navigateTo,
+                        onBackClick = {},
+                        isVisitedProfile = false,
                         onFollowClick = {},
                         onMessageClick = {},
                         onMoreClick = {},
@@ -140,6 +147,23 @@ fun App() {
                         onEditAvatarClick = {},
                         onPostClick = { _ -> }
                     )
+
+                    Screen.UserProfile -> ProfileRoute(
+                        contentPadding = padding,
+                        onNavigate = ::navigateTo,
+                        onBackClick = {
+                            navigateTo(ProfileTargetStore.getReturnScreen() ?: Screen.Home)
+                        },
+                        isVisitedProfile = true,
+                        onFollowClick = {},
+                        onMessageClick = {},
+                        onMoreClick = {},
+                        onEditProfileClick = {},
+                        onEditCoverClick = {},
+                        onEditAvatarClick = {},
+                        onPostClick = { _ -> }
+                    )
+
                     Screen.EditProfile -> EditProfileRoute(
                         contentPadding = padding,
                         onNavigate = ::navigateTo

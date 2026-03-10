@@ -13,11 +13,6 @@ import com.nazam.instaclone.feature.profile.presentation.ui.components.ProfileHe
 import com.nazam.instaclone.feature.profile.presentation.ui.components.ProfileStats
 import com.nazam.instaclone.feature.profile.presentation.ui.components.ProfileTabs
 
-/**
- * Écran Profil (simple)
- * - assemble les composants
- * - KMP friendly
- */
 @Composable
 fun ProfileScreen(
     ui: ProfileUi,
@@ -32,11 +27,10 @@ fun ProfileScreen(
     onPostClick: (VsPost) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val t = ProfileUiTokens
     val selectedTab = remember { mutableStateOf(ProfileTab.POSTS) }
 
     LazyColumn(
-        modifier = modifier.background(t.ScreenBg),
+        modifier = modifier.background(ProfileUiTokens.ScreenBg),
         contentPadding = contentPadding
     ) {
         item {
@@ -62,7 +56,6 @@ fun ProfileScreen(
         }
 
         item {
-            // Pour l'instant: même liste pour tous les tabs
             ProfileGrid(
                 posts = ui.posts,
                 onPostClick = onPostClick

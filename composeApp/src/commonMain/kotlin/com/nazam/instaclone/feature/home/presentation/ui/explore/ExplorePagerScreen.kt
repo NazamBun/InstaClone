@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.nazam.instaclone.feature.home.domain.model.VsPost
 import com.nazam.instaclone.feature.home.presentation.model.HomeUiState
 import com.nazam.instaclone.feature.home.presentation.ui.VsPostItem
 import instaclone.composeapp.generated.resources.Res
@@ -30,20 +31,21 @@ fun ExplorePagerScreen(
     onBackClick: () -> Unit,
     onVoteLeft: (String) -> Unit,
     onVoteRight: (String) -> Unit,
-    onOpenComments: (String) -> Unit
+    onOpenComments: (String) -> Unit,
+    onOpenAuthor: (VsPost) -> Unit
 ) {
     val storeCategoryId = ExplorePagerStore.getCategoryId()
     val startPostId = ExplorePagerStore.getStartPostId()
 
-    val effectiveCategoryId =
+    val categoryId =
         if (storeCategoryId.isNotBlank()) storeCategoryId
         else ui.posts.firstOrNull { it.id == startPostId }?.category.orEmpty()
 
-    val postsInCategory =
-        if (effectiveCategoryId.isBlank()) ui.posts
-        else ui.posts.filter { it.category == effectiveCategoryId }
+    val posts =
+        if (categoryId.isBlank()) ui.posts
+        else ui.posts.filter { it.category == categoryId }
 
-    if (postsInCategory.isEmpty()) {
+    if (posts.isEmpty()) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -56,13 +58,8 @@ fun ExplorePagerScreen(
         return
     }
 
-    val startIndex = postsInCategory.indexOfFirst { it.id == startPostId }
-        .let { if (it >= 0) it else 0 }
-
-    val pagerState = rememberPagerState(
-        initialPage = startIndex,
-        pageCount = { postsInCategory.size }
-    )
+    val startIndex = posts.indexOfFirst { it.id == startPostId }.let { if (it >= 0) it else 0 }
+    val pagerState = rememberPagerState(initialPage = startIndex, pageCount = { posts.size })
 
     Box(
         modifier = Modifier
@@ -79,18 +76,15 @@ fun ExplorePagerScreen(
                 .clickable(onClick = onBackClick)
         )
 
-        HorizontalPager(
-            state = pagerState,
-            modifier = Modifier.fillMaxSize()
-        ) { index ->
-            val post = postsInCategory[index]
+        HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize()) { index ->
+            val post = posts[index]
 
             VsPostItem(
                 post = post,
                 isVoting = ui.votingPostId == post.id,
                 onVoteLeft = { onVoteLeft(post.id) },
                 onVoteRight = { onVoteRight(post.id) },
-                onAuthorClick = {},
+                onAuthorClick = onOpenAuthor,
                 resultsAlpha = 1f,
                 modifier = Modifier.fillMaxSize(),
                 onCommentsClick = { onOpenComments(post.id) },

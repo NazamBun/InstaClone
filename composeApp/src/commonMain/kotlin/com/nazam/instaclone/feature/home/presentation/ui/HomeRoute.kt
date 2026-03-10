@@ -44,7 +44,9 @@ fun HomeRoute(
     var pendingMessage by remember { mutableStateOf<UiText?>(null) }
     var shareSheetPost by remember { mutableStateOf<VsPost?>(null) }
     var pendingSnackText by remember { mutableStateOf<String?>(null) }
+
     val copiedLabel = stringResource(Res.string.share_copied)
+    val pendingMessageText = pendingMessage?.asString()
 
     LaunchedEffect(Unit) {
         viewModel.events.collectLatest { event ->
@@ -56,19 +58,16 @@ fun HomeRoute(
         }
     }
 
-    pendingMessage?.let { msg ->
-        val text = msg.asString()
-        LaunchedEffect(text) {
-            snackbarHostState.showSnackbar(text)
-            pendingMessage = null
-        }
+    LaunchedEffect(pendingMessageText) {
+        val text = pendingMessageText ?: return@LaunchedEffect
+        snackbarHostState.showSnackbar(text)
+        pendingMessage = null
     }
 
-    pendingSnackText?.let { text ->
-        LaunchedEffect(text) {
-            snackbarHostState.showSnackbar(text)
-            pendingSnackText = null
-        }
+    LaunchedEffect(pendingSnackText) {
+        val text = pendingSnackText ?: return@LaunchedEffect
+        snackbarHostState.showSnackbar(text)
+        pendingSnackText = null
     }
 
     shareSheetPost?.let { post ->
@@ -110,9 +109,10 @@ fun HomeRoute(
             val authorId = post.authorId ?: return@HomeScreen
             ProfileTargetStore.open(
                 userId = authorId,
-                emailFallback = post.authorName
+                emailFallback = post.authorName,
+                returnScreen = Screen.Home
             )
-            onNavigate(Screen.Profile)
+            onNavigate(Screen.UserProfile)
         },
         onShare = viewModel::onShareClicked,
         onNewCommentChange = viewModel::onNewCommentChange,

@@ -216,4 +216,10 @@
     <string name="create_post_not_allowed">Tu n0027as pas encore le droit de publier.</string>
     <string name="action_retry">Réessayer</string>
     <string name="profile_posts_empty">Aucun post pour l’instant.</string>
+
+    <string name="profile_visit_back_cd">Retour profil</string>
+    <string name="profile_visit_copy_url">Copier l'URL du profil</string>
+    <string name="profile_visit_report">Signaler ce compte</string>
+    <string name="profile_visit_restrict">Restreindre ce compte</string>
+    <string name="profile_action_soon">Bientôt disponible</string>
 </resources>

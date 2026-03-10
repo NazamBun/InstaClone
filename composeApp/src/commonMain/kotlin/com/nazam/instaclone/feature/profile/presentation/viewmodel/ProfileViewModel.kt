@@ -59,19 +59,29 @@ class ProfileViewModel(
         scope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
 
-            val currentUser = withContext(dispatchers.io) { getCurrentUserUseCase.execute() }
-            if (currentUser == null) {
+            val currentUser = withContext(dispatchers.io) {
+                getCurrentUserUseCase.execute()
+            }
+
+            val targetUserId = ProfileTargetStore.getUserId() ?: currentUser?.id
+            val targetEmail = ProfileTargetStore.getEmailFallback() ?: currentUser?.email
+
+            if (targetUserId.isNullOrBlank() || targetEmail.isNullOrBlank()) {
                 _uiState.update {
-                    it.copy(isLoading = false, ui = null, error = UiText.Resource(Res.string.profile_load_error))
+                    it.copy(
+                        isLoading = false,
+                        ui = null,
+                        error = UiText.Resource(Res.string.profile_load_error)
+                    )
                 }
                 return@launch
             }
 
-            val targetUserId = ProfileTargetStore.getUserId() ?: currentUser.id
-            val targetEmail = ProfileTargetStore.getEmailFallback() ?: currentUser.email
-
             val profileResult = withContext(dispatchers.io) {
-                getMyProfileUseCase.execute(userId = targetUserId, emailFallback = targetEmail)
+                getMyProfileUseCase.execute(
+                    userId = targetUserId,
+                    emailFallback = targetEmail
+                )
             }
             val postsResult = withContext(dispatchers.io) {
                 getMyPostsUseCase.execute(authorId = targetUserId)
@@ -86,7 +96,11 @@ class ProfileViewModel(
             val profile = profileResult.getOrNull()
             if (profile == null) {
                 _uiState.update {
-                    it.copy(isLoading = false, ui = null, error = UiText.Resource(Res.string.profile_load_error))
+                    it.copy(
+                        isLoading = false,
+                        ui = null,
+                        error = UiText.Resource(Res.string.profile_load_error)
+                    )
                 }
                 return@launch
             }
@@ -107,7 +121,7 @@ class ProfileViewModel(
                         avatarUrl = profile.avatarUrl,
                         coverUrl = profile.coverUrl,
                         posts = postsResult.getOrDefault(emptyList()),
-                        isSelfProfile = targetUserId == currentUser.id
+                        isSelfProfile = currentUser?.id == targetUserId
                     ),
                     error = null
                 )
@@ -119,7 +133,20 @@ class ProfileViewModel(
         scope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
 
-            val user = withContext(dispatchers.io) { getCurrentUserUseCase.execute() } ?: return@launch
+            val user = withContext(dispatchers.io) {
+                getCurrentUserUseCase.execute()
+            }
+
+            if (user == null) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = UiText.Resource(Res.string.profile_load_error)
+                    )
+                }
+                return@launch
+            }
+
             var publicUrl: String? = null
             var uploadError: String? = null
 
@@ -127,7 +154,11 @@ class ProfileViewModel(
                 uploadPostImageUseCase.execute(localUri).collect { progress ->
                     when (progress) {
                         is UploadProgress.Success -> publicUrl = progress.publicUrl
-                        is UploadProgress.Error -> uploadError = progress.message.ifBlank { "Upload avatar impossible" }
+                        is UploadProgress.Error -> {
+                            uploadError = progress.message.ifBlank {
+                                "Upload avatar impossible"
+                            }
+                        }
                         else -> Unit
                     }
                 }
@@ -135,19 +166,33 @@ class ProfileViewModel(
 
             if (uploadError != null || publicUrl.isNullOrBlank()) {
                 _uiState.update {
-                    it.copy(isLoading = false, error = UiText.DynamicString(uploadError ?: "Upload avatar impossible"))
+                    it.copy(
+                        isLoading = false,
+                        error = UiText.DynamicString(
+                            uploadError ?: "Upload avatar impossible"
+                        )
+                    )
                 }
                 return@launch
             }
 
-            withContext(dispatchers.io) {
-                updateAvatarUseCase.execute(userId = user.id, avatarUrl = publicUrl!!)
-            }.onSuccess { load() }
-             .onFailure {
-                 _uiState.update {
-                     it.copy(isLoading = false, error = UiText.Resource(Res.string.profile_load_error))
-                 }
-             }
+            val result = withContext(dispatchers.io) {
+                updateAvatarUseCase.execute(
+                    userId = user.id,
+                    avatarUrl = publicUrl!!
+                )
+            }
+
+            result
+                .onSuccess { load() }
+                .onFailure {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            error = UiText.Resource(Res.string.profile_load_error)
+                        )
+                    }
+                }
         }
     }
 
@@ -155,7 +200,11 @@ class ProfileViewModel(
         scope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
 
-            withContext(dispatchers.io) { logoutUseCase.execute() }
+            val result = withContext(dispatchers.io) {
+                logoutUseCase.execute()
+            }
+
+            result
                 .onSuccess {
                     NavigationStore.clear()
                     sessionManager.setUser(null)
@@ -165,7 +214,10 @@ class ProfileViewModel(
                 }
                 .onFailure {
                     _uiState.update {
-                        it.copy(isLoading = false, error = UiText.Resource(Res.string.profile_load_error))
+                        it.copy(
+                            isLoading = false,
+                            error = UiText.Resource(Res.string.profile_load_error)
+                        )
                     }
                 }
         }

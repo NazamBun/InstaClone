@@ -6,6 +6,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import com.nazam.instaclone.core.navigation.Screen
 import com.nazam.instaclone.feature.home.presentation.viewmodel.HomeViewModel
+import com.nazam.instaclone.feature.profile.presentation.navigation.ProfileTargetStore
 import org.koin.compose.koinInject
 
 @Composable
@@ -13,7 +14,6 @@ fun ExplorePagerRoute(
     onNavigate: (Screen) -> Unit,
     contentPadding: PaddingValues
 ) {
-    // ✅ ViewModel partagé : on ne le "clear" pas quand on change d’écran
     val viewModel: HomeViewModel = koinInject()
     val ui by viewModel.uiState.collectAsState()
 
@@ -26,6 +26,15 @@ fun ExplorePagerRoute(
         },
         onVoteLeft = viewModel::voteLeft,
         onVoteRight = viewModel::voteRight,
-        onOpenComments = viewModel::openComments
+        onOpenComments = viewModel::openComments,
+        onOpenAuthor = { post ->
+            val authorId = post.authorId ?: return@ExplorePagerScreen
+            ProfileTargetStore.open(
+                userId = authorId,
+                emailFallback = post.authorName,
+                returnScreen = Screen.ExplorePager
+            )
+            onNavigate(Screen.UserProfile)
+        }
     )
 }
