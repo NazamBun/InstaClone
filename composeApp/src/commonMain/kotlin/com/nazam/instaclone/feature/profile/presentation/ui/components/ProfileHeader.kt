@@ -8,9 +8,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.matchParentSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -97,13 +97,17 @@ fun ProfileHeader(
                 NetworkImage(
                     url = ui.coverUrl,
                     contentDescription = null,
-                    modifier = Modifier.matchParentSize()
+                    modifier = Modifier.fillMaxSize()
                 )
-                Box(Modifier.matchParentSize().background(t.SoftOverlay))
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(t.SoftOverlay)
+                )
             } else {
                 Box(
-                    Modifier
-                        .matchParentSize()
+                    modifier = Modifier
+                        .fillMaxSize()
                         .background(
                             Brush.linearGradient(
                                 listOf(t.CoverGradientStart, t.CoverGradientEnd)
