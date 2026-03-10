@@ -2,12 +2,8 @@ package com.nazam.instaclone.feature.profile.presentation.ui
 
 import com.nazam.instaclone.feature.home.domain.model.VsPost
 
-/**
- * Modèle UI (presentation)
- * - utilisé par ProfileScreen + ProfileUiState + ProfileViewModel
- * - KMP friendly
- */
 data class ProfileUi(
+    val userId: String,
     val displayName: String,
     val username: String,
     val bio: String,
@@ -20,7 +16,7 @@ data class ProfileUi(
     val avatarUrl: String? = null,
     val coverUrl: String? = null,
     val posts: List<VsPost> = emptyList(),
-
-    /** true si c'est mon profil */
-    val isSelfProfile: Boolean = false
+    val isSelfProfile: Boolean = false,
+    val isFollowing: Boolean = false,
+    val isFollowLoading: Boolean = false
 )

@@ -32,10 +32,13 @@ import com.nazam.instaclone.feature.home.presentation.viewmodel.ExploreViewModel
 import com.nazam.instaclone.feature.home.presentation.viewmodel.HomeViewModel
 import com.nazam.instaclone.feature.profile.data.repository.ProfileRepositoryImpl
 import com.nazam.instaclone.feature.profile.domain.repository.ProfileRepository
+import com.nazam.instaclone.feature.profile.domain.usecase.FollowUserUseCase
 import com.nazam.instaclone.feature.profile.domain.usecase.GetFollowersCountUseCase
 import com.nazam.instaclone.feature.profile.domain.usecase.GetFollowingCountUseCase
 import com.nazam.instaclone.feature.profile.domain.usecase.GetMyPostsUseCase
 import com.nazam.instaclone.feature.profile.domain.usecase.GetMyProfileUseCase
+import com.nazam.instaclone.feature.profile.domain.usecase.IsFollowingUseCase
+import com.nazam.instaclone.feature.profile.domain.usecase.UnfollowUserUseCase
 import com.nazam.instaclone.feature.profile.domain.usecase.UpdateAvatarUseCase
 import com.nazam.instaclone.feature.profile.domain.usecase.UpdateMyProfileUseCase
 import com.nazam.instaclone.feature.profile.presentation.ui.edit.EditProfileViewModel
@@ -80,6 +83,9 @@ val appModule = module {
     factory { GetMyPostsUseCase(get()) }
     factory { GetFollowersCountUseCase(get()) }
     factory { GetFollowingCountUseCase(get()) }
+    factory { IsFollowingUseCase(get()) }
+    factory { FollowUserUseCase(get()) }
+    factory { UnfollowUserUseCase(get()) }
     factory { UpdateMyProfileUseCase(get()) }
     factory { UpdateAvatarUseCase(get()) }
 
@@ -134,6 +140,9 @@ val appModule = module {
             getMyPostsUseCase = get(),
             getFollowersCountUseCase = get(),
             getFollowingCountUseCase = get(),
+            isFollowingUseCase = get(),
+            followUserUseCase = get(),
+            unfollowUserUseCase = get(),
             logoutUseCase = get(),
             sessionManager = get(),
             uploadPostImageUseCase = get(),

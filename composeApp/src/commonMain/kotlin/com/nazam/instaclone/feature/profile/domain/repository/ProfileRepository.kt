@@ -11,4 +11,7 @@ interface ProfileRepository {
     suspend fun updateAvatar(userId: String, avatarUrl: String): Result<Unit>
     suspend fun getFollowersCount(userId: String): Result<Int>
     suspend fun getFollowingCount(userId: String): Result<Int>
+    suspend fun isFollowing(followerId: String, followingId: String): Result<Boolean>
+    suspend fun follow(followerId: String, followingId: String): Result<Unit>
+    suspend fun unfollow(followerId: String, followingId: String): Result<Unit>
 }

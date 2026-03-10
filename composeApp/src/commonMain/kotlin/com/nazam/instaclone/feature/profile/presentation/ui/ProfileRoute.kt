@@ -31,7 +31,6 @@ import com.nazam.instaclone.feature.profile.presentation.viewmodel.ProfileViewMo
 import instaclone.composeapp.generated.resources.Res
 import instaclone.composeapp.generated.resources.action_retry
 import instaclone.composeapp.generated.resources.profile_action_soon
-import instaclone.composeapp.generated.resources.profile_loading
 import instaclone.composeapp.generated.resources.share_copied
 import kotlinx.coroutines.flow.collectLatest
 import org.jetbrains.compose.resources.stringResource
@@ -53,48 +52,30 @@ fun ProfileRoute(
 ) {
     val vm: ProfileViewModel = koinInject()
     val state by vm.uiState.collectAsState()
-
     val clipboard = rememberClipboardManager()
     val snackbarHostState = remember { SnackbarHostState() }
     val copiedLabel = stringResource(Res.string.share_copied)
     val soonLabel = stringResource(Res.string.profile_action_soon)
-
     var pendingSnack by remember { mutableStateOf<String?>(null) }
     val pickAvatar = rememberImagePicker(onImagePicked = vm::onAvatarSelected)
 
-    DisposableEffect(Unit) {
-        onDispose { vm.clear() }
-    }
-
+    DisposableEffect(Unit) { onDispose { vm.clear() } }
     LaunchedEffect(Unit) {
-        vm.events.collectLatest { event ->
-            when (event) {
-                is ProfileUiEvent.Navigate -> onNavigate(event.screen)
-            }
-        }
+        vm.events.collectLatest { if (it is ProfileUiEvent.Navigate) onNavigate(it.screen) }
     }
-
     pendingSnack?.let { text ->
-        LaunchedEffect(text) {
-            snackbarHostState.showSnackbar(text)
-            pendingSnack = null
-        }
+        LaunchedEffect(text) { snackbarHostState.showSnackbar(text); pendingSnack = null }
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
         when {
-            state.isLoading -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
-            }
-
+            state.isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
             state.ui != null -> {
                 val ui = state.ui ?: return
                 ProfileScreen(
                     ui = ui,
                     contentPadding = contentPadding,
-                    onFollowClick = onFollowClick,
+                    onFollowClick = vm::onFollowClicked,
                     onMessageClick = onMessageClick,
                     onMoreClick = onMoreClick,
                     onLogoutClick = vm::logout,
@@ -102,42 +83,24 @@ fun ProfileRoute(
                     onEditCoverClick = onEditCoverClick,
                     onEditAvatarClick = pickAvatar,
                     onPostClick = onPostClick,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(top = if (isVisitedProfile) 64.dp else 0.dp)
+                    modifier = Modifier.fillMaxSize().padding(top = if (isVisitedProfile) 64.dp else 0.dp)
                 )
 
                 if (isVisitedProfile) {
                     ProfileVisitedTopBar(
                         ui = ui,
                         onBackClick = onBackClick,
-                        onCopyUrlClick = {
-                            clipboard.setText(buildProfileUrl(ui.username))
-                            pendingSnack = copiedLabel
-                        },
+                        onCopyUrlClick = { clipboard.setText("instaclone://profile/${ui.username}"); pendingSnack = copiedLabel },
                         onRestrictClick = { pendingSnack = soonLabel },
                         onReportClick = { pendingSnack = soonLabel },
                         modifier = Modifier.align(Alignment.TopCenter)
                     )
                 }
             }
-
-            else -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Button(onClick = vm::load) {
-                        Text(state.error?.asString() ?: stringResource(Res.string.action_retry))
-                    }
-                }
+            else -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Button(onClick = vm::load) { Text(state.error?.asString() ?: stringResource(Res.string.action_retry)) }
             }
         }
-
-        SnackbarHost(
-            hostState = snackbarHostState,
-            modifier = Modifier.align(Alignment.BottomCenter)
-        )
+        SnackbarHost(hostState = snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
     }
-}
-
-private fun buildProfileUrl(username: String): String {
-    return "instaclone://profile/$username"
 }
