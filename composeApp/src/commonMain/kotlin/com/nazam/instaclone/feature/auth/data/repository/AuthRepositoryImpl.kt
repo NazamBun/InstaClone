@@ -1,14 +1,17 @@
 package com.nazam.instaclone.feature.auth.data.repository
 
 import com.nazam.instaclone.core.supabase.SupabaseClientProvider
-import com.nazam.instaclone.feature.auth.data.mapper.AuthMapper
 import com.nazam.instaclone.feature.auth.domain.model.AuthUser
 import com.nazam.instaclone.feature.auth.domain.repository.AuthRepository
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.postgrest.postgrest
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 
@@ -16,13 +19,12 @@ class AuthRepositoryImpl(
     private val supabaseClient: SupabaseClient = SupabaseClientProvider.client
 ) : AuthRepository {
 
-    companion object {
-        private const val ERROR_INVITE_REQUIRED = "INVITE_REQUIRED"
-        private const val RPC_CAN_SIGNUP = "can_signup"
-        private const val RPC_CONSUME_INVITE = "consume_invite"
+    private companion object {
+        const val POST_PERMISSIONS_TABLE = "post_permissions"
     }
 
     private val auth = supabaseClient.auth
+    private val json = Json { ignoreUnknownKeys = true }
 
     private fun readDisplayNameFromMetadata(): String? {
         val user = auth.currentUserOrNull() ?: return null
@@ -32,6 +34,26 @@ class AuthRepositoryImpl(
                 ?.jsonPrimitive
                 ?.content
         }.getOrNull()?.takeIf { it.isNotBlank() }
+    }
+
+    private suspend fun readCanCreatePost(userId: String): Boolean {
+        val response = supabaseClient
+            .postgrest[POST_PERMISSIONS_TABLE]
+            .select {
+                filter { eq("user_id", userId) }
+                limit(1)
+            }
+
+        val item = json
+            .parseToJsonElement(response.data)
+            .jsonArray
+            .firstOrNull()
+            ?.jsonObject
+            ?: return false
+
+        return item["can_create_post"]
+            ?.jsonPrimitive
+            ?.booleanOrNull == true
     }
 
     override suspend fun login(email: String, password: String): Result<AuthUser> {
@@ -44,12 +66,11 @@ class AuthRepositoryImpl(
             val user = auth.currentUserOrNull()
                 ?: throw IllegalStateException("Utilisateur introuvable après le login")
 
-            val displayName = readDisplayNameFromMetadata()
-
-            AuthMapper.toDomain(
+            AuthUser(
                 id = user.id,
                 email = user.email ?: email,
-                displayName = displayName
+                displayName = readDisplayNameFromMetadata(),
+                canCreatePost = readCanCreatePost(user.id)
             )
         }
     }
@@ -60,19 +81,9 @@ class AuthRepositoryImpl(
         displayName: String?
     ): Result<AuthUser> {
         return runCatching {
-            // ✅ Invite-only : on vérifie côté Supabase (RPC)
-            val canSignup = supabaseClient.postgrest.rpc(
-                function = RPC_CAN_SIGNUP,
-                parameters = buildJsonObject { put("p_email", email) }
-            ).data.toBooleanStrictOrNull() ?: false
-
-            if (!canSignup) throw IllegalStateException(ERROR_INVITE_REQUIRED)
-
             val createdUser = auth.signUpWith(Email) {
                 this.email = email
                 this.password = password
-
-                // metadata : utile si tu as un trigger SQL profiles.display_name
                 this.data = buildJsonObject {
                     if (!displayName.isNullOrBlank()) {
                         put("display_name", displayName)
@@ -80,21 +91,14 @@ class AuthRepositoryImpl(
                 }
             }
 
-            // ✅ Après inscription OK : on consomme l'invite (best-effort)
-            runCatching {
-                supabaseClient.postgrest.rpc(
-                    function = RPC_CONSUME_INVITE,
-                    parameters = buildJsonObject { put("p_email", email) }
-                )
-            }
-
             val user = createdUser ?: auth.currentUserOrNull()
                 ?: throw IllegalStateException("Utilisateur introuvable après l'inscription")
 
-            AuthMapper.toDomain(
+            AuthUser(
                 id = user.id,
                 email = user.email ?: email,
-                displayName = displayName
+                displayName = displayName,
+                canCreatePost = readCanCreatePost(user.id)
             )
         }
     }
@@ -105,12 +109,12 @@ class AuthRepositoryImpl(
 
     override suspend fun getCurrentUser(): AuthUser? {
         val user = auth.currentUserOrNull() ?: return null
-        val displayName = readDisplayNameFromMetadata()
 
-        return AuthMapper.toDomain(
+        return AuthUser(
             id = user.id,
             email = user.email ?: "",
-            displayName = displayName
+            displayName = readDisplayNameFromMetadata(),
+            canCreatePost = readCanCreatePost(user.id)
         )
     }
 }
