@@ -24,44 +24,32 @@ class HomeRepositoryImpl(
     private val json: Json
 ) : HomeRepository {
 
-    companion object {
-        private const val POSTS_FEED_VIEW = "posts_feed"
-        private const val POSTS_TABLE = "posts"
-        private const val COMMENTS_TABLE = "comments"
-        private const val DEFAULT_LIMIT = 30
+    private companion object {
+        const val POSTS_FEED_VIEW = "posts_feed"
+        const val POSTS_FOLLOWING_FEED_VIEW = "posts_following_feed"
+        const val POSTS_TABLE = "posts"
+        const val COMMENTS_TABLE = "comments"
+        const val DEFAULT_LIMIT = 30
     }
 
     override suspend fun getFeed(): Result<List<VsPost>> {
         return getFeedPage(offset = 0, limit = DEFAULT_LIMIT)
     }
 
-    override suspend fun getFeedPage(offset: Int, limit: Int): Result<List<VsPost>> =
-        runCatching {
-            val from = offset.coerceAtLeast(0)
-            val to = (offset + limit - 1).coerceAtLeast(from)
+    override suspend fun getFeedPage(offset: Int, limit: Int): Result<List<VsPost>> = runCatching {
+        val isLoggedIn = client.auth.currentUserOrNull() != null
 
-            val response = client
-                .postgrest[POSTS_FEED_VIEW]
-                .select {
-                    range(from = from.toLong(), to = to.toLong())
-                    order(column = "created_at", order = Order.DESCENDING)
-                    order(column = "id", order = Order.DESCENDING)
-                }
-
-            val dtos: List<PostDto> = json.decodeFromString(
-                ListSerializer(PostDto.serializer()),
-                response.data
-            )
-
-            dtos.map { dto ->
-                val userVote = when (dto.user_choice) {
-                    "left" -> VoteChoice.LEFT
-                    "right" -> VoteChoice.RIGHT
-                    else -> VoteChoice.NONE
-                }
-                PostMapper.toDomain(dto, userVote)
-            }
+        if (!isLoggedIn) {
+            return@runCatching fetchFeedPage(POSTS_FEED_VIEW, offset, limit)
         }
+
+        val followingPosts = fetchFeedPage(POSTS_FOLLOWING_FEED_VIEW, offset, limit)
+        if (followingPosts.isNotEmpty() || offset > 0) {
+            return@runCatching followingPosts
+        }
+
+        fetchFeedPage(POSTS_FEED_VIEW, offset, limit)
+    }
 
     override suspend fun createPost(
         question: String,
@@ -70,113 +58,104 @@ class HomeRepositoryImpl(
         leftLabel: String,
         rightLabel: String,
         category: String
-    ): Result<VsPost> =
-        runCatching {
-            val user = client.auth.currentUserOrNull()
-                ?: throw IllegalStateException("AUTH_REQUIRED")
+    ): Result<VsPost> = runCatching {
+        val user = client.auth.currentUserOrNull()
+            ?: throw IllegalStateException("AUTH_REQUIRED")
 
-            val payload = CreatePostDto(
-                question = question,
-                category = category,
-                leftImageUrl = leftImageUrl,
-                rightImageUrl = rightImageUrl,
-                leftLabel = leftLabel,
-                rightLabel = rightLabel,
-                authorName = user.email,
-                authorAvatar = null
-            )
+        val payload = CreatePostDto(
+            question = question,
+            category = category,
+            leftImageUrl = leftImageUrl,
+            rightImageUrl = rightImageUrl,
+            leftLabel = leftLabel,
+            rightLabel = rightLabel,
+            authorName = user.email,
+            authorAvatar = null
+        )
 
-            val response = client
-                .postgrest[POSTS_TABLE]
-                .insert(payload) { select() }
+        val response = client.postgrest[POSTS_TABLE].insert(payload) { select() }
+        val list = decodePosts(response.data)
+        PostMapper.toDomain(list.first(), VoteChoice.NONE)
+    }
 
-            val list: List<PostDto> = json.decodeFromString(
-                ListSerializer(PostDto.serializer()),
-                response.data
-            )
+    override suspend fun voteLeft(postId: String): Result<VsPost> = vote(postId, "left")
 
-            PostMapper.toDomain(list.first(), VoteChoice.NONE)
+    override suspend fun voteRight(postId: String): Result<VsPost> = vote(postId, "right")
+
+    override suspend fun getComments(postId: String): Result<List<Comment>> = runCatching {
+        val response = client.postgrest[COMMENTS_TABLE].select {
+            filter { eq("post_id", postId) }
+            order(column = "created_at", order = Order.ASCENDING)
         }
 
-    override suspend fun voteLeft(postId: String): Result<VsPost> =
-        vote(postId, "left")
+        val dtos: List<CommentDto> = json.decodeFromString(
+            ListSerializer(CommentDto.serializer()),
+            response.data
+        )
+        dtos.map(CommentMapper::toDomain)
+    }
 
-    override suspend fun voteRight(postId: String): Result<VsPost> =
-        vote(postId, "right")
+    override suspend fun addComment(postId: String, content: String): Result<Comment> = runCatching {
+        val user = client.auth.currentUserOrNull()
+            ?: throw IllegalStateException("AUTH_REQUIRED")
 
-    private suspend fun vote(postId: String, choice: String): Result<VsPost> =
-        runCatching {
-            val user = client.auth.currentUserOrNull()
-                ?: throw IllegalStateException("AUTH_REQUIRED")
+        val payload = CreateCommentDto(
+            postId = postId,
+            authorId = user.id,
+            content = content,
+            authorName = user.email,
+            authorAvatar = null
+        )
 
-            val response = client
-                .postgrest.rpc(
-                    function = "vote_post",
-                    parameters = buildJsonObject {
-                        put("p_post_id", postId)
-                        put("p_user_id", user.id)
-                        put("p_choice", choice)
-                    }
-                )
+        val response = client.postgrest[COMMENTS_TABLE].insert(payload) { select() }
+        val list: List<CommentDto> = json.decodeFromString(
+            ListSerializer(CommentDto.serializer()),
+            response.data
+        )
+        CommentMapper.toDomain(list.first())
+    }
 
-            val list: List<PostDto> = json.decodeFromString(
-                ListSerializer(PostDto.serializer()),
-                response.data
-            )
+    private suspend fun vote(postId: String, choice: String): Result<VsPost> = runCatching {
+        val user = client.auth.currentUserOrNull()
+            ?: throw IllegalStateException("AUTH_REQUIRED")
 
-            val userVote = when (choice) {
+        val response = client.postgrest.rpc(
+            function = "vote_post",
+            parameters = buildJsonObject {
+                put("p_post_id", postId)
+                put("p_user_id", user.id)
+                put("p_choice", choice)
+            }
+        )
+
+        val post = decodePosts(response.data).first()
+        val userVote = if (choice == "left") VoteChoice.LEFT else VoteChoice.RIGHT
+        PostMapper.toDomain(post, userVote)
+    }
+
+    private suspend fun fetchFeedPage(viewName: String, offset: Int, limit: Int): List<VsPost> {
+        val from = offset.coerceAtLeast(0)
+        val to = (offset + limit - 1).coerceAtLeast(from)
+
+        val response = client.postgrest[viewName].select {
+            range(from = from.toLong(), to = to.toLong())
+            order(column = "created_at", order = Order.DESCENDING)
+            order(column = "id", order = Order.DESCENDING)
+        }
+
+        return decodePosts(response.data).map { dto ->
+            val userVote = when (dto.user_choice) {
                 "left" -> VoteChoice.LEFT
                 "right" -> VoteChoice.RIGHT
                 else -> VoteChoice.NONE
             }
-
-            PostMapper.toDomain(list.first(), userVote)
+            PostMapper.toDomain(dto, userVote)
         }
+    }
 
-    override suspend fun getComments(postId: String): Result<List<Comment>> =
-        runCatching {
-            val response = client
-                .postgrest[COMMENTS_TABLE]
-                .select {
-                    filter { eq("post_id", postId) }
-                    order(column = "created_at", order = Order.ASCENDING)
-                }
-
-            val dtos: List<CommentDto> = json.decodeFromString(
-                ListSerializer(CommentDto.serializer()),
-                response.data
-            )
-
-            dtos.map { CommentMapper.toDomain(it) }
-        }
-
-    override suspend fun addComment(
-        postId: String,
-        content: String
-    ): Result<Comment> =
-        runCatching {
-            val user = client.auth.currentUserOrNull()
-                ?: throw IllegalStateException("AUTH_REQUIRED")
-
-            val payload = CreateCommentDto(
-                postId = postId,
-                authorId = user.id,
-                content = content,
-                authorName = user.email,
-                authorAvatar = null
-            )
-
-            val response = client
-                .postgrest[COMMENTS_TABLE]
-                .insert(payload) { select() }
-
-            val list: List<CommentDto> = json.decodeFromString(
-                ListSerializer(CommentDto.serializer()),
-                response.data
-            )
-
-            CommentMapper.toDomain(list.first())
-        }
+    private fun decodePosts(raw: String): List<PostDto> {
+        return json.decodeFromString(ListSerializer(PostDto.serializer()), raw)
+    }
 
     @Serializable
     private data class CreatePostDto(
