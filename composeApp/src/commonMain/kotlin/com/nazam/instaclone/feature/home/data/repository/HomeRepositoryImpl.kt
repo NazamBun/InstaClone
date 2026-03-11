@@ -32,23 +32,22 @@ class HomeRepositoryImpl(
         const val DEFAULT_LIMIT = 30
     }
 
-    override suspend fun getFeed(): Result<List<VsPost>> {
-        return getFeedPage(offset = 0, limit = DEFAULT_LIMIT)
-    }
+    override suspend fun getFeed(): Result<List<VsPost>> =
+        getFeedPage(offset = 0, limit = DEFAULT_LIMIT)
 
     override suspend fun getFeedPage(offset: Int, limit: Int): Result<List<VsPost>> = runCatching {
         val isLoggedIn = client.auth.currentUserOrNull() != null
 
         if (!isLoggedIn) {
-            return@runCatching fetchFeedPage(POSTS_FEED_VIEW, offset, limit)
+            return@runCatching fetchGlobalHotPage(offset, limit)
         }
 
-        val followingPosts = fetchFeedPage(POSTS_FOLLOWING_FEED_VIEW, offset, limit)
+        val followingPosts = fetchRecentPage(POSTS_FOLLOWING_FEED_VIEW, offset, limit)
         if (followingPosts.isNotEmpty() || offset > 0) {
             return@runCatching followingPosts
         }
 
-        fetchFeedPage(POSTS_FEED_VIEW, offset, limit)
+        fetchGlobalHotPage(offset, limit)
     }
 
     override suspend fun createPost(
@@ -74,8 +73,7 @@ class HomeRepositoryImpl(
         )
 
         val response = client.postgrest[POSTS_TABLE].insert(payload) { select() }
-        val list = decodePosts(response.data)
-        PostMapper.toDomain(list.first(), VoteChoice.NONE)
+        PostMapper.toDomain(decodePosts(response.data).first(), VoteChoice.NONE)
     }
 
     override suspend fun voteLeft(postId: String): Result<VsPost> = vote(postId, "left")
@@ -128,12 +126,25 @@ class HomeRepositoryImpl(
             }
         )
 
-        val post = decodePosts(response.data).first()
+        val dto = decodePosts(response.data).first()
         val userVote = if (choice == "left") VoteChoice.LEFT else VoteChoice.RIGHT
-        PostMapper.toDomain(post, userVote)
+        PostMapper.toDomain(dto, userVote)
     }
 
-    private suspend fun fetchFeedPage(viewName: String, offset: Int, limit: Int): List<VsPost> {
+    private suspend fun fetchGlobalHotPage(offset: Int, limit: Int): List<VsPost> {
+        return fetchRecentPage(POSTS_FEED_VIEW, offset, limit)
+            .sortedWith(
+                compareByDescending<VsPost> { it.totalVotesCount }
+                    .thenByDescending { it.leftVotesCount + it.rightVotesCount }
+                    .thenByDescending { it.id }
+            )
+    }
+
+    private suspend fun fetchRecentPage(
+        viewName: String,
+        offset: Int,
+        limit: Int
+    ): List<VsPost> {
         val from = offset.coerceAtLeast(0)
         val to = (offset + limit - 1).coerceAtLeast(from)
 
@@ -153,9 +164,8 @@ class HomeRepositoryImpl(
         }
     }
 
-    private fun decodePosts(raw: String): List<PostDto> {
-        return json.decodeFromString(ListSerializer(PostDto.serializer()), raw)
-    }
+    private fun decodePosts(raw: String): List<PostDto> =
+        json.decodeFromString(ListSerializer(PostDto.serializer()), raw)
 
     @Serializable
     private data class CreatePostDto(
