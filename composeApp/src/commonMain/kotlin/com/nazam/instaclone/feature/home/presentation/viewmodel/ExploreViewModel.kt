@@ -23,8 +23,7 @@ class ExploreViewModel(
         const val PAGE_SIZE = 30
     }
 
-    private val job = SupervisorJob()
-    private val scope = CoroutineScope(dispatchers.main + job)
+    private val scope = CoroutineScope(dispatchers.main + SupervisorJob())
 
     private val _uiState = MutableStateFlow(ExploreUiState())
     val uiState: StateFlow<ExploreUiState> = _uiState
@@ -40,8 +39,6 @@ class ExploreViewModel(
     fun onSortModeSelected(mode: ExploreSortMode) {
         _uiState.update { it.copy(sortMode = mode) }
     }
-
-    fun clear() = job.cancel()
 
     private fun loadInternal(reset: Boolean) {
         val state = _uiState.value
