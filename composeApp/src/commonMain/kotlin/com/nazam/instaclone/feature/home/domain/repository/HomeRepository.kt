@@ -7,7 +7,9 @@ interface HomeRepository {
     suspend fun getFeedPage(offset: Int, limit: Int): Result<List<VsPost>>
     suspend fun getFeed(): Result<List<VsPost>> = getFeedPage(offset = 0, limit = 30)
 
-    suspend fun getExplorePosts(limit: Int): Result<List<VsPost>>
+    suspend fun getExplorePostsPage(offset: Int, limit: Int): Result<List<VsPost>>
+    suspend fun getExplorePosts(limit: Int): Result<List<VsPost>> =
+        getExplorePostsPage(offset = 0, limit = limit)
 
     suspend fun createPost(
         question: String,

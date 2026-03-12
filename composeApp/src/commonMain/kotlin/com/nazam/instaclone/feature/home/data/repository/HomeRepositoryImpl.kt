@@ -30,7 +30,6 @@ class HomeRepositoryImpl(
         const val POSTS_TABLE = "posts"
         const val COMMENTS_TABLE = "comments"
         const val DEFAULT_LIMIT = 30
-        const val EXPLORE_LIMIT = 120
     }
 
     override suspend fun getFeed(): Result<List<VsPost>> =
@@ -38,7 +37,6 @@ class HomeRepositoryImpl(
 
     override suspend fun getFeedPage(offset: Int, limit: Int): Result<List<VsPost>> = runCatching {
         val isLoggedIn = client.auth.currentUserOrNull() != null
-
         if (!isLoggedIn) return@runCatching fetchRecentPage(POSTS_FEED_VIEW, offset, limit)
 
         val followingPosts = fetchRecentPage(POSTS_FOLLOWING_FEED_VIEW, offset, limit)
@@ -47,8 +45,11 @@ class HomeRepositoryImpl(
         fetchRecentPage(POSTS_FEED_VIEW, offset, limit)
     }
 
-    override suspend fun getExplorePosts(limit: Int): Result<List<VsPost>> = runCatching {
-        fetchRecentPage(POSTS_FEED_VIEW, offset = 0, limit = limit.coerceAtLeast(1))
+    override suspend fun getExplorePostsPage(
+        offset: Int,
+        limit: Int
+    ): Result<List<VsPost>> = runCatching {
+        fetchRecentPage(POSTS_FEED_VIEW, offset, limit)
     }
 
     override suspend fun createPost(
@@ -124,11 +125,12 @@ class HomeRepositoryImpl(
     }
 
     private suspend fun fetchRecentPage(viewName: String, offset: Int, limit: Int): List<VsPost> {
-        val from = offset.coerceAtLeast(0)
-        val to = (offset + limit - 1).coerceAtLeast(from)
+        val safeOffset = offset.coerceAtLeast(0)
+        val safeLimit = limit.coerceAtLeast(1)
+        val to = safeOffset + safeLimit - 1
 
         val response = client.postgrest[viewName].select {
-            range(from = from.toLong(), to = to.toLong())
+            range(from = safeOffset.toLong(), to = to.toLong())
             order(column = "created_at", order = Order.DESCENDING)
             order(column = "id", order = Order.DESCENDING)
         }

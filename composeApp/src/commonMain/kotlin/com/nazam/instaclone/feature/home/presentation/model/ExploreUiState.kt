@@ -6,6 +6,8 @@ import com.nazam.instaclone.feature.home.presentation.ui.explore.ExploreSortMode
 
 data class ExploreUiState(
     val isLoading: Boolean = false,
+    val isLoadingMore: Boolean = false,
+    val endReached: Boolean = false,
     val posts: List<VsPost> = emptyList(),
     val sortMode: ExploreSortMode = ExploreSortMode.HOT,
     val error: UiText? = null

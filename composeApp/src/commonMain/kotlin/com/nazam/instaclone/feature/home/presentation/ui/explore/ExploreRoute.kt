@@ -34,6 +34,7 @@ fun ExploreRoute(
         onClearCategory = homeViewModel::onExploreClearCategory,
         onSortSelected = exploreViewModel::onSortModeSelected,
         onRetry = exploreViewModel::load,
+        onLoadMore = exploreViewModel::loadMore,
         onPostClick = { post ->
             ExplorePagerStore.open(categoryId = post.category, startPostId = post.id)
             onNavigate(Screen.ExplorePager)

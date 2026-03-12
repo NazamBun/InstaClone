@@ -19,6 +19,10 @@ class ExploreViewModel(
     private val dispatchers: AppDispatchers,
     private val getExplorePostsUseCase: GetExplorePostsUseCase
 ) {
+    private companion object {
+        const val PAGE_SIZE = 30
+    }
+
     private val job = SupervisorJob()
     private val scope = CoroutineScope(dispatchers.main + job)
 
@@ -27,33 +31,54 @@ class ExploreViewModel(
 
     init { load() }
 
-    fun load() {
-        scope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
+    fun load() = loadInternal(reset = true)
 
-            val result = withContext(dispatchers.default) {
-                getExplorePostsUseCase.execute()
-            }
-
-            result.onSuccess { posts ->
-                _uiState.update {
-                    it.copy(isLoading = false, posts = posts, error = null)
-                }
-            }.onFailure {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        posts = emptyList(),
-                        error = UiText.Resource(Res.string.explore_load_error)
-                    )
-                }
-            }
-        }
-    }
+    fun loadMore() = loadInternal(reset = false)
 
     fun onSortModeSelected(mode: ExploreSortMode) {
         _uiState.update { it.copy(sortMode = mode) }
     }
 
     fun clear() = job.cancel()
+
+    private fun loadInternal(reset: Boolean) {
+        val state = _uiState.value
+        if (reset && state.isLoading) return
+        if (!reset && (state.isLoadingMore || state.endReached || state.isLoading)) return
+
+        val offset = if (reset) 0 else state.posts.size
+
+        scope.launch {
+            _uiState.update {
+                if (reset) it.copy(isLoading = true, error = null, endReached = false)
+                else it.copy(isLoadingMore = true, error = null)
+            }
+
+            val result = withContext(dispatchers.default) {
+                getExplorePostsUseCase.execute(offset = offset, limit = PAGE_SIZE)
+            }
+
+            result.onSuccess { page ->
+                _uiState.update { current ->
+                    val merged = if (reset) page else (current.posts + page).distinctBy { it.id }
+                    current.copy(
+                        isLoading = false,
+                        isLoadingMore = false,
+                        endReached = page.size < PAGE_SIZE,
+                        posts = merged,
+                        error = null
+                    )
+                }
+            }.onFailure {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        isLoadingMore = false,
+                        posts = if (reset) emptyList() else it.posts,
+                        error = UiText.Resource(Res.string.explore_load_error)
+                    )
+                }
+            }
+        }
+    }
 }

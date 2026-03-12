@@ -11,8 +11,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -40,7 +42,6 @@ import instaclone.composeapp.generated.resources.action_retry
 import instaclone.composeapp.generated.resources.explore_all
 import instaclone.composeapp.generated.resources.explore_category_prefix
 import instaclone.composeapp.generated.resources.explore_empty_category
-import instaclone.composeapp.generated.resources.explore_load_error
 import instaclone.composeapp.generated.resources.explore_loading
 import instaclone.composeapp.generated.resources.explore_sort_controversial_title
 import instaclone.composeapp.generated.resources.explore_sort_hot_title
@@ -61,16 +62,31 @@ fun ExploreScreen(
     onClearCategory: () -> Unit,
     onSortSelected: (ExploreSortMode) -> Unit,
     onRetry: () -> Unit,
+    onLoadMore: () -> Unit,
     onPostClick: (VsPost) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val universe by UniverseStore.universe.collectAsState()
-    val sortedPosts = sortExplorePosts(exploreUi.posts, exploreUi.sortMode)
+    val gridState = rememberLazyGridState()
+
+    val sortedPosts = sortExplorePosts(
+        posts = exploreUi.posts,
+        mode = exploreUi.sortMode
+    )
+
     val visiblePosts = if (selectedCategoryId.isBlank()) {
         sortedPosts
     } else {
         sortedPosts.filter { it.category == selectedCategoryId }
     }
+
+    ExploreLoadMoreEffect(
+        gridState = gridState,
+        isLoading = exploreUi.isLoading,
+        isLoadingMore = exploreUi.isLoadingMore,
+        endReached = exploreUi.endReached,
+        onLoadMore = onLoadMore
+    )
 
     Box(
         modifier = modifier
@@ -80,17 +96,13 @@ fun ExploreScreen(
     ) {
         when {
             exploreUi.isLoading -> {
-                ExploreCenteredState(
-                    text = stringResource(Res.string.explore_loading)
-                ) {
+                ExploreCenteredState(text = stringResource(Res.string.explore_loading)) {
                     CircularProgressIndicator()
                 }
             }
 
-            exploreUi.error != null -> {
-                ExploreCenteredState(
-                    text = exploreUi.error.asString()
-                ) {
+            exploreUi.error != null && exploreUi.posts.isEmpty() -> {
+                ExploreCenteredState(text = exploreUi.error.asString()) {
                     Button(onClick = onRetry) {
                         Text(stringResource(Res.string.action_retry))
                     }
@@ -103,6 +115,8 @@ fun ExploreScreen(
                     sortMode = exploreUi.sortMode,
                     universe = universe,
                     posts = visiblePosts,
+                    isLoadingMore = exploreUi.isLoadingMore,
+                    gridState = gridState,
                     onUniverseClick = onUniverseClick,
                     onCategoryClick = onCategoryClick,
                     onClearCategory = onClearCategory,
@@ -120,6 +134,8 @@ private fun ExploreContent(
     sortMode: ExploreSortMode,
     universe: Universe,
     posts: List<VsPost>,
+    isLoadingMore: Boolean,
+    gridState: androidx.compose.foundation.lazy.grid.LazyGridState,
     onUniverseClick: (Universe) -> Unit,
     onCategoryClick: (VoteCategory) -> Unit,
     onClearCategory: () -> Unit,
@@ -197,7 +213,10 @@ private fun ExploreContent(
         Spacer(modifier = Modifier.height(14.dp))
 
         Text(
-            text = buildExploreTitle(selectedCategoryId, sortMode),
+            text = buildExploreTitle(
+                selectedCategoryId = selectedCategoryId,
+                sortMode = sortMode
+            ),
             color = ExploreUiTokens.SubtitleColor,
             style = MaterialTheme.typography.titleMedium
         )
@@ -206,18 +225,34 @@ private fun ExploreContent(
 
         if (posts.isEmpty()) {
             ExploreEmptyState()
-        } else {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(3),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxSize()
-            ) {
-                items(posts) { post ->
-                    ExplorePostTile(
-                        post = post,
-                        onClick = onPostClick
-                    )
+            return
+        }
+
+        LazyVerticalGrid(
+            state = gridState,
+            columns = GridCells.Fixed(3),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxSize()
+        ) {
+            items(posts) { post ->
+                ExplorePostTile(
+                    post = post,
+                    onClick = onPostClick
+                )
+            }
+
+            if (isLoadingMore) {
+                items(
+                    count = 1,
+                    span = { GridItemSpan(3) }
+                ) {
+                    Box(
+                        modifier = Modifier.padding(vertical = 12.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
                 }
             }
         }
@@ -244,7 +279,9 @@ private fun ExploreCenteredState(
     action: @Composable () -> Unit
 ) {
     Column(
-        modifier = Modifier.fillMaxSize().padding(24.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {

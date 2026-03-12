@@ -6,7 +6,7 @@ import com.nazam.instaclone.feature.home.domain.repository.HomeRepository
 class GetExplorePostsUseCase(
     private val repository: HomeRepository
 ) {
-    suspend fun execute(limit: Int = 120): Result<List<VsPost>> {
-        return repository.getExplorePosts(limit)
+    suspend fun execute(offset: Int, limit: Int): Result<List<VsPost>> {
+        return repository.getExplorePostsPage(offset = offset, limit = limit)
     }
 }
