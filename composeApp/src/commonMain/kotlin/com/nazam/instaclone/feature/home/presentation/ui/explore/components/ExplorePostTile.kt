@@ -2,7 +2,9 @@ package com.nazam.instaclone.feature.home.presentation.ui.explore.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,14 +23,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.nazam.instaclone.feature.home.domain.model.VsPost
 import com.nazam.instaclone.feature.home.presentation.ui.components.NetworkImage
-import instaclone.composeapp.generated.resources.*
+import instaclone.composeapp.generated.resources.Res
+import instaclone.composeapp.generated.resources.cd_poll_image
+import instaclone.composeapp.generated.resources.percent_value
+import instaclone.composeapp.generated.resources.vs_title_format
+import instaclone.composeapp.generated.resources.vspost_votes_count
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.max
 
-/**
- * Tuile carrée (grid).
- * ✅ KMP friendly : strings via composeResources
- */
 @Composable
 internal fun ExplorePostTile(
     post: VsPost,
@@ -36,35 +38,33 @@ internal fun ExplorePostTile(
     modifier: Modifier = Modifier
 ) {
     val totalVotes = max(post.totalVotesCount, 1)
+    val leftRatio = post.leftVotesCount.toFloat() / totalVotes
+    val rightRatio = post.rightVotesCount.toFloat() / totalVotes
+    val leftPercent = (leftRatio * 100f).toInt()
+    val rightPercent = (rightRatio * 100f).toInt()
 
-    val leftRatio = post.leftVotesCount.toFloat() / totalVotes.toFloat()
-    val rightRatio = post.rightVotesCount.toFloat() / totalVotes.toFloat()
-
-    val leftPct = (leftRatio * 100f).toInt()
-    val rightPct = (rightRatio * 100f).toInt()
-
-    val winnerUrl =
-        if (post.leftVotesCount >= post.rightVotesCount) post.leftImageUrl else post.rightImageUrl
-
-    val title = "${post.leftLabel} vs ${post.rightLabel}"
+    val imageUrl = if (post.leftVotesCount >= post.rightVotesCount) {
+        post.leftImageUrl
+    } else {
+        post.rightImageUrl
+    }
 
     Surface(
-        tonalElevation = 2.dp,
         shape = MaterialTheme.shapes.medium,
+        tonalElevation = 2.dp,
         modifier = modifier
             .fillMaxWidth()
             .aspectRatio(1f)
             .clickable { onClick(post) }
     ) {
-        androidx.compose.foundation.layout.Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize()) {
             NetworkImage(
-                url = winnerUrl,
+                url = imageUrl,
                 contentDescription = stringResource(Res.string.cd_poll_image),
                 modifier = Modifier.fillMaxSize()
             )
 
-            // voile sombre pour lire le texte
-            androidx.compose.foundation.layout.Box(
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(ExploreUiTokens.OverlayOnImage)
@@ -77,7 +77,11 @@ internal fun ExplorePostTile(
                     .padding(10.dp)
             ) {
                 Text(
-                    text = title,
+                    text = stringResource(
+                        Res.string.vs_title_format,
+                        post.leftLabel,
+                        post.rightLabel
+                    ),
                     color = Color.White,
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold,
@@ -85,14 +89,22 @@ internal fun ExplorePostTile(
                     overflow = TextOverflow.Ellipsis
                 )
 
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
-                LabelPercentRow(label = post.leftLabel, percent = leftPct)
+                Text(
+                    text = stringResource(Res.string.vspost_votes_count, post.totalVotesCount),
+                    color = ExploreUiTokens.SubtitleColor,
+                    style = MaterialTheme.typography.bodySmall
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                PercentRow(post.leftLabel, leftPercent)
                 ExploreVoteProgressBar(progress = leftRatio, height = 6.dp)
 
                 Spacer(modifier = Modifier.height(6.dp))
 
-                LabelPercentRow(label = post.rightLabel, percent = rightPct)
+                PercentRow(post.rightLabel, rightPercent)
                 ExploreVoteProgressBar(progress = rightRatio, height = 6.dp)
             }
         }
@@ -100,11 +112,11 @@ internal fun ExplorePostTile(
 }
 
 @Composable
-private fun LabelPercentRow(
+private fun PercentRow(
     label: String,
     percent: Int
 ) {
-    androidx.compose.foundation.layout.Row(
+    Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -118,7 +130,7 @@ private fun LabelPercentRow(
         )
 
         Text(
-            text = "$percent%",
+            text = stringResource(Res.string.percent_value, percent),
             color = ExploreUiTokens.SubtitleColor,
             style = MaterialTheme.typography.bodySmall
         )

@@ -10,11 +10,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
-/**
- * Chip catégorie :
- * ✅ Pas d’icônes
- * ✅ Look dark
- */
 @Composable
 internal fun ExploreCategoryChip(
     label: String,
@@ -22,19 +17,17 @@ internal fun ExploreCategoryChip(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val bg: Color = if (selected) ExploreUiTokens.Accent else ExploreUiTokens.ChipBgNormal
-
     Surface(
-        tonalElevation = 0.dp,
+        color = if (selected) ExploreUiTokens.Accent else ExploreUiTokens.ChipBgNormal,
         shape = MaterialTheme.shapes.large,
-        color = bg,
-        modifier = modifier.clickable { onClick() }
+        tonalElevation = 0.dp,
+        modifier = modifier.clickable(onClick = onClick)
     ) {
         Text(
             text = label,
             color = Color.White,
             style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 9.dp)
         )
     }
 }

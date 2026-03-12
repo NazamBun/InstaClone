@@ -12,13 +12,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.nazam.instaclone.feature.home.presentation.ui.explore.ExploreSortMode
-import instaclone.composeapp.generated.resources.*
+import instaclone.composeapp.generated.resources.Res
+import instaclone.composeapp.generated.resources.explore_sort_controversial
+import instaclone.composeapp.generated.resources.explore_sort_hot
+import instaclone.composeapp.generated.resources.explore_sort_recent
 import org.jetbrains.compose.resources.stringResource
 
-/**
- * Petit choix de tri.
- * ✅ KMP friendly : strings via composeResources
- */
 @Composable
 fun ExploreSortSelector(
     selected: ExploreSortMode,
@@ -29,19 +28,17 @@ fun ExploreSortSelector(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        ExploreSortChip(
+        SortChip(
             label = stringResource(Res.string.explore_sort_hot),
             selected = selected == ExploreSortMode.HOT,
             onClick = { onSelected(ExploreSortMode.HOT) }
         )
-
-        ExploreSortChip(
+        SortChip(
             label = stringResource(Res.string.explore_sort_recent),
             selected = selected == ExploreSortMode.RECENT,
             onClick = { onSelected(ExploreSortMode.RECENT) }
         )
-
-        ExploreSortChip(
+        SortChip(
             label = stringResource(Res.string.explore_sort_controversial),
             selected = selected == ExploreSortMode.CONTROVERSIAL,
             onClick = { onSelected(ExploreSortMode.CONTROVERSIAL) }
@@ -50,26 +47,22 @@ fun ExploreSortSelector(
 }
 
 @Composable
-private fun ExploreSortChip(
+private fun SortChip(
     label: String,
     selected: Boolean,
     onClick: () -> Unit
 ) {
-    val accent = ExploreUiTokens.Accent
-    val bg = if (selected) accent else Color(0xFF14141A)
-    val fg = Color.White
-
     Surface(
-        tonalElevation = 0.dp,
+        color = if (selected) ExploreUiTokens.Accent else ExploreUiTokens.ChipBgNormal,
         shape = MaterialTheme.shapes.large,
-        color = bg,
-        modifier = Modifier.clickable { onClick() }
+        tonalElevation = 0.dp,
+        modifier = Modifier.clickable(onClick = onClick)
     ) {
         Text(
             text = label,
-            color = fg,
+            color = Color.White,
             style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp)
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
         )
     }
 }
