@@ -132,7 +132,7 @@ val appModule = module {
     }
 
     factory { CategoriesViewModel() }
-    single {
+    factory {
         ExploreViewModel(
             dispatchers = get(),
             getExplorePostsUseCase = get()
