@@ -4,12 +4,10 @@ import com.nazam.instaclone.feature.home.domain.model.Comment
 import com.nazam.instaclone.feature.home.domain.model.VsPost
 
 interface HomeRepository {
-
-    // ✅ V2 : pagination
     suspend fun getFeedPage(offset: Int, limit: Int): Result<List<VsPost>>
-
-    // ✅ compat (si tu en as besoin ailleurs)
     suspend fun getFeed(): Result<List<VsPost>> = getFeedPage(offset = 0, limit = 30)
+
+    suspend fun getExplorePosts(limit: Int): Result<List<VsPost>>
 
     suspend fun createPost(
         question: String,

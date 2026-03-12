@@ -2,6 +2,7 @@ package com.nazam.instaclone.feature.home.presentation.ui.explore
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import com.nazam.instaclone.core.navigation.Screen
@@ -20,19 +21,21 @@ fun ExploreRoute(
     val exploreViewModel: ExploreViewModel = koinInject()
     val exploreUi by exploreViewModel.uiState.collectAsState()
 
+    DisposableEffect(Unit) {
+        onDispose { exploreViewModel.clear() }
+    }
+
     ExploreScreen(
-        homeUi = homeUi,
+        selectedCategoryId = homeUi.selectedCategoryId,
         exploreUi = exploreUi,
         contentPadding = contentPadding,
         onUniverseClick = homeViewModel::onUniverseSelected,
         onCategoryClick = homeViewModel::onExploreCategoryClicked,
         onClearCategory = homeViewModel::onExploreClearCategory,
         onSortSelected = exploreViewModel::onSortModeSelected,
+        onRetry = exploreViewModel::load,
         onPostClick = { post ->
-            ExplorePagerStore.open(
-                categoryId = post.category,
-                startPostId = post.id
-            )
+            ExplorePagerStore.open(categoryId = post.category, startPostId = post.id)
             onNavigate(Screen.ExplorePager)
         }
     )

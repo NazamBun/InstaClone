@@ -67,6 +67,8 @@
     <!-- Explore -->
     <string name="explore_back">Retour</string>
     <string name="explore_empty_category">Aucun post dans cette catégorie</string>
+    <string name="explore_loading">Chargement...</string>
+    <string name="explore_load_error">Impossible de charger Explore</string>
 
     <string name="explore_sort_hot">Hot</string>
     <string name="explore_sort_recent">Recent</string>

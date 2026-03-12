@@ -30,6 +30,7 @@ class HomeRepositoryImpl(
         const val POSTS_TABLE = "posts"
         const val COMMENTS_TABLE = "comments"
         const val DEFAULT_LIMIT = 30
+        const val EXPLORE_LIMIT = 120
     }
 
     override suspend fun getFeed(): Result<List<VsPost>> =
@@ -38,16 +39,16 @@ class HomeRepositoryImpl(
     override suspend fun getFeedPage(offset: Int, limit: Int): Result<List<VsPost>> = runCatching {
         val isLoggedIn = client.auth.currentUserOrNull() != null
 
-        if (!isLoggedIn) {
-            return@runCatching fetchGlobalHotPage(offset, limit)
-        }
+        if (!isLoggedIn) return@runCatching fetchRecentPage(POSTS_FEED_VIEW, offset, limit)
 
         val followingPosts = fetchRecentPage(POSTS_FOLLOWING_FEED_VIEW, offset, limit)
-        if (followingPosts.isNotEmpty() || offset > 0) {
-            return@runCatching followingPosts
-        }
+        if (followingPosts.isNotEmpty() || offset > 0) return@runCatching followingPosts
 
-        fetchGlobalHotPage(offset, limit)
+        fetchRecentPage(POSTS_FEED_VIEW, offset, limit)
+    }
+
+    override suspend fun getExplorePosts(limit: Int): Result<List<VsPost>> = runCatching {
+        fetchRecentPage(POSTS_FEED_VIEW, offset = 0, limit = limit.coerceAtLeast(1))
     }
 
     override suspend fun createPost(
@@ -85,12 +86,7 @@ class HomeRepositoryImpl(
             filter { eq("post_id", postId) }
             order(column = "created_at", order = Order.ASCENDING)
         }
-
-        val dtos: List<CommentDto> = json.decodeFromString(
-            ListSerializer(CommentDto.serializer()),
-            response.data
-        )
-        dtos.map(CommentMapper::toDomain)
+        decodeComments(response.data).map(CommentMapper::toDomain)
     }
 
     override suspend fun addComment(postId: String, content: String): Result<Comment> = runCatching {
@@ -106,11 +102,7 @@ class HomeRepositoryImpl(
         )
 
         val response = client.postgrest[COMMENTS_TABLE].insert(payload) { select() }
-        val list: List<CommentDto> = json.decodeFromString(
-            ListSerializer(CommentDto.serializer()),
-            response.data
-        )
-        CommentMapper.toDomain(list.first())
+        CommentMapper.toDomain(decodeComments(response.data).first())
     }
 
     private suspend fun vote(postId: String, choice: String): Result<VsPost> = runCatching {
@@ -131,20 +123,7 @@ class HomeRepositoryImpl(
         PostMapper.toDomain(dto, userVote)
     }
 
-    private suspend fun fetchGlobalHotPage(offset: Int, limit: Int): List<VsPost> {
-        return fetchRecentPage(POSTS_FEED_VIEW, offset, limit)
-            .sortedWith(
-                compareByDescending<VsPost> { it.totalVotesCount }
-                    .thenByDescending { it.leftVotesCount + it.rightVotesCount }
-                    .thenByDescending { it.id }
-            )
-    }
-
-    private suspend fun fetchRecentPage(
-        viewName: String,
-        offset: Int,
-        limit: Int
-    ): List<VsPost> {
+    private suspend fun fetchRecentPage(viewName: String, offset: Int, limit: Int): List<VsPost> {
         val from = offset.coerceAtLeast(0)
         val to = (offset + limit - 1).coerceAtLeast(from)
 
@@ -154,18 +133,23 @@ class HomeRepositoryImpl(
             order(column = "id", order = Order.DESCENDING)
         }
 
-        return decodePosts(response.data).map { dto ->
-            val userVote = when (dto.user_choice) {
-                "left" -> VoteChoice.LEFT
-                "right" -> VoteChoice.RIGHT
-                else -> VoteChoice.NONE
-            }
-            PostMapper.toDomain(dto, userVote)
+        return decodePosts(response.data).map(::mapPost)
+    }
+
+    private fun mapPost(dto: PostDto): VsPost {
+        val userVote = when (dto.user_choice) {
+            "left" -> VoteChoice.LEFT
+            "right" -> VoteChoice.RIGHT
+            else -> VoteChoice.NONE
         }
+        return PostMapper.toDomain(dto, userVote)
     }
 
     private fun decodePosts(raw: String): List<PostDto> =
         json.decodeFromString(ListSerializer(PostDto.serializer()), raw)
+
+    private fun decodeComments(raw: String): List<CommentDto> =
+        json.decodeFromString(ListSerializer(CommentDto.serializer()), raw)
 
     @Serializable
     private data class CreatePostDto(
