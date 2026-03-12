@@ -39,6 +39,9 @@ import instaclone.composeapp.generated.resources.Res
 import instaclone.composeapp.generated.resources.action_retry
 import instaclone.composeapp.generated.resources.explore_all
 import instaclone.composeapp.generated.resources.explore_category_prefix
+import instaclone.composeapp.generated.resources.explore_empty_category
+import instaclone.composeapp.generated.resources.explore_load_error
+import instaclone.composeapp.generated.resources.explore_loading
 import instaclone.composeapp.generated.resources.explore_sort_controversial_title
 import instaclone.composeapp.generated.resources.explore_sort_hot_title
 import instaclone.composeapp.generated.resources.explore_sort_recent_title
@@ -77,18 +80,16 @@ fun ExploreScreen(
     ) {
         when {
             exploreUi.isLoading -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+                ExploreCenteredState(
+                    text = stringResource(Res.string.explore_loading)
                 ) {
                     CircularProgressIndicator()
                 }
             }
 
             exploreUi.error != null -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+                ExploreCenteredState(
+                    text = exploreUi.error.asString()
                 ) {
                     Button(onClick = onRetry) {
                         Text(stringResource(Res.string.action_retry))
@@ -203,19 +204,57 @@ private fun ExploreContent(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(3),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.fillMaxSize()
-        ) {
-            items(posts) { post ->
-                ExplorePostTile(
-                    post = post,
-                    onClick = onPostClick
-                )
+        if (posts.isEmpty()) {
+            ExploreEmptyState()
+        } else {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(3),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxSize()
+            ) {
+                items(posts) { post ->
+                    ExplorePostTile(
+                        post = post,
+                        onClick = onPostClick
+                    )
+                }
             }
         }
+    }
+}
+
+@Composable
+private fun ExploreEmptyState() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = stringResource(Res.string.explore_empty_category),
+            color = ExploreUiTokens.SubtitleColor,
+            style = MaterialTheme.typography.bodyLarge
+        )
+    }
+}
+
+@Composable
+private fun ExploreCenteredState(
+    text: String,
+    action: @Composable () -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        action()
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(
+            text = text,
+            color = ExploreUiTokens.SubtitleColor,
+            style = MaterialTheme.typography.bodyLarge
+        )
     }
 }
 
