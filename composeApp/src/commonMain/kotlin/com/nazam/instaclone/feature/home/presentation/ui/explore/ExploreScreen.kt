@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -83,7 +84,7 @@ fun ExploreScreen(
                 OutlinedTextField(
                     value = exploreUi.searchQuery,
                     onValueChange = onSearchQueryChanged,
-                    modifier = Modifier.fillMaxSize().weight(0f),
+                    modifier = Modifier.fillMaxWidth(),
                     label = { Text(stringResource(Res.string.explore_search_label)) },
                     placeholder = { Text(stringResource(Res.string.explore_search_placeholder)) },
                     singleLine = true

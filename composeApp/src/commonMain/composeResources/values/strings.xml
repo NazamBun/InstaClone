@@ -35,6 +35,7 @@
     <!-- Create post -->
     <string name="create_post_title">Créer un nouveau VS</string>
     <string name="create_post_question_label">Question</string>
+    <string name="create_post_hashtag_hint">Ajoute des hashtags dans la question, par exemple : #cr7 #mbappe</string>
     <string name="create_post_left_label">Label gauche</string>
     <string name="create_post_right_label">Label droite</string>
 

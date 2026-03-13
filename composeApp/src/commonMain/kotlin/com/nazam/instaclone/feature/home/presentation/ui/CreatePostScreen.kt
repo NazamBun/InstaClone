@@ -1,22 +1,35 @@
 package com.nazam.instaclone.feature.home.presentation.ui
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.nazam.instaclone.core.ui.asString
-import com.nazam.instaclone.feature.home.domain.model.VoteCategories
 import com.nazam.instaclone.feature.home.presentation.model.CreatePostUiState
 import com.nazam.instaclone.feature.home.presentation.ui.components.NetworkImage
 import instaclone.composeapp.generated.resources.Res
 import instaclone.composeapp.generated.resources.create_post_cancel
-import instaclone.composeapp.generated.resources.create_post_category_label
-import instaclone.composeapp.generated.resources.create_post_choose_category_button
-import instaclone.composeapp.generated.resources.create_post_choose_category_placeholder
+import instaclone.composeapp.generated.resources.create_post_hashtag_hint
 import instaclone.composeapp.generated.resources.create_post_left_label
 import instaclone.composeapp.generated.resources.create_post_question_label
 import instaclone.composeapp.generated.resources.create_post_right_label
@@ -33,31 +46,26 @@ fun CreatePostScreen(
     onRightLabelChange: (String) -> Unit,
     onPickLeftImageClick: () -> Unit,
     onPickRightImageClick: () -> Unit,
-    onChooseCategoryClick: () -> Unit,
     onSubmitClick: () -> Unit,
     onCancelClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val scroll = rememberScrollState()
-    val leftPreview = if (ui.leftUploadedUrl.isNotBlank()) ui.leftUploadedUrl else ui.leftLocalUri
-    val rightPreview = if (ui.rightUploadedUrl.isNotBlank()) ui.rightUploadedUrl else ui.rightLocalUri
+    val leftPreview = ui.leftUploadedUrl.ifBlank { ui.leftLocalUri }
+    val rightPreview = ui.rightUploadedUrl.ifBlank { ui.rightLocalUri }
 
     Column(modifier = modifier.fillMaxSize()) {
-        CenterAlignedTopAppBar(
-            title = { Text(stringResource(Res.string.create_post_title)) }
-        )
+        CenterAlignedTopAppBar(title = { Text(stringResource(Res.string.create_post_title)) })
 
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(scroll)
-                .padding(16.dp),
+            modifier = Modifier.fillMaxSize().verticalScroll(scroll).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             OutlinedTextField(
                 value = ui.question,
                 onValueChange = onQuestionChange,
                 label = { Text(stringResource(Res.string.create_post_question_label)) },
+                supportingText = { Text(stringResource(Res.string.create_post_hashtag_hint)) },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -77,39 +85,9 @@ fun CreatePostScreen(
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                ImageCard(
-                    title = "A",
-                    preview = leftPreview,
-                    isUploading = ui.isUploadingLeft,
-                    percent = ui.leftUploadPercent,
-                    onPickClick = onPickLeftImageClick,
-                    modifier = Modifier.weight(1f)
-                )
-                ImageCard(
-                    title = "B",
-                    preview = rightPreview,
-                    isUploading = ui.isUploadingRight,
-                    percent = ui.rightUploadPercent,
-                    onPickClick = onPickRightImageClick,
-                    modifier = Modifier.weight(1f)
-                )
+                ImageCard("A", leftPreview, ui.isUploadingLeft, ui.leftUploadPercent, onPickLeftImageClick, Modifier.weight(1f))
+                ImageCard("B", rightPreview, ui.isUploadingRight, ui.rightUploadPercent, onPickRightImageClick, Modifier.weight(1f))
             }
-
-            val categoryLabel = VoteCategories.labelFor(ui.category).asString()
-            OutlinedTextField(
-                value = if (ui.category.isBlank()) "" else categoryLabel,
-                onValueChange = {},
-                readOnly = true,
-                label = { Text(stringResource(Res.string.create_post_category_label)) },
-                placeholder = { Text(stringResource(Res.string.create_post_choose_category_placeholder)) },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Button(
-                onClick = onChooseCategoryClick,
-                enabled = !ui.isLoading,
-                modifier = Modifier.fillMaxWidth()
-            ) { Text(stringResource(Res.string.create_post_choose_category_button)) }
 
             ui.error?.let {
                 Text(text = it.asString(), color = MaterialTheme.colorScheme.error)
@@ -119,19 +97,22 @@ fun CreatePostScreen(
                 onClick = onSubmitClick,
                 enabled = ui.isSubmitEnabled,
                 modifier = Modifier.fillMaxWidth()
-            ) { Text(stringResource(Res.string.create_post_submit)) }
+            ) {
+                Text(stringResource(Res.string.create_post_submit))
+            }
 
             OutlinedButton(
                 onClick = onCancelClick,
                 enabled = !ui.isLoading,
                 modifier = Modifier.fillMaxWidth()
-            ) { Text(stringResource(Res.string.create_post_cancel)) }
+            ) {
+                Text(stringResource(Res.string.create_post_cancel))
+            }
 
             if (ui.isLoading) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) { CircularProgressIndicator() }
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                    CircularProgressIndicator()
+                }
             }
         }
     }
@@ -157,15 +138,13 @@ private fun ImageCard(
                     modifier = Modifier.fillMaxWidth().height(180.dp)
                 )
             } else {
-                Box(
-                    modifier = Modifier.fillMaxWidth().height(180.dp),
-                    contentAlignment = Alignment.Center
-                ) { Text("Choisir une photo") }
+                Box(modifier = Modifier.fillMaxWidth().height(180.dp), contentAlignment = Alignment.Center) {
+                    Text("Choisir une photo")
+                }
             }
 
             if (isUploading) {
-                val progress = (percent ?: 0) / 100f
-                LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth())
+                LinearProgressIndicator(progress = { (percent ?: 0) / 100f }, modifier = Modifier.fillMaxWidth())
                 Text(text = if (percent != null) "$percent%" else "Upload…", style = MaterialTheme.typography.labelSmall)
             }
 
@@ -173,7 +152,9 @@ private fun ImageCard(
                 onClick = onPickClick,
                 enabled = !isUploading,
                 modifier = Modifier.fillMaxWidth()
-            ) { Text(if (preview.isBlank()) "Choisir" else "Modifier") }
+            ) {
+                Text(if (preview.isBlank()) "Choisir" else "Modifier")
+            }
         }
     }
 }

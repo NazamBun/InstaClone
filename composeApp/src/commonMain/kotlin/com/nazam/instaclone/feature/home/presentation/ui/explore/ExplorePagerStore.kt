@@ -1,25 +1,20 @@
 package com.nazam.instaclone.feature.home.presentation.ui.explore
 
-/**
- * Petit store en mémoire (KMP friendly).
- * Sert à passer des infos de Explore -> ExplorePager
- * sans dépendre d’un framework de navigation.
- */
 object ExplorePagerStore {
 
-    private var categoryId: String = ""
+    private var postIds: List<String> = emptyList()
     private var startPostId: String = ""
 
-    fun open(categoryId: String, startPostId: String) {
-        this.categoryId = categoryId
+    fun open(postIds: List<String>, startPostId: String) {
+        this.postIds = postIds.distinct()
         this.startPostId = startPostId
     }
 
-    fun getCategoryId(): String = categoryId
+    fun getPostIds(): List<String> = postIds
     fun getStartPostId(): String = startPostId
 
     fun clear() {
-        categoryId = ""
+        postIds = emptyList()
         startPostId = ""
     }
 }

@@ -135,7 +135,6 @@ fun VsPostItem(
 
         VsPostHeader(
             authorName = post.authorName,
-            category = post.category,
             onAuthorClick = { onAuthorClick(post) },
             modifier = Modifier.align(Alignment.TopStart)
         )

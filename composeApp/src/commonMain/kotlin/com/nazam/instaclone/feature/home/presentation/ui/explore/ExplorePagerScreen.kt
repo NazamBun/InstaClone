@@ -20,7 +20,7 @@ import com.nazam.instaclone.feature.home.presentation.model.HomeUiState
 import com.nazam.instaclone.feature.home.presentation.ui.VsPostItem
 import instaclone.composeapp.generated.resources.Res
 import instaclone.composeapp.generated.resources.explore_back
-import instaclone.composeapp.generated.resources.explore_empty_category
+import instaclone.composeapp.generated.resources.explore_empty_hashtag
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -34,26 +34,16 @@ fun ExplorePagerScreen(
     onOpenComments: (String) -> Unit,
     onOpenAuthor: (VsPost) -> Unit
 ) {
-    val storeCategoryId = ExplorePagerStore.getCategoryId()
+    val savedPostIds = ExplorePagerStore.getPostIds()
     val startPostId = ExplorePagerStore.getStartPostId()
-
-    val categoryId =
-        if (storeCategoryId.isNotBlank()) storeCategoryId
-        else ui.posts.firstOrNull { it.id == startPostId }?.category.orEmpty()
-
-    val posts =
-        if (categoryId.isBlank()) ui.posts
-        else ui.posts.filter { it.category == categoryId }
+    val posts = ui.posts.filter { it.id in savedPostIds }
 
     if (posts.isEmpty()) {
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0xFF050509))
-                .padding(contentPadding),
+            modifier = Modifier.fillMaxSize().background(Color(0xFF050509)).padding(contentPadding),
             contentAlignment = Alignment.Center
         ) {
-            Text(stringResource(Res.string.explore_empty_category), color = Color.White)
+            Text(stringResource(Res.string.explore_empty_hashtag), color = Color.White)
         }
         return
     }
@@ -62,18 +52,12 @@ fun ExplorePagerScreen(
     val pagerState = rememberPagerState(initialPage = startIndex, pageCount = { posts.size })
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF050509))
-            .padding(contentPadding)
+        modifier = Modifier.fillMaxSize().background(Color(0xFF050509)).padding(contentPadding)
     ) {
         Text(
             text = stringResource(Res.string.explore_back),
             color = Color.White,
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(horizontal = 16.dp, vertical = 12.dp)
-                .clickable(onClick = onBackClick)
+            modifier = Modifier.align(Alignment.TopStart).padding(horizontal = 16.dp, vertical = 12.dp).clickable(onClick = onBackClick)
         )
 
         HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize()) { index ->

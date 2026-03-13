@@ -16,6 +16,11 @@ fun ExploreRoute(
     val viewModel: ExploreViewModel = koinInject()
     val ui by viewModel.uiState.collectAsState()
 
+    val visiblePosts = filterPostsByHashtag(
+        posts = sortExplorePosts(ui.posts, ui.sortMode),
+        query = ui.searchQuery
+    )
+
     ExploreScreen(
         exploreUi = ui,
         contentPadding = contentPadding,
@@ -24,7 +29,10 @@ fun ExploreRoute(
         onRetry = viewModel::load,
         onLoadMore = viewModel::loadMore,
         onPostClick = { post ->
-            ExplorePagerStore.open(categoryId = post.category, startPostId = post.id)
+            ExplorePagerStore.open(
+                postIds = visiblePosts.map { it.id },
+                startPostId = post.id
+            )
             onNavigate(Screen.ExplorePager)
         }
     )

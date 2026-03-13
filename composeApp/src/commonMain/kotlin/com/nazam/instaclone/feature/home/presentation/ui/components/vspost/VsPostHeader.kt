@@ -10,18 +10,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.nazam.instaclone.core.ui.asString
-import com.nazam.instaclone.feature.home.domain.model.VoteCategories
 
 @Composable
 fun VsPostHeader(
     authorName: String,
-    category: String,
     onAuthorClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val categoryLabel = VoteCategories.labelFor(category).asString()
-
     Column(modifier = modifier.padding(16.dp)) {
         Text(
             text = authorName,
@@ -30,8 +25,8 @@ fun VsPostHeader(
             modifier = Modifier.clickable(onClick = onAuthorClick)
         )
         Text(
-            text = categoryLabel,
-            color = Color.White,
+            text = "@${authorName.trim()}",
+            color = Color.White.copy(alpha = 0.72f),
             fontSize = 12.sp
         )
     }

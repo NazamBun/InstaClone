@@ -4,7 +4,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.nazam.instaclone.core.media.rememberImagePicker
 import com.nazam.instaclone.core.navigation.Screen
@@ -17,7 +24,7 @@ import org.koin.compose.koinInject
 
 @Composable
 fun CreatePostRoute(
-    onNavigate: (Screen) -> Unit,
+    onNavigate: (Screen) -> Unit
 ) {
     val viewModel: CreatePostViewModel = koinInject()
     val ui by viewModel.uiState.collectAsState()
@@ -27,6 +34,8 @@ fun CreatePostRoute(
 
     val pickLeftImage = rememberImagePicker(onImagePicked = viewModel::onLeftImageSelected)
     val pickRightImage = rememberImagePicker(onImagePicked = viewModel::onRightImageSelected)
+
+    val pendingMessageText = pendingMessage?.asString()
 
     DisposableEffect(Unit) {
         onDispose { viewModel.clear() }
@@ -41,18 +50,15 @@ fun CreatePostRoute(
                 CreatePostUiEvent.PostCreated -> onNavigate(Screen.Home)
                 CreatePostUiEvent.NavigateBack -> onNavigate(Screen.Home)
                 CreatePostUiEvent.NavigateToLogin -> onNavigate(Screen.Login)
-                CreatePostUiEvent.NavigateToCategories -> onNavigate(Screen.Categories)
                 is CreatePostUiEvent.ShowMessage -> pendingMessage = event.message
             }
         }
     }
 
-    val messageText: String? = pendingMessage?.asString()
-    LaunchedEffect(messageText) {
-        if (messageText != null) {
-            snackbarHostState.showSnackbar(messageText)
-            pendingMessage = null
-        }
+    LaunchedEffect(pendingMessageText) {
+        val text = pendingMessageText ?: return@LaunchedEffect
+        snackbarHostState.showSnackbar(text)
+        pendingMessage = null
     }
 
     Scaffold(
@@ -65,7 +71,6 @@ fun CreatePostRoute(
             onRightLabelChange = viewModel::onRightLabelChange,
             onPickLeftImageClick = pickLeftImage,
             onPickRightImageClick = pickRightImage,
-            onChooseCategoryClick = viewModel::onChooseCategoryClicked,
             onSubmitClick = viewModel::submitPost,
             onCancelClick = viewModel::onCancelClicked,
             modifier = Modifier.padding(padding)
