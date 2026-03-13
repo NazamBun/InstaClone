@@ -8,6 +8,7 @@ data class ExploreUiState(
     val isLoading: Boolean = false,
     val isLoadingMore: Boolean = false,
     val endReached: Boolean = false,
+    val searchQuery: String = "",
     val posts: List<VsPost> = emptyList(),
     val sortMode: ExploreSortMode = ExploreSortMode.HOT,
     val error: UiText? = null

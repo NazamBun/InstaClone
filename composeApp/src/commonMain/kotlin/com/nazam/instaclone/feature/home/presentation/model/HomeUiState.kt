@@ -2,36 +2,28 @@ package com.nazam.instaclone.feature.home.presentation.model
 
 import com.nazam.instaclone.core.ui.UiText
 import com.nazam.instaclone.feature.home.domain.model.Comment
+import com.nazam.instaclone.feature.home.domain.model.FeedMode
 import com.nazam.instaclone.feature.home.domain.model.VsPost
 
 data class HomeUiState(
     val isLoading: Boolean = false,
     val isLoadingMore: Boolean = false,
     val endReached: Boolean = false,
-
+    val selectedFeedMode: FeedMode = FeedMode.FOR_YOU,
     val isLoggedIn: Boolean = false,
-
     val currentUserId: String? = null,
     val currentUserEmail: String? = null,
     val currentUserDisplayName: String? = null,
-
     val votingPostId: String? = null,
     val posts: List<VsPost> = emptyList(),
-
-    // ✅ Dialog (UiText = traduisible)
     val dialogMessage: UiText? = null,
     val dialogConfirmLabel: UiText? = null,
     val dialogSecondaryLabel: UiText? = null,
     val dialogShouldOpenLogin: Boolean = false,
     val dialogShouldOpenSignup: Boolean = false,
-
-    // ✅ Comments panel
     val isCommentsSheetOpen: Boolean = false,
     val commentsPostId: String? = null,
     val isCommentsLoading: Boolean = false,
     val comments: List<Comment> = emptyList(),
-    val newCommentText: String = "",
-
-    // Filtre local (catégorie)
-    val selectedCategoryId: String = ""
+    val newCommentText: String = ""
 )

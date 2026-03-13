@@ -4,19 +4,16 @@ import com.nazam.instaclone.core.dispatchers.AppDispatchers
 import com.nazam.instaclone.core.navigation.NavigationStore
 import com.nazam.instaclone.core.navigation.Screen
 import com.nazam.instaclone.core.session.SessionManager
-import com.nazam.instaclone.core.universe.Universe
-import com.nazam.instaclone.core.universe.UniverseStore
 import com.nazam.instaclone.core.ui.UiText
 import com.nazam.instaclone.feature.auth.domain.usecase.GetCurrentUserUseCase
 import com.nazam.instaclone.feature.auth.domain.usecase.LogoutUseCase
-import com.nazam.instaclone.feature.home.domain.model.VoteCategory
+import com.nazam.instaclone.feature.home.domain.model.FeedMode
 import com.nazam.instaclone.feature.home.domain.model.VsPost
 import com.nazam.instaclone.feature.home.domain.usecase.AddCommentUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.GetCommentsUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.GetFeedUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.VoteLeftUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.VoteRightUseCase
-import com.nazam.instaclone.feature.home.presentation.categories.HomeFilterStore
 import com.nazam.instaclone.feature.home.presentation.model.HomeUiState
 import com.nazam.instaclone.feature.home.presentation.vote.VoteIntentStore
 import instaclone.composeapp.generated.resources.Res
@@ -55,7 +52,6 @@ class HomeViewModel(
     internal var pendingVoteAfterLogin: VoteIntentStore.VoteIntent? = null
 
     init {
-        refreshFilter()
         refreshSession()
         loadFeed()
     }
@@ -63,7 +59,6 @@ class HomeViewModel(
     fun refreshSession() {
         scope.launch {
             val user = withContext(dispatchers.default) { getCurrentUserUseCase.execute() }
-
             sessionManager.setUser(user)
 
             _uiState.update {
@@ -84,8 +79,13 @@ class HomeViewModel(
     }
 
     fun loadFeed() = loadFeedInternal(dispatchers, getFeedUseCase, reset = true)
-
     fun loadMore() = loadFeedInternal(dispatchers, getFeedUseCase, reset = false)
+
+    fun onFeedModeSelected(mode: FeedMode) {
+        if (_uiState.value.selectedFeedMode == mode) return
+        _uiState.update { it.copy(selectedFeedMode = mode, posts = emptyList(), endReached = false) }
+        loadFeed()
+    }
 
     fun voteLeft(postId: String) =
         voteInternal(dispatchers, postId, true, voteLeftUseCase, voteRightUseCase)
@@ -94,9 +94,8 @@ class HomeViewModel(
         voteInternal(dispatchers, postId, false, voteLeftUseCase, voteRightUseCase)
 
     fun onCreatePostClicked() {
-        if (uiState.value.isLoggedIn) {
-            navigateTo(Screen.CreatePost)
-        } else {
+        if (uiState.value.isLoggedIn) navigateTo(Screen.CreatePost)
+        else {
             NavigationStore.setAfterLogin(Screen.CreatePost)
             showAuthRequiredDialogInternal(UiText.Resource(Res.string.home_auth_required_create))
         }
@@ -147,48 +146,7 @@ class HomeViewModel(
         }
     }
 
-    internal fun emitMessage(message: UiText) {
-        _events.tryEmit(HomeUiEvent.ShowMessage(message))
-    }
-
-    internal fun navigateTo(screen: Screen) {
-        _events.tryEmit(HomeUiEvent.Navigate(screen))
-    }
-
-    fun clear() {
-        job.cancel()
-    }
-
-    fun refreshFilter() {
-        val categoryFilter = HomeFilterStore.getCategory()
-
-        // V1: Home = tout. Pas de priorite football.
-        _uiState.update { it.copy(selectedCategoryId = categoryFilter) }
-    }
-
-    fun onChooseCategoryFilterClicked() {
-        navigateTo(Screen.Explore)
-    }
-
-    fun onHomeClicked() {
-        UniverseStore.resetToDefault()
-        HomeFilterStore.setAll()
-        refreshFilter()
-    }
-
-    fun onExploreCategoryClicked(category: VoteCategory) {
-        HomeFilterStore.setCategory(category.id)
-        refreshFilter()
-    }
-
-    fun onExploreClearCategory() {
-        HomeFilterStore.setAll()
-        refreshFilter()
-    }
-
-    fun onUniverseSelected(universe: Universe) {
-        UniverseStore.set(universe)
-        HomeFilterStore.setAll()
-        refreshFilter()
-    }
+    internal fun emitMessage(message: UiText) { _events.tryEmit(HomeUiEvent.ShowMessage(message)) }
+    internal fun navigateTo(screen: Screen) { _events.tryEmit(HomeUiEvent.Navigate(screen)) }
+    fun clear() { job.cancel() }
 }

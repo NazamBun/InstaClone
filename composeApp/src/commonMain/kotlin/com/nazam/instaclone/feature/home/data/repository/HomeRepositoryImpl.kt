@@ -29,26 +29,18 @@ class HomeRepositoryImpl(
         const val POSTS_FOLLOWING_FEED_VIEW = "posts_following_feed"
         const val POSTS_TABLE = "posts"
         const val COMMENTS_TABLE = "comments"
-        const val DEFAULT_LIMIT = 30
     }
 
-    override suspend fun getFeed(): Result<List<VsPost>> =
-        getFeedPage(offset = 0, limit = DEFAULT_LIMIT)
-
-    override suspend fun getFeedPage(offset: Int, limit: Int): Result<List<VsPost>> = runCatching {
-        val isLoggedIn = client.auth.currentUserOrNull() != null
-        if (!isLoggedIn) return@runCatching fetchRecentPage(POSTS_FEED_VIEW, offset, limit)
-
-        val followingPosts = fetchRecentPage(POSTS_FOLLOWING_FEED_VIEW, offset, limit)
-        if (followingPosts.isNotEmpty() || offset > 0) return@runCatching followingPosts
-
+    override suspend fun getForYouFeedPage(offset: Int, limit: Int) = runCatching {
         fetchRecentPage(POSTS_FEED_VIEW, offset, limit)
     }
 
-    override suspend fun getExplorePostsPage(
-        offset: Int,
-        limit: Int
-    ): Result<List<VsPost>> = runCatching {
+    override suspend fun getFollowingFeedPage(offset: Int, limit: Int) = runCatching {
+        if (client.auth.currentUserOrNull() == null) emptyList()
+        else fetchRecentPage(POSTS_FOLLOWING_FEED_VIEW, offset, limit)
+    }
+
+    override suspend fun getExplorePostsPage(offset: Int, limit: Int) = runCatching {
         fetchRecentPage(POSTS_FEED_VIEW, offset, limit)
     }
 
@@ -59,7 +51,7 @@ class HomeRepositoryImpl(
         leftLabel: String,
         rightLabel: String,
         category: String
-    ): Result<VsPost> = runCatching {
+    ) = runCatching {
         val user = client.auth.currentUserOrNull()
             ?: throw IllegalStateException("AUTH_REQUIRED")
 
@@ -78,11 +70,11 @@ class HomeRepositoryImpl(
         PostMapper.toDomain(decodePosts(response.data).first(), VoteChoice.NONE)
     }
 
-    override suspend fun voteLeft(postId: String): Result<VsPost> = vote(postId, "left")
+    override suspend fun voteLeft(postId: String) = vote(postId, "left")
 
-    override suspend fun voteRight(postId: String): Result<VsPost> = vote(postId, "right")
+    override suspend fun voteRight(postId: String) = vote(postId, "right")
 
-    override suspend fun getComments(postId: String): Result<List<Comment>> = runCatching {
+    override suspend fun getComments(postId: String) = runCatching {
         val response = client.postgrest[COMMENTS_TABLE].select {
             filter { eq("post_id", postId) }
             order(column = "created_at", order = Order.ASCENDING)
@@ -90,7 +82,7 @@ class HomeRepositoryImpl(
         decodeComments(response.data).map(CommentMapper::toDomain)
     }
 
-    override suspend fun addComment(postId: String, content: String): Result<Comment> = runCatching {
+    override suspend fun addComment(postId: String, content: String) = runCatching {
         val user = client.auth.currentUserOrNull()
             ?: throw IllegalStateException("AUTH_REQUIRED")
 
@@ -106,7 +98,7 @@ class HomeRepositoryImpl(
         CommentMapper.toDomain(decodeComments(response.data).first())
     }
 
-    private suspend fun vote(postId: String, choice: String): Result<VsPost> = runCatching {
+    private suspend fun vote(postId: String, choice: String) = runCatching {
         val user = client.auth.currentUserOrNull()
             ?: throw IllegalStateException("AUTH_REQUIRED")
 
@@ -120,8 +112,8 @@ class HomeRepositoryImpl(
         )
 
         val dto = decodePosts(response.data).first()
-        val userVote = if (choice == "left") VoteChoice.LEFT else VoteChoice.RIGHT
-        PostMapper.toDomain(dto, userVote)
+        val vote = if (choice == "left") VoteChoice.LEFT else VoteChoice.RIGHT
+        PostMapper.toDomain(dto, vote)
     }
 
     private suspend fun fetchRecentPage(viewName: String, offset: Int, limit: Int): List<VsPost> {

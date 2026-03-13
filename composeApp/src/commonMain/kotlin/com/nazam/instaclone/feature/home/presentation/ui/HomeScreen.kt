@@ -3,6 +3,7 @@ package com.nazam.instaclone.feature.home.presentation.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,15 +20,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.nazam.instaclone.core.ui.asString
+import com.nazam.instaclone.feature.home.domain.model.FeedMode
 import com.nazam.instaclone.feature.home.domain.model.VsPost
 import com.nazam.instaclone.feature.home.presentation.model.HomeUiState
 import com.nazam.instaclone.feature.home.presentation.ui.components.comments.CommentsPanel
 import com.nazam.instaclone.feature.home.presentation.ui.components.dialogs.InfoDialog
 import com.nazam.instaclone.feature.home.presentation.ui.components.home.HomeBottomArea
 import com.nazam.instaclone.feature.home.presentation.ui.components.home.HomeFeedContent
+import com.nazam.instaclone.feature.home.presentation.ui.components.home.HomeFeedTabs
 
 @Composable
 fun HomeScreen(
@@ -35,6 +37,7 @@ fun HomeScreen(
     snackbarHostState: SnackbarHostState,
     contentPadding: PaddingValues,
     onCreatePostClick: () -> Unit,
+    onFeedModeSelected: (FeedMode) -> Unit,
     onVoteLeft: (String) -> Unit,
     onVoteRight: (String) -> Unit,
     onOpenComments: (String) -> Unit,
@@ -50,15 +53,11 @@ fun HomeScreen(
     onLoadMore: () -> Unit
 ) {
     val density = LocalDensity.current
-    var bottomBlockHeightDp by remember { mutableStateOf(0.dp) }
-    val panelHeight = 320.dp
+    var bottomHeight by remember { mutableStateOf(0.dp) }
 
-    val extraBottomPadding: Dp =
-        if (ui.isCommentsSheetOpen) panelHeight + bottomBlockHeightDp else 0.dp
-
-    ui.dialogMessage?.let { messageUiText ->
+    ui.dialogMessage?.let {
         InfoDialog(
-            message = messageUiText.asString(),
+            message = it.asString(),
             confirmLabel = ui.dialogConfirmLabel?.asString(),
             secondaryLabel = ui.dialogSecondaryLabel?.asString(),
             onDismiss = onConsumeDialog,
@@ -68,26 +67,27 @@ fun HomeScreen(
     }
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF050509))
-            .padding(contentPadding)
+        modifier = Modifier.fillMaxSize().background(Color(0xFF050509)).padding(contentPadding)
     ) {
-        SnackbarHost(
-            hostState = snackbarHostState,
-            modifier = Modifier.align(Alignment.BottomCenter)
-        )
+        SnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
 
-        HomeFeedContent(
-            ui = ui,
-            extraBottomPadding = extraBottomPadding,
-            onVoteLeft = onVoteLeft,
-            onVoteRight = onVoteRight,
-            onOpenComments = onOpenComments,
-            onOpenAuthor = onOpenAuthor,
-            onShare = onShare,
-            onLoadMore = onLoadMore
-        )
+        Column(modifier = Modifier.fillMaxSize().padding(top = 12.dp)) {
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                HomeFeedTabs(selected = ui.selectedFeedMode, onSelected = onFeedModeSelected)
+            }
+
+            HomeFeedContent(
+                ui = ui,
+                modifier = Modifier.fillMaxSize(),
+                extraBottomPadding = if (ui.isCommentsSheetOpen) 320.dp + bottomHeight else 0.dp,
+                onVoteLeft = onVoteLeft,
+                onVoteRight = onVoteRight,
+                onOpenComments = onOpenComments,
+                onOpenAuthor = onOpenAuthor,
+                onShare = onShare,
+                onLoadMore = onLoadMore
+            )
+        }
 
         HomeBottomArea(
             ui = ui,
@@ -97,22 +97,16 @@ fun HomeScreen(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .onSizeChanged { size ->
-                    bottomBlockHeightDp = with(density) { size.height.toDp() }
-                }
+                .onSizeChanged { bottomHeight = with(density) { it.height.toDp() } }
         )
 
         if (ui.isCommentsSheetOpen) {
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color(0x88000000))
-                    .clickable { onCloseComments() }
+                modifier = Modifier.fillMaxSize().background(Color(0x88000000)).clickable(onClick = onCloseComments)
             )
-
             CommentsPanel(
-                bottomOffset = bottomBlockHeightDp,
-                height = panelHeight,
+                bottomOffset = bottomHeight,
+                height = 320.dp,
                 isLoading = ui.isCommentsLoading,
                 comments = ui.comments,
                 onClose = onCloseComments

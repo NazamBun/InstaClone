@@ -67,6 +67,9 @@
     <!-- Explore -->
     <string name="explore_back">Retour</string>
     <string name="explore_empty_category">Aucun post dans cette catégorie</string>
+    <string name="explore_empty_hashtag">Aucun post pour ce hashtag</string>
+    <string name="explore_search_label">Rechercher un hashtag</string>
+    <string name="explore_search_placeholder">Exemple : #cr7</string>
     <string name="explore_loading">Chargement...</string>
     <string name="explore_load_error">Impossible de charger Explore</string>
 
@@ -79,6 +82,7 @@
 
     <!-- Home -->
     <string name="home_empty">Aucun post</string>
+    <string name="home_empty_following">Aucun post de tes suivis</string>
     <string name="home_empty_filtered">Aucun post dans ce filtre</string>
 
     <!-- Comments -->
@@ -144,6 +148,8 @@
 
     <!-- Home - messages -->
     <string name="home_feed_loaded">Feed chargé : %1$d posts</string>
+    <string name="home_feed_for_you">Pour vous</string>
+    <string name="home_feed_following">Suivis</string>
     <string name="home_feed_error">Erreur lors du chargement du feed</string>
     <string name="home_comments_load_error">Impossible de charger les commentaires</string>
     <string name="home_logged_out">Déconnecté</string>

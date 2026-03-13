@@ -6,6 +6,7 @@ import com.nazam.instaclone.core.navigation.Screen
 import com.nazam.instaclone.core.session.SessionManager
 import com.nazam.instaclone.core.ui.UiText
 import com.nazam.instaclone.feature.auth.domain.usecase.LogoutUseCase
+import com.nazam.instaclone.feature.home.domain.model.FeedMode
 import com.nazam.instaclone.feature.home.domain.usecase.AddCommentUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.GetCommentsUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.GetFeedUseCase
@@ -33,54 +34,50 @@ internal fun HomeViewModel.loadFeedInternal(
     reset: Boolean
 ) {
     val state = uiState.value
-
     if (reset && state.isLoading) return
     if (!reset && (state.isLoadingMore || state.endReached)) return
 
     val pageSize = 10
     val offset = if (reset) 0 else state.posts.size
+    val mode = state.selectedFeedMode
 
     scope.launch {
         _uiState.update {
-            if (reset) it.copy(isLoading = true, endReached = false)
+            if (reset) it.copy(isLoading = true, isLoadingMore = false, endReached = false)
             else it.copy(isLoadingMore = true)
         }
 
         val result = withContext(dispatchers.default) {
-            getFeedUseCase.execute(offset = offset, limit = pageSize)
+            getFeedUseCase.execute(mode = mode, offset = offset, limit = pageSize)
         }
 
-        result
-            .onSuccess { page ->
-                _uiState.update { s ->
-                    val merged = if (reset) page else (s.posts + page).distinctBy { it.id }
-                    s.copy(
-                        isLoading = false,
-                        isLoadingMore = false,
-                        posts = merged,
-                        endReached = page.size < pageSize
-                    )
-                }
-
-                if (reset) {
-                    emitMessage(
-                        UiText.ResourceArgs(
-                            res = Res.string.home_feed_loaded,
-                            args = listOf(uiState.value.posts.size)
-                        )
-                    )
-                    runPendingVoteIfPossible()
-                }
-            }
-            .onFailure { error ->
-                _uiState.update { it.copy(isLoading = false, isLoadingMore = false) }
-
-                val msg = error.message?.takeIf { it.isNotBlank() }
-                emitMessage(
-                    msg?.let { UiText.DynamicString(it) }
-                        ?: UiText.Resource(Res.string.home_feed_error)
+        result.onSuccess { page ->
+            _uiState.update { current ->
+                val merged = if (reset) page else (current.posts + page).distinctBy { it.id }
+                current.copy(
+                    isLoading = false,
+                    isLoadingMore = false,
+                    posts = merged,
+                    endReached = page.size < pageSize
                 )
             }
+
+            if (reset) {
+                val msg = if (mode == FeedMode.FOLLOWING && page.isEmpty()) {
+                    UiText.DynamicString("Aucun post suivi pour l'instant")
+                } else {
+                    UiText.ResourceArgs(Res.string.home_feed_loaded, listOf(uiState.value.posts.size))
+                }
+                emitMessage(msg)
+                runPendingVoteIfPossible()
+            }
+        }.onFailure { error ->
+            _uiState.update { it.copy(isLoading = false, isLoadingMore = false) }
+            emitMessage(
+                error.message?.takeIf { it.isNotBlank() }?.let(UiText::DynamicString)
+                    ?: UiText.Resource(Res.string.home_feed_error)
+            )
+        }
     }
 }
 
@@ -92,44 +89,27 @@ internal fun HomeViewModel.voteInternal(
     voteRightUseCase: VoteRightUseCase
 ) {
     val state = uiState.value
-
     if (!state.isLoggedIn) {
-        // ✅ On garde l’intention du vote
-        VoteIntentStore.save(
-            postId = postId,
-            side = if (isLeft) VoteIntentStore.Side.LEFT else VoteIntentStore.Side.RIGHT
-        )
-
-        // ✅ Après login on revient sur Home
+        VoteIntentStore.save(postId, if (isLeft) VoteIntentStore.Side.LEFT else VoteIntentStore.Side.RIGHT)
         NavigationStore.setAfterLogin(Screen.Home)
-
-        // ✅ Dialog “auth required”
         showAuthRequiredDialogInternal(UiText.Resource(Res.string.home_auth_required_vote))
         return
     }
-
     if (state.votingPostId == postId) return
 
     scope.launch {
         _uiState.update { it.copy(votingPostId = postId) }
-
         val result = withContext(dispatchers.default) {
             if (isLeft) voteLeftUseCase.execute(postId) else voteRightUseCase.execute(postId)
         }
-
-        result
-            .onSuccess { updated ->
-                _uiState.update { s ->
-                    s.copy(
-                        votingPostId = null,
-                        posts = s.posts.map { if (it.id == updated.id) updated else it }
-                    )
-                }
+        result.onSuccess { updated ->
+            _uiState.update { s ->
+                s.copy(votingPostId = null, posts = s.posts.map { if (it.id == updated.id) updated else it })
             }
-            .onFailure { error ->
-                _uiState.update { it.copy(votingPostId = null) }
-                handleAuthOrGenericErrorInternal(error)
-            }
+        }.onFailure {
+            _uiState.update { it.copy(votingPostId = null) }
+            handleAuthOrGenericErrorInternal(it)
+        }
     }
 }
 
@@ -139,43 +119,23 @@ internal fun HomeViewModel.openCommentsInternal(
     getCommentsUseCase: GetCommentsUseCase
 ) {
     _uiState.update {
-        it.copy(
-            isCommentsSheetOpen = true,
-            commentsPostId = postId,
-            isCommentsLoading = true,
-            comments = emptyList(),
-            newCommentText = ""
-        )
+        it.copy(isCommentsSheetOpen = true, commentsPostId = postId, isCommentsLoading = true, comments = emptyList(), newCommentText = "")
     }
 
     scope.launch {
-        val result = withContext(dispatchers.default) { getCommentsUseCase.execute(postId) }
-
-        result
-            .onSuccess { list ->
-                _uiState.update { it.copy(isCommentsLoading = false, comments = list) }
-            }
-            .onFailure { error ->
-                _uiState.update { it.copy(isCommentsLoading = false) }
-
-                val msg = error.message?.takeIf { it.isNotBlank() }
-                emitMessage(
-                    msg?.let { UiText.DynamicString(it) }
-                        ?: UiText.Resource(Res.string.home_comments_load_error)
-                )
+        withContext(dispatchers.default) { getCommentsUseCase.execute(postId) }
+            .onSuccess { _uiState.update { s -> s.copy(isCommentsLoading = false, comments = it) } }
+            .onFailure {
+                _uiState.update { s -> s.copy(isCommentsLoading = false) }
+                emitMessage(it.message?.takeIf(String::isNotBlank)?.let(UiText::DynamicString)
+                    ?: UiText.Resource(Res.string.home_comments_load_error))
             }
     }
 }
 
 internal fun HomeViewModel.closeCommentsInternal() {
     _uiState.update {
-        it.copy(
-            isCommentsSheetOpen = false,
-            commentsPostId = null,
-            isCommentsLoading = false,
-            comments = emptyList(),
-            newCommentText = ""
-        )
+        it.copy(isCommentsSheetOpen = false, commentsPostId = null, isCommentsLoading = false, comments = emptyList(), newCommentText = "")
     }
 }
 
@@ -184,7 +144,6 @@ internal fun HomeViewModel.sendCommentInternal(
     addCommentUseCase: AddCommentUseCase
 ) {
     val state = uiState.value
-
     if (!state.isLoggedIn) {
         showAuthRequiredDialogInternal(UiText.Resource(Res.string.home_auth_required_generic))
         return
@@ -196,24 +155,13 @@ internal fun HomeViewModel.sendCommentInternal(
 
     scope.launch {
         _uiState.update { it.copy(isCommentsLoading = true) }
-
-        val result = withContext(dispatchers.default) {
-            addCommentUseCase.execute(postId = postId, content = content)
-        }
-
-        result
+        withContext(dispatchers.default) { addCommentUseCase.execute(postId, content) }
             .onSuccess { created ->
-                _uiState.update {
-                    it.copy(
-                        isCommentsLoading = false,
-                        comments = it.comments + created,
-                        newCommentText = ""
-                    )
-                }
+                _uiState.update { it.copy(isCommentsLoading = false, comments = it.comments + created, newCommentText = "") }
             }
-            .onFailure { error ->
+            .onFailure {
                 _uiState.update { it.copy(isCommentsLoading = false) }
-                handleAuthOrGenericErrorInternal(error)
+                handleAuthOrGenericErrorInternal(it)
             }
     }
 }
@@ -224,61 +172,39 @@ internal fun HomeViewModel.logoutInternal(
     sessionManager: SessionManager
 ) {
     scope.launch {
-        val result = withContext(dispatchers.default) { logoutUseCase.execute() }
-
-        result
+        withContext(dispatchers.default) { logoutUseCase.execute() }
             .onSuccess {
                 NavigationStore.clear()
                 VoteIntentStore.clear()
                 pendingVoteAfterLogin = null
-
-                // ✅ session globale
                 sessionManager.setUser(null)
-
                 _uiState.update {
                     it.copy(
                         isLoggedIn = false,
                         currentUserId = null,
                         currentUserEmail = null,
                         currentUserDisplayName = null,
-
                         isCommentsSheetOpen = false,
                         commentsPostId = null,
                         isCommentsLoading = false,
                         comments = emptyList(),
-                        newCommentText = "",
-
-                        dialogMessage = null,
-                        dialogConfirmLabel = null,
-                        dialogSecondaryLabel = null,
-                        dialogShouldOpenLogin = false,
-                        dialogShouldOpenSignup = false
+                        newCommentText = ""
                     )
                 }
-
                 emitMessage(UiText.Resource(Res.string.home_logged_out))
                 navigateTo(Screen.Login)
             }
-            .onFailure { error ->
-                val msg = error.message?.takeIf { it.isNotBlank() }
-                emitMessage(
-                    msg?.let { UiText.DynamicString(it) }
-                        ?: UiText.Resource(Res.string.home_logout_error)
-                )
+            .onFailure {
+                emitMessage(it.message?.takeIf(String::isNotBlank)?.let(UiText::DynamicString)
+                    ?: UiText.Resource(Res.string.home_logout_error))
             }
     }
 }
 
 internal fun HomeViewModel.handleAuthOrGenericErrorInternal(error: Throwable) {
-    if (error.isAuthRequired()) {
-        showAuthRequiredDialogInternal(UiText.Resource(Res.string.home_auth_required_generic))
-    } else {
-        val msg = error.message?.takeIf { it.isNotBlank() }
-        emitMessage(
-            msg?.let { UiText.DynamicString(it) }
-                ?: UiText.Resource(Res.string.error_unknown)
-        )
-    }
+    if (error.isAuthRequired()) showAuthRequiredDialogInternal(UiText.Resource(Res.string.home_auth_required_generic))
+    else emitMessage(error.message?.takeIf(String::isNotBlank)?.let(UiText::DynamicString)
+        ?: UiText.Resource(Res.string.error_unknown))
 }
 
 internal fun HomeViewModel.showAuthRequiredDialogInternal(message: UiText) {
@@ -292,32 +218,16 @@ internal fun HomeViewModel.showAuthRequiredDialogInternal(message: UiText) {
         )
     }
 }
-/**
- * Exécute un vote en attente si :
- * - on est connecté
- * - le feed contient le post
- *
- * Sinon : on garde l'intention pour plus tard.
- */
+
 internal fun HomeViewModel.runPendingVoteIfPossible() {
     val state = uiState.value
-    if (!state.isLoggedIn) return
-    if (state.isLoading) return
+    if (!state.isLoggedIn || state.isLoading) return
 
-    // Si on n'a pas encore récupéré le vote, on tente une fois
-    if (pendingVoteAfterLogin == null) {
-        pendingVoteAfterLogin = VoteIntentStore.consume()
-    }
-
+    if (pendingVoteAfterLogin == null) pendingVoteAfterLogin = VoteIntentStore.consume()
     val intent = pendingVoteAfterLogin ?: return
+    if (state.posts.none { it.id == intent.postId }) return
 
-    // ✅ Si le feed ne contient pas encore ce post, on attend (on ne consomme pas)
-    val existsInFeed = state.posts.any { it.id == intent.postId }
-    if (!existsInFeed) return
-
-    // ✅ Là on peut le consommer et le lancer
     pendingVoteAfterLogin = null
-
     when (intent.side) {
         VoteIntentStore.Side.LEFT -> voteLeft(intent.postId)
         VoteIntentStore.Side.RIGHT -> voteRight(intent.postId)

@@ -19,30 +19,27 @@ class ExploreViewModel(
     private val dispatchers: AppDispatchers,
     private val getExplorePostsUseCase: GetExplorePostsUseCase
 ) {
-    private companion object {
-        const val PAGE_SIZE = 30
-    }
+    private companion object { const val PAGE_SIZE = 30 }
 
     private val scope = CoroutineScope(dispatchers.main + SupervisorJob())
-
     private val _uiState = MutableStateFlow(ExploreUiState())
     val uiState: StateFlow<ExploreUiState> = _uiState
 
-    init {
-        load()
-    }
+    init { load() }
 
     fun load() = loadInternal(reset = true)
-
     fun loadMore() = loadInternal(reset = false)
 
     fun onSortModeSelected(mode: ExploreSortMode) {
         _uiState.update { it.copy(sortMode = mode) }
     }
 
+    fun onSearchQueryChanged(value: String) {
+        _uiState.update { it.copy(searchQuery = value.take(40)) }
+    }
+
     private fun loadInternal(reset: Boolean) {
         val state = _uiState.value
-
         if (reset && state.isLoading) return
         if (!reset && (state.isLoading || state.isLoadingMore || state.endReached)) return
 
@@ -50,19 +47,8 @@ class ExploreViewModel(
 
         scope.launch {
             _uiState.update {
-                if (reset) {
-                    it.copy(
-                        isLoading = true,
-                        isLoadingMore = false,
-                        endReached = false,
-                        error = null
-                    )
-                } else {
-                    it.copy(
-                        isLoadingMore = true,
-                        error = null
-                    )
-                }
+                if (reset) it.copy(isLoading = true, isLoadingMore = false, endReached = false, error = null)
+                else it.copy(isLoadingMore = true, error = null)
             }
 
             val result = withContext(dispatchers.default) {

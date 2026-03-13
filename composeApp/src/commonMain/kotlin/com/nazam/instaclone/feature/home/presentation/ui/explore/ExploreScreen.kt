@@ -9,76 +9,54 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.nazam.instaclone.core.ui.asString
-import com.nazam.instaclone.core.universe.Universe
-import com.nazam.instaclone.core.universe.UniverseStore
-import com.nazam.instaclone.feature.home.domain.model.VoteCategories
-import com.nazam.instaclone.feature.home.domain.model.VoteCategory
 import com.nazam.instaclone.feature.home.domain.model.VsPost
 import com.nazam.instaclone.feature.home.presentation.model.ExploreUiState
-import com.nazam.instaclone.feature.home.presentation.ui.explore.components.ExploreCategoryChip
 import com.nazam.instaclone.feature.home.presentation.ui.explore.components.ExplorePostTile
 import com.nazam.instaclone.feature.home.presentation.ui.explore.components.ExploreSortSelector
 import com.nazam.instaclone.feature.home.presentation.ui.explore.components.ExploreUiTokens
 import instaclone.composeapp.generated.resources.Res
 import instaclone.composeapp.generated.resources.action_retry
-import instaclone.composeapp.generated.resources.explore_all
-import instaclone.composeapp.generated.resources.explore_category_prefix
-import instaclone.composeapp.generated.resources.explore_empty_category
+import instaclone.composeapp.generated.resources.explore_empty_hashtag
 import instaclone.composeapp.generated.resources.explore_loading
+import instaclone.composeapp.generated.resources.explore_search_label
+import instaclone.composeapp.generated.resources.explore_search_placeholder
 import instaclone.composeapp.generated.resources.explore_sort_controversial_title
 import instaclone.composeapp.generated.resources.explore_sort_hot_title
 import instaclone.composeapp.generated.resources.explore_sort_recent_title
 import instaclone.composeapp.generated.resources.explore_title
-import instaclone.composeapp.generated.resources.explore_universe_title
-import instaclone.composeapp.generated.resources.universe_football
-import instaclone.composeapp.generated.resources.universe_global
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun ExploreScreen(
-    selectedCategoryId: String,
     exploreUi: ExploreUiState,
     contentPadding: PaddingValues,
-    onUniverseClick: (Universe) -> Unit,
-    onCategoryClick: (VoteCategory) -> Unit,
-    onClearCategory: () -> Unit,
     onSortSelected: (ExploreSortMode) -> Unit,
+    onSearchQueryChanged: (String) -> Unit,
     onRetry: () -> Unit,
     onLoadMore: () -> Unit,
     onPostClick: (VsPost) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val universe by UniverseStore.universe.collectAsState()
     val gridState = rememberLazyGridState()
-
-    val sortedPosts = sortExplorePosts(
-        posts = exploreUi.posts,
-        mode = exploreUi.sortMode
+    val visiblePosts = filterPostsByHashtag(
+        posts = sortExplorePosts(exploreUi.posts, exploreUi.sortMode),
+        query = exploreUi.searchQuery
     )
-
-    val visiblePosts = if (selectedCategoryId.isBlank()) {
-        sortedPosts
-    } else {
-        sortedPosts.filter { it.category == selectedCategoryId }
-    }
 
     ExploreLoadMoreEffect(
         gridState = gridState,
@@ -88,170 +66,60 @@ fun ExploreScreen(
         onLoadMore = onLoadMore
     )
 
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(ExploreUiTokens.ScreenBackground)
-            .padding(contentPadding)
-    ) {
+    Box(modifier.fillMaxSize().background(ExploreUiTokens.ScreenBackground).padding(contentPadding)) {
         when {
-            exploreUi.isLoading -> {
-                ExploreCenteredState(text = stringResource(Res.string.explore_loading)) {
-                    CircularProgressIndicator()
-                }
+            exploreUi.isLoading -> ExploreCenteredState(stringResource(Res.string.explore_loading)) {
+                CircularProgressIndicator()
             }
 
-            exploreUi.error != null && exploreUi.posts.isEmpty() -> {
-                ExploreCenteredState(text = exploreUi.error.asString()) {
-                    Button(onClick = onRetry) {
-                        Text(stringResource(Res.string.action_retry))
-                    }
-                }
+            exploreUi.error != null && exploreUi.posts.isEmpty() -> ExploreCenteredState(exploreUi.error.asString()) {
+                Button(onClick = onRetry) { Text(stringResource(Res.string.action_retry)) }
             }
 
-            else -> {
-                ExploreContent(
-                    selectedCategoryId = selectedCategoryId,
-                    sortMode = exploreUi.sortMode,
-                    universe = universe,
-                    posts = visiblePosts,
-                    isLoadingMore = exploreUi.isLoadingMore,
-                    gridState = gridState,
-                    onUniverseClick = onUniverseClick,
-                    onCategoryClick = onCategoryClick,
-                    onClearCategory = onClearCategory,
-                    onSortSelected = onSortSelected,
-                    onPostClick = onPostClick
+            else -> Column(Modifier.fillMaxSize().padding(16.dp)) {
+                Text(stringResource(Res.string.explore_title), color = ExploreUiTokens.TitleColor, style = MaterialTheme.typography.titleLarge)
+                Spacer(Modifier.height(12.dp))
+
+                OutlinedTextField(
+                    value = exploreUi.searchQuery,
+                    onValueChange = onSearchQueryChanged,
+                    modifier = Modifier.fillMaxSize().weight(0f),
+                    label = { Text(stringResource(Res.string.explore_search_label)) },
+                    placeholder = { Text(stringResource(Res.string.explore_search_placeholder)) },
+                    singleLine = true
                 )
-            }
-        }
-    }
-}
 
-@Composable
-private fun ExploreContent(
-    selectedCategoryId: String,
-    sortMode: ExploreSortMode,
-    universe: Universe,
-    posts: List<VsPost>,
-    isLoadingMore: Boolean,
-    gridState: androidx.compose.foundation.lazy.grid.LazyGridState,
-    onUniverseClick: (Universe) -> Unit,
-    onCategoryClick: (VoteCategory) -> Unit,
-    onClearCategory: () -> Unit,
-    onSortSelected: (ExploreSortMode) -> Unit,
-    onPostClick: (VsPost) -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        Text(
-            text = stringResource(Res.string.explore_title),
-            color = ExploreUiTokens.TitleColor,
-            style = MaterialTheme.typography.titleLarge
-        )
+                Spacer(Modifier.height(10.dp))
+                ExploreSortSelector(selected = exploreUi.sortMode, onSelected = onSortSelected)
+                Spacer(Modifier.height(14.dp))
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Text(
-            text = stringResource(Res.string.explore_universe_title),
-            color = ExploreUiTokens.SubtitleColor,
-            style = MaterialTheme.typography.titleMedium
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            item {
-                ExploreCategoryChip(
-                    label = stringResource(Res.string.universe_football),
-                    selected = universe == Universe.FOOTBALL,
-                    onClick = { onUniverseClick(Universe.FOOTBALL) }
+                Text(
+                    text = buildExploreTitle(exploreUi.sortMode),
+                    color = ExploreUiTokens.SubtitleColor,
+                    style = MaterialTheme.typography.titleMedium
                 )
-            }
-            item {
-                ExploreCategoryChip(
-                    label = stringResource(Res.string.universe_global),
-                    selected = universe == Universe.GLOBAL,
-                    onClick = { onUniverseClick(Universe.GLOBAL) }
-                )
-            }
-        }
 
-        Spacer(modifier = Modifier.height(14.dp))
+                Spacer(Modifier.height(10.dp))
 
-        LazyRow(
-            contentPadding = PaddingValues(end = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            item {
-                ExploreCategoryChip(
-                    label = stringResource(Res.string.explore_all),
-                    selected = selectedCategoryId.isBlank(),
-                    onClick = onClearCategory
-                )
-            }
-
-            items(VoteCategories.all) { category ->
-                ExploreCategoryChip(
-                    label = category.label.asString(),
-                    selected = category.id == selectedCategoryId,
-                    onClick = { onCategoryClick(category) }
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        ExploreSortSelector(
-            selected = sortMode,
-            onSelected = onSortSelected
-        )
-
-        Spacer(modifier = Modifier.height(14.dp))
-
-        Text(
-            text = buildExploreTitle(
-                selectedCategoryId = selectedCategoryId,
-                sortMode = sortMode
-            ),
-            color = ExploreUiTokens.SubtitleColor,
-            style = MaterialTheme.typography.titleMedium
-        )
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        if (posts.isEmpty()) {
-            ExploreEmptyState()
-            return
-        }
-
-        LazyVerticalGrid(
-            state = gridState,
-            columns = GridCells.Fixed(3),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.fillMaxSize()
-        ) {
-            items(posts) { post ->
-                ExplorePostTile(
-                    post = post,
-                    onClick = onPostClick
-                )
-            }
-
-            if (isLoadingMore) {
-                items(
-                    count = 1,
-                    span = { GridItemSpan(3) }
-                ) {
-                    Box(
-                        modifier = Modifier.padding(vertical = 12.dp),
-                        contentAlignment = Alignment.Center
+                if (visiblePosts.isEmpty()) {
+                    ExploreEmptyState()
+                } else {
+                    LazyVerticalGrid(
+                        state = gridState,
+                        columns = GridCells.Fixed(3),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxSize()
                     ) {
-                        CircularProgressIndicator()
+                        items(visiblePosts) { ExplorePostTile(post = it, onClick = onPostClick) }
+
+                        if (exploreUi.isLoadingMore) {
+                            item(span = { GridItemSpan(3) }) {
+                                Box(Modifier.padding(vertical = 12.dp).fillMaxSize(), contentAlignment = Alignment.Center) {
+                                    CircularProgressIndicator()
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -261,12 +129,9 @@ private fun ExploreContent(
 
 @Composable
 private fun ExploreEmptyState() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Text(
-            text = stringResource(Res.string.explore_empty_category),
+            text = stringResource(Res.string.explore_empty_hashtag),
             color = ExploreUiTokens.SubtitleColor,
             style = MaterialTheme.typography.bodyLarge
         )
@@ -279,36 +144,21 @@ private fun ExploreCenteredState(
     action: @Composable () -> Unit
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
+        modifier = Modifier.fillMaxSize().padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         action()
-        Spacer(modifier = Modifier.height(12.dp))
-        Text(
-            text = text,
-            color = ExploreUiTokens.SubtitleColor,
-            style = MaterialTheme.typography.bodyLarge
-        )
+        Spacer(Modifier.height(12.dp))
+        Text(text = text, color = ExploreUiTokens.SubtitleColor, style = MaterialTheme.typography.bodyLarge)
     }
 }
 
 @Composable
-private fun buildExploreTitle(
-    selectedCategoryId: String,
-    sortMode: ExploreSortMode
-): String {
-    return if (selectedCategoryId.isBlank()) {
-        when (sortMode) {
-            ExploreSortMode.HOT -> stringResource(Res.string.explore_sort_hot_title)
-            ExploreSortMode.RECENT -> stringResource(Res.string.explore_sort_recent_title)
-            ExploreSortMode.CONTROVERSIAL -> stringResource(Res.string.explore_sort_controversial_title)
-        }
-    } else {
-        stringResource(Res.string.explore_category_prefix) +
-            " " +
-            VoteCategories.labelFor(selectedCategoryId).asString()
+private fun buildExploreTitle(sortMode: ExploreSortMode): String {
+    return when (sortMode) {
+        ExploreSortMode.HOT -> stringResource(Res.string.explore_sort_hot_title)
+        ExploreSortMode.RECENT -> stringResource(Res.string.explore_sort_recent_title)
+        ExploreSortMode.CONTROVERSIAL -> stringResource(Res.string.explore_sort_controversial_title)
     }
 }

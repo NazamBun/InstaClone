@@ -59,21 +59,23 @@ fun HomeRoute(
     }
 
     LaunchedEffect(pendingMessageText) {
-        val text = pendingMessageText ?: return@LaunchedEffect
-        snackbarHostState.showSnackbar(text)
-        pendingMessage = null
+        pendingMessageText?.let {
+            snackbarHostState.showSnackbar(it)
+            pendingMessage = null
+        }
     }
 
     LaunchedEffect(pendingSnackText) {
-        val text = pendingSnackText ?: return@LaunchedEffect
-        snackbarHostState.showSnackbar(text)
-        pendingSnackText = null
+        pendingSnackText?.let {
+            snackbarHostState.showSnackbar(it)
+            pendingSnackText = null
+        }
     }
 
     shareSheetPost?.let { post ->
         val content = ViralShareTextFactory.contentFromPost(post)
         val png = shareCardRenderer.renderPng(post)
-        val finalPayload: SharePayload = content.payload.copy(
+        val payload: SharePayload = content.payload.copy(
             imagePng = png.takeIf { it.isNotEmpty() },
             imageFileName = "vs_${post.id}.png"
         )
@@ -81,18 +83,9 @@ fun HomeRoute(
         ShareBottomSheet(
             previewTitle = post.question.trim(),
             onDismiss = { shareSheetPost = null },
-            onShare = {
-                shareLauncher.share(finalPayload)
-                shareSheetPost = null
-            },
-            onCopyLink = {
-                clipboard.setText(content.link)
-                pendingSnackText = copiedLabel
-            },
-            onCopyText = {
-                clipboard.setText(finalPayload.text)
-                pendingSnackText = copiedLabel
-            }
+            onShare = { shareLauncher.share(payload); shareSheetPost = null },
+            onCopyLink = { clipboard.setText(content.link); pendingSnackText = copiedLabel },
+            onCopyText = { clipboard.setText(payload.text); pendingSnackText = copiedLabel }
         )
     }
 
@@ -101,17 +94,14 @@ fun HomeRoute(
         snackbarHostState = snackbarHostState,
         contentPadding = contentPadding,
         onCreatePostClick = viewModel::onCreatePostClicked,
+        onFeedModeSelected = viewModel::onFeedModeSelected,
         onVoteLeft = viewModel::voteLeft,
         onVoteRight = viewModel::voteRight,
         onOpenComments = viewModel::openComments,
         onCloseComments = viewModel::closeComments,
         onOpenAuthor = { post ->
             val authorId = post.authorId ?: return@HomeScreen
-            ProfileTargetStore.open(
-                userId = authorId,
-                emailFallback = post.authorName,
-                returnScreen = Screen.Home
-            )
+            ProfileTargetStore.open(authorId, post.authorName, Screen.Home)
             onNavigate(Screen.UserProfile)
         },
         onShare = viewModel::onShareClicked,
