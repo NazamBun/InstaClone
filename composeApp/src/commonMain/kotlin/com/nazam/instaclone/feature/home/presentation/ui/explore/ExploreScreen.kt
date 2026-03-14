@@ -12,7 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -29,6 +29,8 @@ import com.nazam.instaclone.feature.home.presentation.ui.explore.components.Expl
 import com.nazam.instaclone.feature.home.presentation.ui.explore.components.ExploreSearchBar
 import com.nazam.instaclone.feature.home.presentation.ui.explore.components.ExploreSortSelector
 import com.nazam.instaclone.feature.home.presentation.ui.explore.components.ExploreUiTokens
+import com.nazam.instaclone.feature.home.presentation.ui.explore.components.exploreTileSpan
+import com.nazam.instaclone.feature.home.presentation.ui.explore.components.exploreTileStyleAt
 import instaclone.composeapp.generated.resources.Res
 import instaclone.composeapp.generated.resources.action_retry
 import instaclone.composeapp.generated.resources.explore_empty_hashtag
@@ -133,8 +135,21 @@ fun ExploreScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             modifier = Modifier.fillMaxSize()
                         ) {
-                            items(visiblePosts) { post ->
-                                ExplorePostTile(post = post, onClick = onPostClick)
+                            itemsIndexed(
+                                items = visiblePosts,
+                                span = { index, _ ->
+                                    GridItemSpan(
+                                        exploreTileSpan(exploreTileStyleAt(index))
+                                    )
+                                }
+                            ) { index, post ->
+                                val style = exploreTileStyleAt(index)
+
+                                ExplorePostTile(
+                                    post = post,
+                                    style = style,
+                                    onClick = onPostClick
+                                )
                             }
 
                             if (exploreUi.isLoadingMore) {

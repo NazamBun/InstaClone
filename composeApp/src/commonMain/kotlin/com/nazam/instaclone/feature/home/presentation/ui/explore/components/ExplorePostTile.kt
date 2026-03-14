@@ -17,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -25,6 +26,7 @@ import com.nazam.instaclone.feature.home.domain.model.VsPost
 import com.nazam.instaclone.feature.home.presentation.ui.components.NetworkImage
 import instaclone.composeapp.generated.resources.Res
 import instaclone.composeapp.generated.resources.cd_poll_image
+import instaclone.composeapp.generated.resources.explore_sort_hot
 import instaclone.composeapp.generated.resources.percent_value
 import instaclone.composeapp.generated.resources.vs_title_format
 import instaclone.composeapp.generated.resources.vspost_votes_count
@@ -34,6 +36,7 @@ import kotlin.math.max
 @Composable
 internal fun ExplorePostTile(
     post: VsPost,
+    style: ExploreTileStyle,
     onClick: (VsPost) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -50,11 +53,11 @@ internal fun ExplorePostTile(
     }
 
     Surface(
-        shape = MaterialTheme.shapes.medium,
-        tonalElevation = 2.dp,
+        shape = MaterialTheme.shapes.large,
+        tonalElevation = 3.dp,
         modifier = modifier
             .fillMaxWidth()
-            .aspectRatio(1f)
+            .aspectRatio(exploreTileAspectRatio(style))
             .clickable { onClick(post) }
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -67,8 +70,33 @@ internal fun ExplorePostTile(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(ExploreUiTokens.OverlayOnImage)
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(
+                                Color.Transparent,
+                                Color.Transparent,
+                                ExploreUiTokens.OverlayOnImage,
+                                Color(0xCC000000)
+                            )
+                        )
+                    )
             )
+
+            if (style == ExploreTileStyle.FEATURED) {
+                Text(
+                    text = stringResource(Res.string.explore_sort_hot),
+                    color = ExploreUiTokens.SearchTagColor,
+                    style = MaterialTheme.typography.labelMedium,
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(10.dp)
+                        .background(
+                            color = ExploreUiTokens.SearchTagBackground,
+                            shape = MaterialTheme.shapes.small
+                        )
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                )
+            }
 
             Column(
                 modifier = Modifier
@@ -83,9 +111,13 @@ internal fun ExplorePostTile(
                         post.rightLabel
                     ),
                     color = Color.White,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = if (style == ExploreTileStyle.FEATURED) {
+                        MaterialTheme.typography.titleSmall
+                    } else {
+                        MaterialTheme.typography.bodyMedium
+                    },
                     fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
+                    maxLines = if (style == ExploreTileStyle.FEATURED) 2 else 1,
                     overflow = TextOverflow.Ellipsis
                 )
 
@@ -97,15 +129,14 @@ internal fun ExplorePostTile(
                     style = MaterialTheme.typography.bodySmall
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                PercentRow(post.leftLabel, leftPercent)
-                ExploreVoteProgressBar(progress = leftRatio, height = 6.dp)
-
-                Spacer(modifier = Modifier.height(6.dp))
-
-                PercentRow(post.rightLabel, rightPercent)
-                ExploreVoteProgressBar(progress = rightRatio, height = 6.dp)
+                if (style == ExploreTileStyle.STANDARD) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    PercentRow(post.leftLabel, leftPercent)
+                    ExploreVoteProgressBar(progress = leftRatio, height = 6.dp)
+                    Spacer(modifier = Modifier.height(6.dp))
+                    PercentRow(post.rightLabel, rightPercent)
+                    ExploreVoteProgressBar(progress = rightRatio, height = 6.dp)
+                }
             }
         }
     }
