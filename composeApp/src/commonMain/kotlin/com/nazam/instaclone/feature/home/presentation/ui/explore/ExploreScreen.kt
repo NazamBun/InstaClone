@@ -99,7 +99,7 @@ fun ExploreScreen(
                         style = MaterialTheme.typography.titleLarge
                     )
 
-                    Spacer(Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
                     ExploreSearchBar(
                         query = exploreUi.searchQuery,
@@ -108,14 +108,14 @@ fun ExploreScreen(
                         onSuggestionClick = onSearchQueryChanged
                     )
 
-                    Spacer(Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
                     ExploreSortSelector(
                         selected = exploreUi.sortMode,
                         onSelected = onSortSelected
                     )
 
-                    Spacer(Modifier.height(14.dp))
+                    Spacer(modifier = Modifier.height(14.dp))
 
                     Text(
                         text = buildExploreTitle(exploreUi.sortMode),
@@ -123,7 +123,7 @@ fun ExploreScreen(
                         style = MaterialTheme.typography.titleMedium
                     )
 
-                    Spacer(Modifier.height(10.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
 
                     if (visiblePosts.isEmpty()) {
                         ExploreEmptyState()
@@ -137,17 +137,14 @@ fun ExploreScreen(
                         ) {
                             itemsIndexed(
                                 items = visiblePosts,
+                                key = { _, post -> post.id },
                                 span = { index, _ ->
-                                    GridItemSpan(
-                                        exploreTileSpan(exploreTileStyleAt(index))
-                                    )
+                                    GridItemSpan(exploreTileSpan(exploreTileStyleAt(index)))
                                 }
                             ) { index, post ->
-                                val style = exploreTileStyleAt(index)
-
                                 ExplorePostTile(
                                     post = post,
-                                    style = style,
+                                    style = exploreTileStyleAt(index),
                                     onClick = onPostClick
                                 )
                             }
@@ -194,7 +191,7 @@ private fun ExploreCenteredState(
         verticalArrangement = Arrangement.Center
     ) {
         action()
-        Spacer(Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(12.dp))
         Text(
             text = text,
             color = ExploreUiTokens.SubtitleColor,

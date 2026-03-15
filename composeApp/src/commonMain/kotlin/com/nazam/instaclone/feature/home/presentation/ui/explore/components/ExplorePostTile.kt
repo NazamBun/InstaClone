@@ -46,7 +46,7 @@ internal fun ExplorePostTile(
     val leftPercent = (leftRatio * 100f).toInt()
     val rightPercent = (rightRatio * 100f).toInt()
 
-    val imageUrl = if (post.leftVotesCount >= post.rightVotesCount) {
+    val winningImage = if (post.leftVotesCount >= post.rightVotesCount) {
         post.leftImageUrl
     } else {
         post.rightImageUrl
@@ -62,7 +62,7 @@ internal fun ExplorePostTile(
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             NetworkImage(
-                url = imageUrl,
+                url = winningImage,
                 contentDescription = stringResource(Res.string.cd_poll_image),
                 modifier = Modifier.fillMaxSize()
             )
@@ -83,19 +83,7 @@ internal fun ExplorePostTile(
             )
 
             if (style == ExploreTileStyle.FEATURED) {
-                Text(
-                    text = stringResource(Res.string.explore_sort_hot),
-                    color = ExploreUiTokens.SearchTagColor,
-                    style = MaterialTheme.typography.labelMedium,
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .padding(10.dp)
-                        .background(
-                            color = ExploreUiTokens.SearchTagBackground,
-                            shape = MaterialTheme.shapes.small
-                        )
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                )
+                HotBadge(modifier = Modifier.align(Alignment.TopStart))
             }
 
             Column(
@@ -131,10 +119,10 @@ internal fun ExplorePostTile(
 
                 if (style == ExploreTileStyle.STANDARD) {
                     Spacer(modifier = Modifier.height(8.dp))
-                    PercentRow(post.leftLabel, leftPercent)
+                    PercentRow(label = post.leftLabel, percent = leftPercent)
                     ExploreVoteProgressBar(progress = leftRatio, height = 6.dp)
                     Spacer(modifier = Modifier.height(6.dp))
-                    PercentRow(post.rightLabel, rightPercent)
+                    PercentRow(label = post.rightLabel, percent = rightPercent)
                     ExploreVoteProgressBar(progress = rightRatio, height = 6.dp)
                 }
             }
@@ -143,10 +131,23 @@ internal fun ExplorePostTile(
 }
 
 @Composable
-private fun PercentRow(
-    label: String,
-    percent: Int
-) {
+private fun HotBadge(modifier: Modifier = Modifier) {
+    Text(
+        text = stringResource(Res.string.explore_sort_hot),
+        color = ExploreUiTokens.SearchTagColor,
+        style = MaterialTheme.typography.labelMedium,
+        modifier = modifier
+            .padding(10.dp)
+            .background(
+                color = ExploreUiTokens.SearchTagBackground,
+                shape = MaterialTheme.shapes.small
+            )
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+    )
+}
+
+@Composable
+private fun PercentRow(label: String, percent: Int) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
