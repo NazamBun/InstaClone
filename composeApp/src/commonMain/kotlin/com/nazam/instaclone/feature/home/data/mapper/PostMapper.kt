@@ -3,12 +3,11 @@ package com.nazam.instaclone.feature.home.data.mapper
 import com.nazam.instaclone.feature.home.data.dto.PostDto
 import com.nazam.instaclone.feature.home.domain.model.VoteChoice
 import com.nazam.instaclone.feature.home.domain.model.VsPost
+import kotlinx.datetime.Instant
+import kotlin.time.ExperimentalTime
 
 object PostMapper {
 
-    /**
-     * Mappe un PostDto (Supabase) vers VsPost (domaine).
-     */
     fun toDomain(
         dto: PostDto,
         userVote: VoteChoice = VoteChoice.NONE
@@ -21,7 +20,7 @@ object PostMapper {
             authorName = dto.author_name ?: "Inconnu",
             authorAvatarUrl = dto.author_avatar,
             category = dto.category ?: "",
-            createdAt = 0L,
+            createdAt = parseDate(dto.created_at),
             question = dto.question ?: "",
             leftImageUrl = dto.left_image ?: "",
             rightImageUrl = dto.right_image ?: "",
@@ -32,5 +31,14 @@ object PostMapper {
             totalVotesCount = totalVotes,
             userVote = userVote
         )
+    }
+
+    @OptIn(ExperimentalTime::class)
+    private fun parseDate(date: String?): Long {
+        return try {
+            date?.let { Instant.parse(it).toEpochMilliseconds() } ?: 0L
+        } catch (_: Exception) {
+            0L
+        }
     }
 }
