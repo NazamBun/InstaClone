@@ -135,6 +135,7 @@ fun VsPostItem(
 
         VsPostHeader(
             authorName = post.authorName,
+            authorAvatarUrl = post.authorAvatarUrl,
             onAuthorClick = { onAuthorClick(post) },
             modifier = Modifier.align(Alignment.TopStart)
         )
