@@ -17,7 +17,8 @@ interface HomeRepository {
         rightImageUrl: String,
         leftLabel: String,
         rightLabel: String,
-        category: String
+        category: String,
+        selectedVsBadgeId: String
     ): Result<VsPost>
 
     suspend fun voteLeft(postId: String): Result<VsPost>

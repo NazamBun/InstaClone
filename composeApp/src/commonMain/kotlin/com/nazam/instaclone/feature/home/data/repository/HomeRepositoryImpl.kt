@@ -50,7 +50,8 @@ class HomeRepositoryImpl(
         rightImageUrl: String,
         leftLabel: String,
         rightLabel: String,
-        category: String
+        category: String,
+        selectedVsBadgeId: String
     ) = runCatching {
         val user = client.auth.currentUserOrNull()
             ?: throw IllegalStateException("AUTH_REQUIRED")
@@ -62,6 +63,7 @@ class HomeRepositoryImpl(
             rightImageUrl = rightImageUrl,
             leftLabel = leftLabel,
             rightLabel = rightLabel,
+            selectedVsBadgeId = selectedVsBadgeId,
             authorName = user.email,
             authorAvatar = null
         )
@@ -153,6 +155,7 @@ class HomeRepositoryImpl(
         @SerialName("right_image") val rightImageUrl: String,
         @SerialName("left_label") val leftLabel: String,
         @SerialName("right_label") val rightLabel: String,
+        @SerialName("vs_badge_id") val selectedVsBadgeId: String,
         @SerialName("author_name") val authorName: String? = null,
         @SerialName("author_avatar") val authorAvatar: String? = null
     )

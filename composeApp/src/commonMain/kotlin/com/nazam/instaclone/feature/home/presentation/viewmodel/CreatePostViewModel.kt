@@ -61,7 +61,8 @@ class CreatePostViewModel(
             leftLocalUri = draft.leftLocalUri,
             rightLocalUri = draft.rightLocalUri,
             leftUploadedUrl = draft.leftUploadedUrl,
-            rightUploadedUrl = draft.rightUploadedUrl
+            rightUploadedUrl = draft.rightUploadedUrl,
+            selectedVsBadgeId = draft.selectedVsBadgeId
         )
     }
 
@@ -74,7 +75,8 @@ class CreatePostViewModel(
                 leftLocalUri = state.leftLocalUri,
                 rightLocalUri = state.rightLocalUri,
                 leftUploadedUrl = state.leftUploadedUrl,
-                rightUploadedUrl = state.rightUploadedUrl
+                rightUploadedUrl = state.rightUploadedUrl,
+                selectedVsBadgeId = state.selectedVsBadgeId
             )
         )
     }
@@ -132,6 +134,7 @@ class CreatePostViewModel(
     fun onQuestionChange(value: String) = updateState { it.copy(question = value, error = null) }
     fun onLeftLabelChange(value: String) = updateState { it.copy(leftLabel = value, error = null) }
     fun onRightLabelChange(value: String) = updateState { it.copy(rightLabel = value, error = null) }
+    fun onVsBadgeSelected(value: String) = updateState { it.copy(selectedVsBadgeId = value, error = null) }
 
     fun onCancelClicked() {
         CreatePostDraftStore.clear()
@@ -139,13 +142,29 @@ class CreatePostViewModel(
     }
 
     fun onLeftImageSelected(uri: String) {
-        updateState { it.copy(leftLocalUri = uri, leftUploadedUrl = "", isUploadingLeft = true, leftUploadPercent = 0, error = null) }
-        uploadImage(uri, isLeft = true)
+        updateState {
+            it.copy(
+                leftLocalUri = uri,
+                leftUploadedUrl = "",
+                isUploadingLeft = true,
+                leftUploadPercent = 0,
+                error = null
+            )
+        }
+        uploadImage(uri, true)
     }
 
     fun onRightImageSelected(uri: String) {
-        updateState { it.copy(rightLocalUri = uri, rightUploadedUrl = "", isUploadingRight = true, rightUploadPercent = 0, error = null) }
-        uploadImage(uri, isLeft = false)
+        updateState {
+            it.copy(
+                rightLocalUri = uri,
+                rightUploadedUrl = "",
+                isUploadingRight = true,
+                rightUploadPercent = 0,
+                error = null
+            )
+        }
+        uploadImage(uri, false)
     }
 
     private fun uploadImage(uri: String, isLeft: Boolean) {
@@ -162,10 +181,7 @@ class CreatePostViewModel(
     }
 
     private fun updateProgress(isLeft: Boolean, percent: Int?) {
-        updateState {
-            if (isLeft) it.copy(leftUploadPercent = percent)
-            else it.copy(rightUploadPercent = percent)
-        }
+        updateState { if (isLeft) it.copy(leftUploadPercent = percent) else it.copy(rightUploadPercent = percent) }
     }
 
     private fun updateSuccess(isLeft: Boolean, url: String) {
@@ -177,9 +193,9 @@ class CreatePostViewModel(
 
     private fun updateError(isLeft: Boolean, message: String) {
         updateState {
-            val error = UiText.DynamicString(message.ifBlank {
-                if (isLeft) "Upload image gauche impossible." else "Upload image droite impossible."
-            })
+            val error = UiText.DynamicString(
+                message.ifBlank { if (isLeft) "Upload image gauche impossible." else "Upload image droite impossible." }
+            )
             if (isLeft) it.copy(isUploadingLeft = false, leftUploadPercent = null, error = error)
             else it.copy(isUploadingRight = false, rightUploadPercent = null, error = error)
         }
@@ -204,7 +220,8 @@ class CreatePostViewModel(
                     rightImageUrl = state.rightUploadedUrl,
                     leftLabel = state.leftLabel.trim(),
                     rightLabel = state.rightLabel.trim(),
-                    category = ""
+                    category = "",
+                    selectedVsBadgeId = state.selectedVsBadgeId
                 )
             }
 
@@ -213,7 +230,9 @@ class CreatePostViewModel(
                 CreatePostDraftStore.clear()
                 _events.tryEmit(CreatePostUiEvent.PostCreated)
             }.onFailure {
-                updateState { it.copy(isLoading = false, error = UiText.Resource(Res.string.create_post_error_create_failed)) }
+                updateState {
+                    it.copy(isLoading = false, error = UiText.Resource(Res.string.create_post_error_create_failed))
+                }
             }
         }
     }

@@ -3,6 +3,7 @@ package com.nazam.instaclone.feature.home.presentation.ui
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -137,7 +138,9 @@ fun VsPostItem(
             authorName = post.authorName,
             authorAvatarUrl = post.authorAvatarUrl,
             onAuthorClick = { onAuthorClick(post) },
-            modifier = Modifier.align(Alignment.TopStart)
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(top = 48.dp)
         )
 
         VsPostActionRail(
@@ -152,7 +155,10 @@ fun VsPostItem(
             modifier = Modifier.align(Alignment.Center)
         )
 
-        VsPostVsBadge(modifier = Modifier.align(Alignment.Center))
+        VsPostVsBadge(
+            badgeId = post.selectedVsBadgeId,
+            modifier = Modifier.align(Alignment.Center)
+        )
 
         VsPostResults(
             post = post,

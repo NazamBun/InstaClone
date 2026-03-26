@@ -1,5 +1,6 @@
 package com.nazam.instaclone.feature.home.presentation.ui.components.vspost
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
@@ -16,27 +17,45 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import instaclone.composeapp.generated.resources.Res
+import instaclone.composeapp.generated.resources.vs_1
 import instaclone.composeapp.generated.resources.vspost_vs_badge
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun VsPostVsBadge(
+    badgeId: String,
     modifier: Modifier = Modifier
 ) {
     Box(
-        modifier = modifier
-            .offset(y = 90.dp)
-            .size(64.dp)
-            .clip(CircleShape)
-            .background(Brush.linearGradient(listOf(Color(0xFF2F5BFF), Color(0xFFFF9F3F)))),
+        modifier = modifier.offset(y = 90.dp),
         contentAlignment = Alignment.Center
     ) {
-        // ✅ Texte traduisible (composeResources)
-        Text(
-            text = stringResource(Res.string.vspost_vs_badge),
-            color = Color.White,
-            fontWeight = FontWeight.Bold,
-            fontSize = 20.sp
-        )
+        if (badgeId == "vs_1") {
+            Image(
+                painter = painterResource(Res.drawable.vs_1),
+                contentDescription = stringResource(Res.string.vspost_vs_badge),
+                modifier = Modifier.size(84.dp)
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .clip(CircleShape)
+                    .background(
+                        Brush.linearGradient(
+                            listOf(Color(0xFF2F5BFF), Color(0xFFFF9F3F))
+                        )
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = stringResource(Res.string.vspost_vs_badge),
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp
+                )
+            }
+        }
     }
 }

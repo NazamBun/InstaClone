@@ -12,7 +12,8 @@ class CreatePostUseCase(
         rightImageUrl: String,
         leftLabel: String,
         rightLabel: String,
-        category: String
+        category: String,
+        selectedVsBadgeId: String
     ): Result<VsPost> {
         return homeRepository.createPost(
             question = question,
@@ -20,7 +21,8 @@ class CreatePostUseCase(
             rightImageUrl = rightImageUrl,
             leftLabel = leftLabel,
             rightLabel = rightLabel,
-            category = category
+            category = category,
+            selectedVsBadgeId = selectedVsBadgeId
         )
     }
 }
