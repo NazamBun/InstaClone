@@ -1,9 +1,11 @@
 package com.nazam.instaclone.feature.home.presentation.ui.components.home
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -22,7 +24,12 @@ fun HomeFeedTabs(
     selected: FeedMode,
     onSelected: (FeedMode) -> Unit
 ) {
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier
+            .background(Color(0x66000000), RoundedCornerShape(50))
+            .padding(horizontal = 6.dp, vertical = 4.dp)
+    ) {
         FeedTab(
             label = stringResource(Res.string.home_feed_for_you),
             selected = selected == FeedMode.FOR_YOU,
@@ -43,14 +50,14 @@ private fun FeedTab(
     onClick: () -> Unit
 ) {
     Surface(
-        color = if (selected) Color(0xFF2F5BFF) else Color(0xFF14141A),
-        shape = MaterialTheme.shapes.large,
+        color = if (selected) Color(0xFF2F5BFF) else Color.Transparent,
+        shape = RoundedCornerShape(50),
         modifier = Modifier.clickable(onClick = onClick)
     ) {
         Text(
             text = label,
             color = Color.White,
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
             style = MaterialTheme.typography.bodyMedium
         )
     }

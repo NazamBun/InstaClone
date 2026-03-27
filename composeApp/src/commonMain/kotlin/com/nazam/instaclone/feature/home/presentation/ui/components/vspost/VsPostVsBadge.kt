@@ -10,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -27,24 +28,32 @@ fun VsPostVsBadge(
     badgeId: String,
     modifier: Modifier = Modifier
 ) {
+    val size = 200.dp
+
     Box(
-        modifier = modifier.offset(y = 90.dp),
+        modifier = modifier
+            .offset(y = 70.dp)
+            ,
         contentAlignment = Alignment.Center
     ) {
+
         if (badgeId == "vs_1") {
             Image(
                 painter = painterResource(Res.drawable.vs_1),
                 contentDescription = stringResource(Res.string.vspost_vs_badge),
-                modifier = Modifier.size(84.dp)
+                modifier = Modifier.size(size)
             )
         } else {
             Box(
                 modifier = Modifier
-                    .size(64.dp)
+                    .size(size)
                     .clip(CircleShape)
                     .background(
                         Brush.linearGradient(
-                            listOf(Color(0xFF2F5BFF), Color(0xFFFF9F3F))
+                            listOf(
+                                Color(0xFF2F5BFF),
+                                Color(0xFFFF9F3F)
+                            )
                         )
                     ),
                 contentAlignment = Alignment.Center
@@ -53,7 +62,7 @@ fun VsPostVsBadge(
                     text = stringResource(Res.string.vspost_vs_badge),
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp
+                    fontSize = 32.sp
                 )
             }
         }

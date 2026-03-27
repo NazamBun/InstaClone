@@ -3,7 +3,6 @@ package com.nazam.instaclone.feature.home.presentation.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -67,27 +66,38 @@ fun HomeScreen(
     }
 
     Box(
-        modifier = Modifier.fillMaxSize().background(Color(0xFF050509)).padding(contentPadding)
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF050509))
+            .padding(contentPadding)
     ) {
-        SnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
+        HomeFeedContent(
+            ui = ui,
+            modifier = Modifier.fillMaxSize(),
+            extraBottomPadding = if (ui.isCommentsSheetOpen) 320.dp + bottomHeight else 0.dp,
+            onVoteLeft = onVoteLeft,
+            onVoteRight = onVoteRight,
+            onOpenComments = onOpenComments,
+            onOpenAuthor = onOpenAuthor,
+            onShare = onShare,
+            onLoadMore = onLoadMore
+        )
 
-        Column(modifier = Modifier.fillMaxSize().padding(top = 12.dp)) {
-            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                HomeFeedTabs(selected = ui.selectedFeedMode, onSelected = onFeedModeSelected)
-            }
-
-            HomeFeedContent(
-                ui = ui,
-                modifier = Modifier.fillMaxSize(),
-                extraBottomPadding = if (ui.isCommentsSheetOpen) 320.dp + bottomHeight else 0.dp,
-                onVoteLeft = onVoteLeft,
-                onVoteRight = onVoteRight,
-                onOpenComments = onOpenComments,
-                onOpenAuthor = onOpenAuthor,
-                onShare = onShare,
-                onLoadMore = onLoadMore
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(top = 12.dp)
+        ) {
+            HomeFeedTabs(
+                selected = ui.selectedFeedMode,
+                onSelected = onFeedModeSelected
             )
         }
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
 
         HomeBottomArea(
             ui = ui,
@@ -102,8 +112,12 @@ fun HomeScreen(
 
         if (ui.isCommentsSheetOpen) {
             Box(
-                modifier = Modifier.fillMaxSize().background(Color(0x88000000)).clickable(onClick = onCloseComments)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0x88000000))
+                    .clickable(onClick = onCloseComments)
             )
+
             CommentsPanel(
                 bottomOffset = bottomHeight,
                 height = 320.dp,

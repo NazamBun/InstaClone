@@ -1,5 +1,7 @@
 package com.nazam.instaclone.feature.home.presentation.ui
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
@@ -12,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
@@ -53,6 +56,7 @@ fun VsPostItem(
 
     var rootInWindow by remember(post.id) { mutableStateOf(Offset.Zero) }
     var lastVote by remember(post.id) { mutableStateOf(post.userVote) }
+    var showQuestion by remember(post.id) { mutableStateOf(true) }
     var lastTapLeft by remember(post.id) { mutableStateOf<Offset?>(null) }
     var lastTapRight by remember(post.id) { mutableStateOf<Offset?>(null) }
     var plusOnePos by remember(post.id) { mutableStateOf<Offset?>(null) }
@@ -60,6 +64,11 @@ fun VsPostItem(
     var flamePosPx by remember(post.id) { mutableStateOf<IntOffset?>(null) }
     var showFlame by remember(post.id) { mutableStateOf(false) }
     var flameTriggerKey by remember(post.id) { mutableStateOf(0) }
+
+    LaunchedEffect(post.id) {
+        delay(1200)
+        showQuestion = false
+    }
 
     LaunchedEffect(post.id, post.userVote) {
         val newVote = post.userVote
@@ -150,9 +159,15 @@ fun VsPostItem(
             onShareClick = onShareClick
         )
 
+        val alpha = animateFloatAsState(
+            targetValue = if (showQuestion) 1f else 0f,
+            animationSpec = tween(600)
+        )
+
         VsPostQuestionCard(
+            
             question = post.question,
-            modifier = Modifier.align(Alignment.Center)
+            modifier = Modifier.align(Alignment.Center).alpha(alpha.value)
         )
 
         VsPostVsBadge(

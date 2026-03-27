@@ -16,9 +16,10 @@ fun VsPostOverlayGradient() {
             .background(
                 Brush.verticalGradient(
                     listOf(
+                        Color(0x88000000), // léger noir en haut (lisibilité)
                         Color.Transparent,
                         Color.Transparent,
-                        Color(0xAA000000)
+                        Color(0xAA000000) // noir en bas (déjà présent)
                     )
                 )
             )
