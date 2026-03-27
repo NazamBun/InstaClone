@@ -32,7 +32,10 @@ import androidx.compose.ui.unit.dp
 import com.nazam.instaclone.core.ui.asString
 import com.nazam.instaclone.feature.home.presentation.model.CreatePostUiState
 import com.nazam.instaclone.feature.home.presentation.ui.components.NetworkImage
+import com.nazam.instaclone.feature.home.presentation.ui.components.vspost.VsBadgeCatalog
+import com.nazam.instaclone.feature.home.presentation.ui.components.vspost.VsBadgeOption
 import instaclone.composeapp.generated.resources.Res
+import instaclone.composeapp.generated.resources.create_post_badge_title
 import instaclone.composeapp.generated.resources.create_post_cancel
 import instaclone.composeapp.generated.resources.create_post_hashtag_hint
 import instaclone.composeapp.generated.resources.create_post_left_label
@@ -40,26 +43,8 @@ import instaclone.composeapp.generated.resources.create_post_question_label
 import instaclone.composeapp.generated.resources.create_post_right_label
 import instaclone.composeapp.generated.resources.create_post_submit
 import instaclone.composeapp.generated.resources.create_post_title
-import instaclone.composeapp.generated.resources.vs2
-import instaclone.composeapp.generated.resources.vs_1
-import instaclone.composeapp.generated.resources.vsfuturistic
-import instaclone.composeapp.generated.resources.vsor
-import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-
-private data class VsBadgeOption(
-    val id: String,
-    val title: String,
-    val drawable: DrawableResource
-)
-
-private val badgeOptions = listOf(
-    VsBadgeOption("vs_1", "VS combat", Res.drawable.vs_1),
-    VsBadgeOption("vs2", "VS classique", Res.drawable.vs2),
-    VsBadgeOption("vsfuturistic", "VS futuriste", Res.drawable.vsfuturistic),
-    VsBadgeOption("vsor", "VS premium", Res.drawable.vsor)
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -80,9 +65,7 @@ fun CreatePostScreen(
     val rightPreview = ui.rightUploadedUrl.ifBlank { ui.rightLocalUri }
 
     Column(modifier = modifier.fillMaxSize()) {
-        CenterAlignedTopAppBar(
-            title = { Text(stringResource(Res.string.create_post_title)) }
-        )
+        CenterAlignedTopAppBar(title = { Text(stringResource(Res.string.create_post_title)) })
 
         Column(
             modifier = Modifier
@@ -115,43 +98,25 @@ fun CreatePostScreen(
             }
 
             Text(
-                text = "Choisis un style de VS",
+                text = stringResource(Res.string.create_post_badge_title),
                 style = MaterialTheme.typography.titleMedium
             )
 
-            badgeOptions.forEach { option ->
+            VsBadgeCatalog.options.forEach { option ->
                 VsBadgeOptionRow(
-                    title = option.title,
-                    drawable = option.drawable,
+                    option = option,
                     selected = ui.selectedVsBadgeId == option.id,
                     onClick = { onVsBadgeSelected(option.id) }
                 )
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                ImageCard(
-                    title = "A",
-                    preview = leftPreview,
-                    isUploading = ui.isUploadingLeft,
-                    percent = ui.leftUploadPercent,
-                    onPickClick = onPickLeftImageClick,
-                    modifier = Modifier.weight(1f)
-                )
-                ImageCard(
-                    title = "B",
-                    preview = rightPreview,
-                    isUploading = ui.isUploadingRight,
-                    percent = ui.rightUploadPercent,
-                    onPickClick = onPickRightImageClick,
-                    modifier = Modifier.weight(1f)
-                )
+                ImageCard("A", leftPreview, ui.isUploadingLeft, ui.leftUploadPercent, onPickLeftImageClick, Modifier.weight(1f))
+                ImageCard("B", rightPreview, ui.isUploadingRight, ui.rightUploadPercent, onPickRightImageClick, Modifier.weight(1f))
             }
 
             ui.error?.let {
-                Text(
-                    text = it.asString(),
-                    color = MaterialTheme.colorScheme.error
-                )
+                Text(text = it.asString(), color = MaterialTheme.colorScheme.error)
             }
 
             Button(
@@ -171,10 +136,7 @@ fun CreatePostScreen(
             }
 
             if (ui.isLoading) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                     CircularProgressIndicator()
                 }
             }
@@ -184,8 +146,7 @@ fun CreatePostScreen(
 
 @Composable
 private fun VsBadgeOptionRow(
-    title: String,
-    drawable: DrawableResource,
+    option: VsBadgeOption,
     selected: Boolean,
     onClick: () -> Unit
 ) {
@@ -196,23 +157,19 @@ private fun VsBadgeOptionRow(
             .padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        RadioButton(
-            selected = selected,
-            onClick = onClick
-        )
-
+        RadioButton(selected = selected, onClick = onClick)
         Spacer(modifier = Modifier.size(8.dp))
 
         Image(
-            painter = painterResource(drawable),
-            contentDescription = title,
+            painter = painterResource(option.drawableRes),
+            contentDescription = stringResource(option.titleRes),
             modifier = Modifier.size(72.dp)
         )
 
         Spacer(modifier = Modifier.size(12.dp))
 
         Text(
-            text = title,
+            text = stringResource(option.titleRes),
             style = MaterialTheme.typography.bodyLarge
         )
     }
@@ -228,30 +185,17 @@ private fun ImageCard(
     modifier: Modifier = Modifier
 ) {
     ElevatedCard(modifier = modifier) {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Text(
-                text = "Image $title",
-                style = MaterialTheme.typography.titleMedium
-            )
+        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(text = "Image $title", style = MaterialTheme.typography.titleMedium)
 
             if (preview.isNotBlank()) {
                 NetworkImage(
                     url = preview,
                     contentDescription = "Image $title",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(180.dp)
+                    modifier = Modifier.fillMaxWidth().height(180.dp)
                 )
             } else {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(180.dp),
-                    contentAlignment = Alignment.Center
-                ) {
+                Box(modifier = Modifier.fillMaxWidth().height(180.dp), contentAlignment = Alignment.Center) {
                     Text("Choisir une photo")
                 }
             }

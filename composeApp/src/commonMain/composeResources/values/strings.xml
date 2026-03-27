@@ -58,6 +58,13 @@
     <string name="create_post_cancel">Annuler</string>
     <string name="create_post_publish_short">Publier</string>
 
+
+    <string name="create_post_badge_title">Choisis un style de VS</string>
+    <string name="create_post_badge_vs_combat">VS combat</string>
+    <string name="create_post_badge_vs_classic">VS classique</string>
+    <string name="create_post_badge_vs_futuristic">VS futuriste</string>
+    <string name="create_post_badge_vs_premium">VS premium</string>
+
     <!-- Categories -->
     <string name="categories_title">Choisir une catégorie</string>
 
