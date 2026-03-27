@@ -61,14 +61,13 @@ fun CreatePostRoute(
         pendingMessage = null
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { padding ->
+    Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
         CreatePostScreen(
             ui = ui,
             onQuestionChange = viewModel::onQuestionChange,
             onLeftLabelChange = viewModel::onLeftLabelChange,
             onRightLabelChange = viewModel::onRightLabelChange,
+            onVsBadgeSelected = viewModel::onVsBadgeSelected,
             onPickLeftImageClick = pickLeftImage,
             onPickRightImageClick = pickRightImage,
             onSubmitClick = viewModel::submitPost,

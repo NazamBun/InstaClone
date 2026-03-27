@@ -9,7 +9,8 @@ object CreatePostDraftStore {
         val leftLocalUri: String = "",
         val rightLocalUri: String = "",
         val leftUploadedUrl: String = "",
-        val rightUploadedUrl: String = ""
+        val rightUploadedUrl: String = "",
+        val selectedVsBadgeId: String = ""
     )
 
     private var draft: Draft = Draft()

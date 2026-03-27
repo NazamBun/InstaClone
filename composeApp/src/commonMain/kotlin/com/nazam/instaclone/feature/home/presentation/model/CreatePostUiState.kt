@@ -10,6 +10,7 @@ data class CreatePostUiState(
     val rightLocalUri: String = "",
     val leftUploadedUrl: String = "",
     val rightUploadedUrl: String = "",
+    val selectedVsBadgeId: String = "",
     val isUploadingLeft: Boolean = false,
     val isUploadingRight: Boolean = false,
     val leftUploadPercent: Int? = null,
