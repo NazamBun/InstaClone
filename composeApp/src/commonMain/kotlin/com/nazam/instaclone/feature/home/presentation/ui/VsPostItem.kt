@@ -35,6 +35,7 @@ import com.nazam.instaclone.feature.home.presentation.ui.components.vspost.VsPos
 import com.nazam.instaclone.feature.home.presentation.ui.components.vspost.VsPostVoteImages
 import com.nazam.instaclone.feature.home.presentation.ui.components.vspost.VsPostVotingOverlay
 import com.nazam.instaclone.feature.home.presentation.ui.components.vspost.VsPostVsBadge
+import com.nazam.instaclone.feature.home.presentation.ui.components.utils.formatTimeAgo
 import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
@@ -146,10 +147,11 @@ fun VsPostItem(
         VsPostHeader(
             authorName = post.authorName,
             authorAvatarUrl = post.authorAvatarUrl,
+            subtitle = formatTimeAgo(post.createdAt),
             onAuthorClick = { onAuthorClick(post) },
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .padding(top = 48.dp)
+                .padding(top = 44.dp)
         )
 
         VsPostActionRail(

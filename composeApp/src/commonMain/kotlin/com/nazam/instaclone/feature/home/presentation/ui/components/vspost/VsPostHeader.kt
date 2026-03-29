@@ -25,17 +25,17 @@ import com.nazam.instaclone.feature.home.presentation.ui.components.NetworkImage
 fun VsPostHeader(
     authorName: String,
     authorAvatarUrl: String?,
+    subtitle: String,
     onAuthorClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val displayName = authorName.ifBlank { "Utilisateur" }
-    val handle = displayName.trim().replace(" ", "").lowercase()
     val firstLetter = displayName.firstOrNull()?.uppercase() ?: "?"
 
     Row(
         modifier = modifier
             .clickable(onClick = onAuthorClick)
-            .padding(16.dp),
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (!authorAvatarUrl.isNullOrBlank()) {
@@ -73,7 +73,7 @@ fun VsPostHeader(
             )
 
             Text(
-                text = "@$handle",
+                text = subtitle,
                 color = Color.White.copy(alpha = 0.72f),
                 fontSize = 12.sp,
                 maxLines = 1,

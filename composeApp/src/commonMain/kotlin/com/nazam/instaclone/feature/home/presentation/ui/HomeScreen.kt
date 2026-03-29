@@ -28,7 +28,6 @@ import com.nazam.instaclone.feature.home.presentation.ui.components.comments.Com
 import com.nazam.instaclone.feature.home.presentation.ui.components.dialogs.InfoDialog
 import com.nazam.instaclone.feature.home.presentation.ui.components.home.HomeBottomArea
 import com.nazam.instaclone.feature.home.presentation.ui.components.home.HomeFeedContent
-import com.nazam.instaclone.feature.home.presentation.ui.components.home.HomeFeedTabs
 
 @Composable
 fun HomeScreen(
@@ -82,17 +81,6 @@ fun HomeScreen(
             onShare = onShare,
             onLoadMore = onLoadMore
         )
-
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(top = 12.dp)
-        ) {
-            HomeFeedTabs(
-                selected = ui.selectedFeedMode,
-                onSelected = onFeedModeSelected
-            )
-        }
 
         SnackbarHost(
             hostState = snackbarHostState,
