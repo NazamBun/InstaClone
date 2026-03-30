@@ -15,6 +15,7 @@ data class VsPost(
     val leftVotesCount: Int,
     val rightVotesCount: Int,
     val totalVotesCount: Int,
+    val commentsCount: Int = 0,
     val selectedVsBadgeId: String = "",
     val userVote: VoteChoice = VoteChoice.NONE
 )

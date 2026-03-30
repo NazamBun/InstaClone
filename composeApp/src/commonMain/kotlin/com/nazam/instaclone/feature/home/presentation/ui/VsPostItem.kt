@@ -155,6 +155,7 @@ fun VsPostItem(
         )
 
         VsPostActionRail(
+            commentsCount = post.commentsCount,
             modifier = Modifier.align(Alignment.CenterEnd),
             onCommentsClick = onCommentsClick,
             onMessageClick = onMessageClick,

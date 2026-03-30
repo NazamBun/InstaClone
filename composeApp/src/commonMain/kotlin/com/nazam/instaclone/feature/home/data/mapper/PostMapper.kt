@@ -29,6 +29,7 @@ object PostMapper {
             leftVotesCount = dto.left_votes,
             rightVotesCount = dto.right_votes,
             totalVotesCount = totalVotes,
+            commentsCount = dto.commentsCount,
             selectedVsBadgeId = dto.vsBadgeId.orEmpty(),
             userVote = userVote
         )

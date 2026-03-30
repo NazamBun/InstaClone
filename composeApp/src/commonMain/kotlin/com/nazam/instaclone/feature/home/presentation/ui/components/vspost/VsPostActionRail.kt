@@ -10,17 +10,23 @@ import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import instaclone.composeapp.generated.resources.*
+import instaclone.composeapp.generated.resources.Res
+import instaclone.composeapp.generated.resources.cd_comments
+import instaclone.composeapp.generated.resources.cd_message
+import instaclone.composeapp.generated.resources.cd_share
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun VsPostActionRail(
+    commentsCount: Int,
     onCommentsClick: () -> Unit,
     onMessageClick: () -> Unit,
     onShareClick: () -> Unit,
@@ -40,6 +46,14 @@ fun VsPostActionRail(
                 tint = Color.White
             )
         }
+
+        Text(
+            text = commentsCount.toString(),
+            color = Color.White.copy(alpha = 0.92f),
+            style = MaterialTheme.typography.labelSmall,
+            modifier = Modifier.padding(bottom = 6.dp)
+        )
+
         IconButton(onClick = onMessageClick) {
             Icon(
                 imageVector = Icons.AutoMirrored.Outlined.Send,
@@ -47,6 +61,7 @@ fun VsPostActionRail(
                 tint = Color.White
             )
         }
+
         IconButton(onClick = onShareClick) {
             Icon(
                 imageVector = Icons.Outlined.Share,

@@ -15,6 +15,7 @@ data class PostDto(
     val author_avatar: String? = null,
     val created_at: String? = null,
     @SerialName("vs_badge_id") val vsBadgeId: String? = null,
+    @SerialName("comments_count") val commentsCount: Int = 0,
     val left_image: String? = null,
     val right_image: String? = null,
     val left_label: String? = null,
