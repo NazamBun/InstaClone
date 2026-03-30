@@ -12,11 +12,6 @@ import com.nazam.instaclone.feature.home.presentation.ui.components.comments.Com
 import com.nazam.instaclone.feature.home.presentation.ui.components.comments.LockedCommentBar
 import com.nazam.instaclone.feature.home.presentation.ui.components.utils.getUserLetter
 
-/**
- * HomeBottomArea :
- * ✅ Ne gère PLUS la bottom bar (elle est dans App.kt maintenant).
- * ✅ Sert seulement à afficher la zone d'input des commentaires quand le panel est ouvert.
- */
 @Composable
 fun HomeBottomArea(
     ui: HomeUiState,
@@ -36,6 +31,7 @@ fun HomeBottomArea(
                 CommentInputBar(
                     letter = getUserLetter(ui.currentUserDisplayName, ui.currentUserEmail),
                     text = ui.newCommentText,
+                    isSending = ui.isSendingComment,
                     onTextChange = onNewCommentChange,
                     onSend = onSendCommentClick
                 )

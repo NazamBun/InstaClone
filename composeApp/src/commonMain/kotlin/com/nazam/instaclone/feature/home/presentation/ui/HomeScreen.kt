@@ -82,26 +82,11 @@ fun HomeScreen(
             onLoadMore = onLoadMore
         )
 
-        SnackbarHost(
-            hostState = snackbarHostState,
-            modifier = Modifier.align(Alignment.BottomCenter)
-        )
-
-        HomeBottomArea(
-            ui = ui,
-            onNewCommentChange = onNewCommentChange,
-            onSendCommentClick = onSendCommentClick,
-            onCommentInputRequested = onCommentInputRequested,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .onSizeChanged { bottomHeight = with(density) { it.height.toDp() } }
-        )
-
         if (ui.isCommentsSheetOpen) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
+                    .padding(bottom = bottomHeight)
                     .background(Color(0x88000000))
                     .clickable(onClick = onCloseComments)
             )
@@ -114,5 +99,21 @@ fun HomeScreen(
                 onClose = onCloseComments
             )
         }
+
+        HomeBottomArea(
+            ui = ui,
+            onNewCommentChange = onNewCommentChange,
+            onSendCommentClick = onSendCommentClick,
+            onCommentInputRequested = onCommentInputRequested,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .onSizeChanged { bottomHeight = with(density) { it.height.toDp() } }
+        )
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }

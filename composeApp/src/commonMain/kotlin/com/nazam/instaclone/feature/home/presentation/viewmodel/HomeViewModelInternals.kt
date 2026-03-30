@@ -119,23 +119,46 @@ internal fun HomeViewModel.openCommentsInternal(
     getCommentsUseCase: GetCommentsUseCase
 ) {
     _uiState.update {
-        it.copy(isCommentsSheetOpen = true, commentsPostId = postId, isCommentsLoading = true, comments = emptyList(), newCommentText = "")
+        it.copy(
+            isCommentsSheetOpen = true,
+            commentsPostId = postId,
+            isCommentsLoading = true,
+            isSendingComment = false,
+            comments = emptyList(),
+            newCommentText = ""
+        )
     }
 
     scope.launch {
         withContext(dispatchers.default) { getCommentsUseCase.execute(postId) }
-            .onSuccess { _uiState.update { s -> s.copy(isCommentsLoading = false, comments = it) } }
+            .onSuccess { comments ->
+                _uiState.update { s ->
+                    s.copy(
+                        isCommentsLoading = false,
+                        comments = comments
+                    )
+                }
+            }
             .onFailure {
                 _uiState.update { s -> s.copy(isCommentsLoading = false) }
-                emitMessage(it.message?.takeIf(String::isNotBlank)?.let(UiText::DynamicString)
-                    ?: UiText.Resource(Res.string.home_comments_load_error))
+                emitMessage(
+                    it.message?.takeIf(String::isNotBlank)?.let(UiText::DynamicString)
+                        ?: UiText.Resource(Res.string.home_comments_load_error)
+                )
             }
     }
 }
 
 internal fun HomeViewModel.closeCommentsInternal() {
     _uiState.update {
-        it.copy(isCommentsSheetOpen = false, commentsPostId = null, isCommentsLoading = false, comments = emptyList(), newCommentText = "")
+        it.copy(
+            isCommentsSheetOpen = false,
+            commentsPostId = null,
+            isCommentsLoading = false,
+            isSendingComment = false,
+            comments = emptyList(),
+            newCommentText = ""
+        )
     }
 }
 
@@ -151,16 +174,30 @@ internal fun HomeViewModel.sendCommentInternal(
 
     val postId = state.commentsPostId ?: return
     val content = state.newCommentText.trim()
-    if (content.isBlank()) return
+    if (content.isBlank() || state.isSendingComment) return
 
     scope.launch {
-        _uiState.update { it.copy(isCommentsLoading = true) }
+        _uiState.update { it.copy(isSendingComment = true) }
+
         withContext(dispatchers.default) { addCommentUseCase.execute(postId, content) }
             .onSuccess { created ->
-                _uiState.update { it.copy(isCommentsLoading = false, comments = it.comments + created, newCommentText = "") }
+                _uiState.update { current ->
+                    current.copy(
+                        isSendingComment = false,
+                        comments = current.comments + created,
+                        newCommentText = "",
+                        posts = current.posts.map { post ->
+                            if (post.id == postId) {
+                                post.copy(commentsCount = post.commentsCount + 1)
+                            } else {
+                                post
+                            }
+                        }
+                    )
+                }
             }
             .onFailure {
-                _uiState.update { it.copy(isCommentsLoading = false) }
+                _uiState.update { it.copy(isSendingComment = false) }
                 handleAuthOrGenericErrorInternal(it)
             }
     }

@@ -24,6 +24,7 @@ data class HomeUiState(
     val isCommentsSheetOpen: Boolean = false,
     val commentsPostId: String? = null,
     val isCommentsLoading: Boolean = false,
+    val isSendingComment: Boolean = false,
     val comments: List<Comment> = emptyList(),
     val newCommentText: String = ""
 )
