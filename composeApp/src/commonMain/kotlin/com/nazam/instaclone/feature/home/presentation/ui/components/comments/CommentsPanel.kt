@@ -1,5 +1,6 @@
 package com.nazam.instaclone.feature.home.presentation.ui.components.comments
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,16 +13,20 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.nazam.instaclone.feature.home.domain.model.Comment
-import instaclone.composeapp.generated.resources.*
+import instaclone.composeapp.generated.resources.Res
+import instaclone.composeapp.generated.resources.close
+import instaclone.composeapp.generated.resources.comments_empty
+import instaclone.composeapp.generated.resources.comments_title
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -32,22 +37,47 @@ fun CommentsPanel(
     comments: List<Comment>,
     onClose: () -> Unit
 ) {
+    val panelShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(bottom = bottomOffset),
         contentAlignment = Alignment.BottomCenter
     ) {
-        Surface(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(height),
-            color = Color(0xFF0B0B10),
-            shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+                .height(height)
+                .clip(panelShape)
+                .background(
+                    Brush.verticalGradient(
+                        listOf(
+                            Color.Black.copy(alpha = 0.62f),
+                            Color.Black.copy(alpha = 0.78f),
+                            Color.Black.copy(alpha = 0.92f)
+                        )
+                    )
+                )
         ) {
-            Column {
+            Column(modifier = Modifier.fillMaxSize()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(1.dp)
+                        .background(
+                            Brush.horizontalGradient(
+                                listOf(
+                                    Color.Transparent,
+                                    Color.White.copy(alpha = 0.16f),
+                                    Color.Transparent
+                                )
+                            )
+                        )
+                )
+
                 Row(
-                    Modifier
+                    modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -59,21 +89,34 @@ fun CommentsPanel(
                     )
 
                     IconButton(onClick = onClose) {
-                        Text(text = stringResource(Res.string.close), color = Color.White)
+                        Text(
+                            text = stringResource(Res.string.close),
+                            color = Color.White
+                        )
                     }
                 }
 
                 when {
-                    isLoading -> CircularProgressIndicator(Modifier.align(Alignment.CenterHorizontally))
+                    isLoading -> {
+                        CircularProgressIndicator(
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                        )
+                    }
 
-                    comments.isEmpty() -> Text(
-                        text = stringResource(Res.string.comments_empty),
-                        modifier = Modifier.padding(16.dp),
-                        color = Color.Gray
-                    )
+                    comments.isEmpty() -> {
+                        Text(
+                            text = stringResource(Res.string.comments_empty),
+                            modifier = Modifier.padding(16.dp),
+                            color = Color.White.copy(alpha = 0.7f)
+                        )
+                    }
 
-                    else -> LazyColumn {
-                        items(comments) { CommentRow(it) }
+                    else -> {
+                        LazyColumn(modifier = Modifier.fillMaxSize()) {
+                            items(comments) { comment ->
+                                CommentRow(comment)
+                            }
+                        }
                     }
                 }
             }
