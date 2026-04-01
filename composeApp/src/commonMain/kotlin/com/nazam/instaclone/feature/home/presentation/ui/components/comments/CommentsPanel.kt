@@ -11,7 +11,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,9 +27,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.nazam.instaclone.feature.home.domain.model.Comment
 import instaclone.composeapp.generated.resources.Res
-import instaclone.composeapp.generated.resources.close
 import instaclone.composeapp.generated.resources.comments_empty
 import instaclone.composeapp.generated.resources.comments_title
+import instaclone.composeapp.generated.resources.dialog_cancel
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -79,7 +82,7 @@ fun CommentsPanel(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
+                        .padding(horizontal = 16.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
@@ -89,9 +92,10 @@ fun CommentsPanel(
                     )
 
                     IconButton(onClick = onClose) {
-                        Text(
-                            text = stringResource(Res.string.close),
-                            color = Color.White
+                        Icon(
+                            imageVector = Icons.Outlined.Close,
+                            contentDescription = stringResource(Res.string.dialog_cancel),
+                            tint = Color.White
                         )
                     }
                 }
