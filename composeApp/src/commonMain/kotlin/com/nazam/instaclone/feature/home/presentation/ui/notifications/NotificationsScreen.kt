@@ -25,16 +25,7 @@ fun NotificationsScreen(
     contentPadding: PaddingValues,
     modifier: Modifier = Modifier
 ) {
-    val items = remember {
-        listOf(
-            NotificationUi("🔥", "Ton VS explose", "Ton duel CR7 vs Mbappé commence à buzzer.", "Il y a 5 min", true),
-            NotificationUi("💬", "Nouveau commentaire", "Quelqu’un a commenté ton VS.", "Il y a 12 min", true),
-            NotificationUi("🗳️", "Nouveaux votes", "Plusieurs personnes ont voté sur ton VS.", "Il y a 24 min", true),
-            NotificationUi("📤", "VS partagé", "Ton VS a été partagé par un utilisateur.", "Il y a 1 h", false),
-            NotificationUi("👀", "Duel serré", "Ton duel est presque à égalité. Relance-le.", "Il y a 3 h", false),
-            NotificationUi("✨", "Nouveau post suivi", "Un compte que tu suis a publié un nouveau VS.", "Hier", false)
-        )
-    }
+    val items = remember { NotificationsFakeData.items() }
 
     Box(
         modifier = modifier

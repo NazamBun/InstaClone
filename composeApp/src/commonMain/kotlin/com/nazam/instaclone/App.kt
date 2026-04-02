@@ -32,13 +32,11 @@ import com.nazam.instaclone.feature.home.presentation.ui.HomeRoute
 import com.nazam.instaclone.feature.home.presentation.ui.categories.CategoriesRoute
 import com.nazam.instaclone.feature.home.presentation.ui.explore.ExplorePagerRoute
 import com.nazam.instaclone.feature.home.presentation.ui.explore.ExploreRoute
+import com.nazam.instaclone.feature.home.presentation.ui.notifications.NotificationsFakeData
 import com.nazam.instaclone.feature.home.presentation.ui.notifications.NotificationsScreen
 import com.nazam.instaclone.feature.profile.presentation.navigation.ProfileTargetStore
 import com.nazam.instaclone.feature.profile.presentation.ui.ProfileRoute
 import com.nazam.instaclone.feature.profile.presentation.ui.edit.EditProfileRoute
-import instaclone.composeapp.generated.resources.Res
-import instaclone.composeapp.generated.resources.placeholder_notifications_soon
-import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 
 @Composable
@@ -49,6 +47,7 @@ fun App() {
     val currentUser by sessionManager.user.collectAsState()
     val isLoggedIn = currentUser != null
     val canCreatePost = CreatePostAccess.canCreate(currentUser)
+    val notificationsCount = remember { NotificationsFakeData.unreadCount() }
 
     val snackbarHostState = remember { SnackbarHostState() }
     SnackbarEffect(hostState = snackbarHostState)
@@ -102,7 +101,7 @@ fun App() {
                         selectedScreen = currentScreen,
                         isLoggedIn = isLoggedIn,
                         canCreatePost = canCreatePost,
-                        notificationsCount = 3,
+                        notificationsCount = notificationsCount,
                         onHomeClick = { navigateTo(Screen.Home) },
                         onExploreClick = { navigateTo(Screen.Explore) },
                         onCreatePostClick = {
@@ -130,10 +129,7 @@ fun App() {
                     Screen.Categories -> CategoriesRoute(onNavigate = ::navigateTo)
                     Screen.Login -> LoginRoute(onNavigate = ::navigateTo)
                     Screen.Signup -> SignupRoute(onNavigate = ::navigateTo)
-
-                    Screen.Notifications -> NotificationsScreen(
-                        contentPadding = padding
-                    )
+                    Screen.Notifications -> NotificationsScreen(contentPadding = padding)
 
                     Screen.Profile -> ProfileRoute(
                         contentPadding = padding,
@@ -172,19 +168,5 @@ fun App() {
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun SimplePlaceholder(
-    title: String,
-    contentPadding: PaddingValues
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(contentPadding)
-    ) {
-        androidx.compose.material3.Text(text = title)
     }
 }
