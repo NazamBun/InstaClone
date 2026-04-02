@@ -102,6 +102,7 @@ fun App() {
                         selectedScreen = currentScreen,
                         isLoggedIn = isLoggedIn,
                         canCreatePost = canCreatePost,
+                        notificationsCount = 3,
                         onHomeClick = { navigateTo(Screen.Home) },
                         onExploreClick = { navigateTo(Screen.Explore) },
                         onCreatePostClick = {
