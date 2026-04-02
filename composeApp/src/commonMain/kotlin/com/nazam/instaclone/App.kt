@@ -32,6 +32,7 @@ import com.nazam.instaclone.feature.home.presentation.ui.HomeRoute
 import com.nazam.instaclone.feature.home.presentation.ui.categories.CategoriesRoute
 import com.nazam.instaclone.feature.home.presentation.ui.explore.ExplorePagerRoute
 import com.nazam.instaclone.feature.home.presentation.ui.explore.ExploreRoute
+import com.nazam.instaclone.feature.home.presentation.ui.notifications.NotificationsScreen
 import com.nazam.instaclone.feature.profile.presentation.navigation.ProfileTargetStore
 import com.nazam.instaclone.feature.profile.presentation.ui.ProfileRoute
 import com.nazam.instaclone.feature.profile.presentation.ui.edit.EditProfileRoute
@@ -129,8 +130,7 @@ fun App() {
                     Screen.Login -> LoginRoute(onNavigate = ::navigateTo)
                     Screen.Signup -> SignupRoute(onNavigate = ::navigateTo)
 
-                    Screen.Notifications -> SimplePlaceholder(
-                        title = stringResource(Res.string.placeholder_notifications_soon),
+                    Screen.Notifications -> NotificationsScreen(
                         contentPadding = padding
                     )
 

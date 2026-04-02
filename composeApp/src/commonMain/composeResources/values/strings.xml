@@ -70,6 +70,8 @@
 
     <!-- Placeholders -->
     <string name="placeholder_notifications_soon">Notifications (bientôt)</string>
+    <string name="notifications_title">Notifications</string>
+    <string name="notifications_section_recent">Récentes</string>
     <string name="placeholder_profile_soon">Profil (bientôt)</string>
 
     <!-- Explore -->
