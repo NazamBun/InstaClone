@@ -48,8 +48,4 @@ object NotificationsFakeData {
             )
         )
     }
-
-    fun unreadCount(): Int {
-        return items().count { it.isNew }
-    }
 }
