@@ -44,6 +44,13 @@ class HomeRepositoryImpl(
         fetchRecentPage(POSTS_FEED_VIEW, offset, limit)
     }
 
+    override suspend fun getPostById(postId: String) = runCatching {
+        val response = client.postgrest[POSTS_FEED_VIEW].select {
+            filter { eq("id", postId) }
+        }
+        mapPost(decodePosts(response.data).first())
+    }
+
     override suspend fun createPost(
         question: String,
         leftImageUrl: String,

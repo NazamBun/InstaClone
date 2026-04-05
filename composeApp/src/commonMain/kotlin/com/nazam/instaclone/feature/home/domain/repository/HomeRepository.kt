@@ -11,6 +11,8 @@ interface HomeRepository {
     suspend fun getExplorePosts(limit: Int): Result<List<VsPost>> =
         getExplorePostsPage(offset = 0, limit = limit)
 
+    suspend fun getPostById(postId: String): Result<VsPost>
+
     suspend fun createPost(
         question: String,
         leftImageUrl: String,

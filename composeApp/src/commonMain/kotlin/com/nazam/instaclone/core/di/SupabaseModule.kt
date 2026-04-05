@@ -23,6 +23,7 @@ import com.nazam.instaclone.feature.home.domain.usecase.AddCommentUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.CreatePostUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.GetCommentsUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.GetFeedUseCase
+import com.nazam.instaclone.feature.home.domain.usecase.GetPostByIdUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.GetExplorePostsUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.UploadPostImageUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.VoteLeftUseCase
@@ -73,6 +74,7 @@ val appModule = module {
 
     single<HomeRepository> { HomeRepositoryImpl(client = get(), json = get()) }
     factory { GetFeedUseCase(get()) }
+    factory { GetPostByIdUseCase(get()) }
     factory { GetExplorePostsUseCase(get()) }
     factory { VoteLeftUseCase(get()) }
     factory { VoteRightUseCase(get()) }

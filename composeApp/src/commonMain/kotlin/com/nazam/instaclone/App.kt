@@ -26,12 +26,15 @@ import com.nazam.instaclone.core.ui.SnackbarEffect
 import com.nazam.instaclone.feature.auth.presentation.ui.LoginRoute
 import com.nazam.instaclone.feature.auth.presentation.ui.SignupRoute
 import com.nazam.instaclone.feature.home.domain.model.VsPost
+import com.nazam.instaclone.feature.home.domain.usecase.GetPostByIdUseCase
 import com.nazam.instaclone.feature.home.presentation.ui.CreatePostRoute
 import com.nazam.instaclone.feature.home.presentation.ui.HomeBottomBar
 import com.nazam.instaclone.feature.home.presentation.ui.HomeRoute
 import com.nazam.instaclone.feature.home.presentation.ui.categories.CategoriesRoute
 import com.nazam.instaclone.feature.home.presentation.ui.explore.ExplorePagerRoute
+import com.nazam.instaclone.feature.home.presentation.ui.explore.ExplorePagerStore
 import com.nazam.instaclone.feature.home.presentation.ui.explore.ExploreRoute
+import com.nazam.instaclone.feature.home.presentation.ui.notifications.NotificationPostStore
 import com.nazam.instaclone.feature.home.presentation.ui.notifications.NotificationTargetType
 import com.nazam.instaclone.feature.home.presentation.ui.notifications.NotificationUi
 import com.nazam.instaclone.feature.home.presentation.ui.notifications.NotificationsFakeData
@@ -46,6 +49,8 @@ fun App() {
     var currentScreen by remember { mutableStateOf(Screen.Home) }
 
     val sessionManager: SessionManager = koinInject()
+    val getPostByIdUseCase: GetPostByIdUseCase = koinInject()
+
     val currentUser by sessionManager.user.collectAsState()
     val isLoggedIn = currentUser != null
     val canCreatePost = CreatePostAccess.canCreate(currentUser)
@@ -72,17 +77,18 @@ fun App() {
     }
 
     fun openNotifications() {
-        if (isLoggedIn) {
-            navigateTo(Screen.Notifications)
-        } else {
-            requireAuth(Screen.Notifications, currentScreen)
+        if (isLoggedIn) navigateTo(Screen.Notifications)
+        else requireAuth(Screen.Notifications, currentScreen)
+    }
+
+    fun markNotificationRead(item: NotificationUi) {
+        notifications = notifications.map { current ->
+            if (current.id == item.id) current.copy(isNew = false) else current
         }
     }
 
     fun openNotificationTarget(item: NotificationUi) {
-        notifications = notifications.map { current ->
-            if (current.id == item.id) current.copy(isNew = false) else current
-        }
+        markNotificationRead(item)
 
         when (item.targetType) {
             NotificationTargetType.PROFILE -> {
@@ -95,10 +101,32 @@ fun App() {
                 navigateTo(Screen.UserProfile)
             }
 
-            NotificationTargetType.HOME_FEED,
-            NotificationTargetType.EXPLORE_FEED,
+            NotificationTargetType.HOME_FEED -> {
+                navigateTo(Screen.Home)
+            }
+
+            NotificationTargetType.EXPLORE_FEED -> {
+                navigateTo(Screen.Explore)
+            }
+
             NotificationTargetType.POST -> {
-                navigateTo(item.targetScreen)
+                val postId = item.postId ?: return
+                NotificationPostStore.clear()
+
+                val result = kotlinx.coroutines.runBlocking {
+                    getPostByIdUseCase.execute(postId)
+                }
+
+                result.onSuccess { post ->
+                    NotificationPostStore.open(post)
+                    ExplorePagerStore.open(
+                        postIds = listOf(post.id),
+                        startPostId = post.id
+                    )
+                    navigateTo(Screen.ExplorePager)
+                }.onFailure {
+                    navigateTo(Screen.Home)
+                }
             }
         }
     }
