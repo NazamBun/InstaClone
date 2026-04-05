@@ -23,6 +23,7 @@ import org.jetbrains.compose.resources.stringResource
 fun NotificationsScreen(
     contentPadding: PaddingValues,
     items: List<NotificationUi>,
+    onNotificationClick: (NotificationUi) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -53,8 +54,11 @@ fun NotificationsScreen(
                 )
             }
 
-            items(items) { item ->
-                NotificationRow(ui = item)
+            items(items, key = { it.id }) { item ->
+                NotificationRow(
+                    ui = item,
+                    onClick = onNotificationClick
+                )
             }
         }
     }

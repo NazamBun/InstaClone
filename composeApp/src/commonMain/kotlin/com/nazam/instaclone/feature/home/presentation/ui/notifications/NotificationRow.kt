@@ -1,8 +1,10 @@
 package com.nazam.instaclone.feature.home.presentation.ui.notifications
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,12 +23,14 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun NotificationRow(
     ui: NotificationUi,
+    onClick: (NotificationUi) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
             .background(Color(0xFF111118), RoundedCornerShape(18.dp))
+            .clickable { onClick(ui) }
             .padding(14.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.Top
@@ -40,7 +44,7 @@ fun NotificationRow(
             Text(text = ui.emoji)
         }
 
-        androidx.compose.foundation.layout.Column(
+        Column(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
@@ -49,13 +53,11 @@ fun NotificationRow(
                 color = Color.White,
                 style = MaterialTheme.typography.bodyLarge
             )
-
             Text(
                 text = ui.body,
                 color = Color.White.copy(alpha = 0.72f),
                 style = MaterialTheme.typography.bodyMedium
             )
-
             Text(
                 text = ui.time,
                 color = Color.White.copy(alpha = 0.45f),

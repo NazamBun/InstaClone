@@ -68,14 +68,15 @@ fun App() {
     }
 
     fun openNotifications() {
-        if (isLoggedIn) {
-            notifications = notifications.map { item ->
-                if (item.isNew) item.copy(isNew = false) else item
-            }
-            navigateTo(Screen.Notifications)
-        } else {
-            requireAuth(Screen.Notifications, currentScreen)
+        if (isLoggedIn) navigateTo(Screen.Notifications)
+        else requireAuth(Screen.Notifications, currentScreen)
+    }
+
+    fun onNotificationClick(item: NotificationUi) {
+        notifications = notifications.map { current ->
+            if (current.id == item.id) current.copy(isNew = false) else current
         }
+        navigateTo(item.targetScreen)
     }
 
     fun isProtected(screen: Screen): Boolean {
@@ -139,7 +140,8 @@ fun App() {
                     Screen.Signup -> SignupRoute(onNavigate = ::navigateTo)
                     Screen.Notifications -> NotificationsScreen(
                         contentPadding = padding,
-                        items = notifications
+                        items = notifications,
+                        onNotificationClick = ::onNotificationClick
                     )
 
                     Screen.Profile -> ProfileRoute(
