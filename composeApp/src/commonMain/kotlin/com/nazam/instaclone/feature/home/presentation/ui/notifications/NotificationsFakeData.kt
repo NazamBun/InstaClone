@@ -13,7 +13,9 @@ object NotificationsFakeData {
                 body = "Ton duel CR7 vs Mbappé commence à buzzer.",
                 time = "Il y a 5 min",
                 isNew = true,
-                targetScreen = Screen.Home
+                targetScreen = Screen.Home,
+                targetType = NotificationTargetType.POST,
+                postId = "post_cr7_mbappe_1"
             ),
             NotificationUi(
                 id = "notif_comment",
@@ -22,7 +24,9 @@ object NotificationsFakeData {
                 body = "Quelqu’un a commenté ton VS.",
                 time = "Il y a 12 min",
                 isNew = true,
-                targetScreen = Screen.Home
+                targetScreen = Screen.Home,
+                targetType = NotificationTargetType.POST,
+                postId = "post_comment_1"
             ),
             NotificationUi(
                 id = "notif_votes",
@@ -31,7 +35,9 @@ object NotificationsFakeData {
                 body = "Plusieurs personnes ont voté sur ton VS.",
                 time = "Il y a 24 min",
                 isNew = true,
-                targetScreen = Screen.Home
+                targetScreen = Screen.Home,
+                targetType = NotificationTargetType.POST,
+                postId = "post_votes_1"
             ),
             NotificationUi(
                 id = "notif_share",
@@ -40,7 +46,9 @@ object NotificationsFakeData {
                 body = "Ton VS a été partagé par un utilisateur.",
                 time = "Il y a 1 h",
                 isNew = false,
-                targetScreen = Screen.Home
+                targetScreen = Screen.Home,
+                targetType = NotificationTargetType.POST,
+                postId = "post_share_1"
             ),
             NotificationUi(
                 id = "notif_tight",
@@ -49,7 +57,9 @@ object NotificationsFakeData {
                 body = "Ton duel est presque à égalité. Relance-le.",
                 time = "Il y a 3 h",
                 isNew = false,
-                targetScreen = Screen.Home
+                targetScreen = Screen.Home,
+                targetType = NotificationTargetType.POST,
+                postId = "post_tight_1"
             ),
             NotificationUi(
                 id = "notif_followed_post",
@@ -58,7 +68,9 @@ object NotificationsFakeData {
                 body = "Un compte que tu suis a publié un nouveau VS.",
                 time = "Hier",
                 isNew = false,
-                targetScreen = Screen.Explore
+                targetScreen = Screen.Explore,
+                targetType = NotificationTargetType.PROFILE,
+                authorId = "author_followed_1"
             )
         )
     }

@@ -9,5 +9,15 @@ data class NotificationUi(
     val body: String,
     val time: String,
     val isNew: Boolean,
-    val targetScreen: Screen
+    val targetScreen: Screen,
+    val targetType: NotificationTargetType,
+    val postId: String? = null,
+    val authorId: String? = null
 )
+
+enum class NotificationTargetType {
+    HOME_FEED,
+    EXPLORE_FEED,
+    POST,
+    PROFILE
+}
