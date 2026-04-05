@@ -10,7 +10,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.nazam.instaclone.core.access.CreatePostAccess
 import com.nazam.instaclone.core.navigation.NavigationStore
@@ -26,6 +32,7 @@ import com.nazam.instaclone.feature.home.presentation.ui.HomeRoute
 import com.nazam.instaclone.feature.home.presentation.ui.categories.CategoriesRoute
 import com.nazam.instaclone.feature.home.presentation.ui.explore.ExplorePagerRoute
 import com.nazam.instaclone.feature.home.presentation.ui.explore.ExploreRoute
+import com.nazam.instaclone.feature.home.presentation.ui.notifications.NotificationTargetType
 import com.nazam.instaclone.feature.home.presentation.ui.notifications.NotificationUi
 import com.nazam.instaclone.feature.home.presentation.ui.notifications.NotificationsFakeData
 import com.nazam.instaclone.feature.home.presentation.ui.notifications.NotificationsScreen
@@ -43,13 +50,10 @@ fun App() {
     val isLoggedIn = currentUser != null
     val canCreatePost = CreatePostAccess.canCreate(currentUser)
 
-    var notifications by remember {
-        mutableStateOf(NotificationsFakeData.items())
-    }
-
+    var notifications by remember { mutableStateOf(NotificationsFakeData.items()) }
     val notificationsCount = notifications.count { it.isNew }
-    val snackbarHostState = remember { SnackbarHostState() }
 
+    val snackbarHostState = remember { SnackbarHostState() }
     SnackbarEffect(hostState = snackbarHostState)
 
     fun navigateTo(screen: Screen) {
@@ -68,15 +72,35 @@ fun App() {
     }
 
     fun openNotifications() {
-        if (isLoggedIn) navigateTo(Screen.Notifications)
-        else requireAuth(Screen.Notifications, currentScreen)
+        if (isLoggedIn) {
+            navigateTo(Screen.Notifications)
+        } else {
+            requireAuth(Screen.Notifications, currentScreen)
+        }
     }
 
-    fun onNotificationClick(item: NotificationUi) {
+    fun openNotificationTarget(item: NotificationUi) {
         notifications = notifications.map { current ->
             if (current.id == item.id) current.copy(isNew = false) else current
         }
-        navigateTo(item.targetScreen)
+
+        when (item.targetType) {
+            NotificationTargetType.PROFILE -> {
+                val authorId = item.authorId ?: return
+                ProfileTargetStore.open(
+                    userId = authorId,
+                    emailFallback = authorId,
+                    returnScreen = Screen.Notifications
+                )
+                navigateTo(Screen.UserProfile)
+            }
+
+            NotificationTargetType.HOME_FEED,
+            NotificationTargetType.EXPLORE_FEED,
+            NotificationTargetType.POST -> {
+                navigateTo(item.targetScreen)
+            }
+        }
     }
 
     fun isProtected(screen: Screen): Boolean {
@@ -138,10 +162,11 @@ fun App() {
                     Screen.Categories -> CategoriesRoute(onNavigate = ::navigateTo)
                     Screen.Login -> LoginRoute(onNavigate = ::navigateTo)
                     Screen.Signup -> SignupRoute(onNavigate = ::navigateTo)
+
                     Screen.Notifications -> NotificationsScreen(
                         contentPadding = padding,
                         items = notifications,
-                        onNotificationClick = ::onNotificationClick
+                        onNotificationClick = ::openNotificationTarget
                     )
 
                     Screen.Profile -> ProfileRoute(
