@@ -12,7 +12,8 @@ data class NotificationUi(
     val targetScreen: Screen,
     val targetType: NotificationTargetType,
     val postId: String? = null,
-    val authorId: String? = null
+    val authorId: String? = null,
+    val openCommentsOnOpen: Boolean = false
 )
 
 enum class NotificationTargetType {

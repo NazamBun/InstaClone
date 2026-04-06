@@ -26,7 +26,8 @@ object NotificationsFakeData {
                 isNew = true,
                 targetScreen = Screen.Home,
                 targetType = NotificationTargetType.POST,
-                postId = "post_comment_1"
+                postId = "post_comment_1",
+                openCommentsOnOpen = true
             ),
             NotificationUi(
                 id = "notif_votes",

@@ -116,7 +116,8 @@ fun App() {
                             ExplorePagerStore.open(
                                 postIds = listOf(post.id),
                                 startPostId = post.id,
-                                fallbackPosts = listOf(post)
+                                fallbackPosts = listOf(post),
+                                pendingCommentsPostId = post.id.takeIf { item.openCommentsOnOpen }
                             )
                             navigateTo(Screen.ExplorePager)
                         }

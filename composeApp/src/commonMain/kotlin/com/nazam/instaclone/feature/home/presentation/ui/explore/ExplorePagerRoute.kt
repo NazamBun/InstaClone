@@ -2,6 +2,7 @@ package com.nazam.instaclone.feature.home.presentation.ui.explore
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import com.nazam.instaclone.core.navigation.Screen
@@ -16,6 +17,10 @@ fun ExplorePagerRoute(
 ) {
     val viewModel: HomeViewModel = koinInject()
     val ui by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        ExplorePagerStore.consumePendingCommentsPostId()?.let(viewModel::openComments)
+    }
 
     ExplorePagerScreen(
         ui = ui,
