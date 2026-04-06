@@ -16,6 +16,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.nazam.instaclone.core.access.CreatePostAccess
@@ -42,6 +43,7 @@ import com.nazam.instaclone.feature.home.presentation.ui.notifications.Notificat
 import com.nazam.instaclone.feature.profile.presentation.navigation.ProfileTargetStore
 import com.nazam.instaclone.feature.profile.presentation.ui.ProfileRoute
 import com.nazam.instaclone.feature.profile.presentation.ui.edit.EditProfileRoute
+import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
 @Composable
@@ -50,6 +52,7 @@ fun App() {
 
     val sessionManager: SessionManager = koinInject()
     val getPostByIdUseCase: GetPostByIdUseCase = koinInject()
+    val scope = rememberCoroutineScope()
 
     val currentUser by sessionManager.user.collectAsState()
     val isLoggedIn = currentUser != null
@@ -101,31 +104,27 @@ fun App() {
                 navigateTo(Screen.UserProfile)
             }
 
-            NotificationTargetType.HOME_FEED -> {
-                navigateTo(Screen.Home)
-            }
+            NotificationTargetType.HOME_FEED -> navigateTo(Screen.Home)
 
-            NotificationTargetType.EXPLORE_FEED -> {
-                navigateTo(Screen.Explore)
-            }
+            NotificationTargetType.EXPLORE_FEED -> navigateTo(Screen.Explore)
 
             NotificationTargetType.POST -> {
                 val postId = item.postId ?: return
                 NotificationPostStore.clear()
 
-                val result = kotlinx.coroutines.runBlocking {
+                scope.launch {
                     getPostByIdUseCase.execute(postId)
-                }
-
-                result.onSuccess { post ->
-                    NotificationPostStore.open(post)
-                    ExplorePagerStore.open(
-                        postIds = listOf(post.id),
-                        startPostId = post.id
-                    )
-                    navigateTo(Screen.ExplorePager)
-                }.onFailure {
-                    navigateTo(Screen.Home)
+                        .onSuccess { post ->
+                            NotificationPostStore.open(post)
+                            ExplorePagerStore.open(
+                                postIds = listOf(post.id),
+                                startPostId = post.id
+                            )
+                            navigateTo(Screen.ExplorePager)
+                        }
+                        .onFailure {
+                            navigateTo(Screen.Home)
+                        }
                 }
             }
         }
