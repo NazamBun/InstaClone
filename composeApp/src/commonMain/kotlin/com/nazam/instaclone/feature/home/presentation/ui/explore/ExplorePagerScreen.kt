@@ -19,7 +19,6 @@ import androidx.compose.ui.unit.dp
 import com.nazam.instaclone.feature.home.domain.model.VsPost
 import com.nazam.instaclone.feature.home.presentation.model.HomeUiState
 import com.nazam.instaclone.feature.home.presentation.ui.VsPostItem
-import com.nazam.instaclone.feature.home.presentation.ui.notifications.NotificationPostStore
 import instaclone.composeapp.generated.resources.Res
 import instaclone.composeapp.generated.resources.explore_back
 import instaclone.composeapp.generated.resources.explore_empty_hashtag
@@ -38,14 +37,11 @@ fun ExplorePagerScreen(
 ) {
     val savedPostIds = ExplorePagerStore.getPostIds()
     val startPostId = ExplorePagerStore.getStartPostId()
+    val fallbackPosts = ExplorePagerStore.getFallbackPosts()
 
-    val posts = remember(ui.posts, savedPostIds, startPostId) {
+    val posts = remember(ui.posts, savedPostIds, fallbackPosts) {
         val feedPosts = ui.posts.filter { it.id in savedPostIds }
-        if (feedPosts.isNotEmpty()) {
-            feedPosts
-        } else {
-            NotificationPostStore.consume()?.let(::listOf).orEmpty()
-        }
+        if (feedPosts.isNotEmpty()) feedPosts else fallbackPosts
     }
 
     if (posts.isEmpty()) {
