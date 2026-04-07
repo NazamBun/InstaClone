@@ -39,7 +39,7 @@ import com.nazam.instaclone.feature.notifications.presentation.model.Notificatio
 import com.nazam.instaclone.feature.notifications.presentation.model.NotificationUi
 import com.nazam.instaclone.feature.notifications.domain.model.FakeNotifications
 import com.nazam.instaclone.feature.notifications.presentation.mapper.NotificationUiMapper
-import com.nazam.instaclone.feature.home.presentation.ui.notifications.NotificationsScreen
+import com.nazam.instaclone.feature.notifications.presentation.ui.NotificationsRoute
 import com.nazam.instaclone.feature.profile.presentation.navigation.ProfileTargetStore
 import com.nazam.instaclone.feature.profile.presentation.ui.ProfileRoute
 import com.nazam.instaclone.feature.profile.presentation.ui.edit.EditProfileRoute
@@ -190,7 +190,7 @@ fun App() {
                     Screen.Login -> LoginRoute(onNavigate = ::navigateTo)
                     Screen.Signup -> SignupRoute(onNavigate = ::navigateTo)
 
-                    Screen.Notifications -> NotificationsScreen(
+                    Screen.Notifications -> NotificationsRoute(
                         contentPadding = padding,
                         items = notifications,
                         onNotificationClick = ::openNotificationTarget
