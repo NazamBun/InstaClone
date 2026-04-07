@@ -1,6 +1,8 @@
-package com.nazam.instaclone.feature.notifications.domain.model
+package com.nazam.instaclone.feature.notifications.data.fake
 
-import com.nazam.instaclone.core.navigation.Screen
+import com.nazam.instaclone.feature.notifications.domain.model.AppNotification
+import com.nazam.instaclone.feature.notifications.domain.model.NotificationTarget
+import com.nazam.instaclone.feature.notifications.domain.model.NotificationTargetType
 
 object FakeNotifications {
 
@@ -14,7 +16,6 @@ object FakeNotifications {
                 time = "Il y a 12 min",
                 isRead = false,
                 target = NotificationTarget(
-                    screen = Screen.Home,
                     type = NotificationTargetType.POST,
                     postId = "post_comment_1",
                     openCommentsOnOpen = true
@@ -28,7 +29,6 @@ object FakeNotifications {
                 time = "Hier",
                 isRead = true,
                 target = NotificationTarget(
-                    screen = Screen.Explore,
                     type = NotificationTargetType.PROFILE,
                     authorId = "author_followed_1"
                 )

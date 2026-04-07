@@ -1,8 +1,9 @@
 package com.nazam.instaclone.feature.notifications.presentation.viewmodel
 
-import com.nazam.instaclone.feature.notifications.domain.model.FakeNotifications
+import com.nazam.instaclone.feature.notifications.data.fake.FakeNotifications
 import com.nazam.instaclone.feature.notifications.presentation.mapper.NotificationUiMapper
 import com.nazam.instaclone.feature.notifications.presentation.model.NotificationAction
+import com.nazam.instaclone.feature.notifications.presentation.model.NotificationTargetType
 import com.nazam.instaclone.feature.notifications.presentation.model.NotificationUi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -27,26 +28,15 @@ class NotificationsViewModel {
         }
     }
 
-    fun unreadCount(): Int {
-        return _notifications.value.count { it.isNew }
-    }
-
     fun getAction(item: NotificationUi): NotificationAction? {
         return when (item.targetType) {
-            com.nazam.instaclone.feature.notifications.presentation.model.NotificationTargetType.HOME_FEED -> {
-                NotificationAction.OpenHomeFeed
-            }
-
-            com.nazam.instaclone.feature.notifications.presentation.model.NotificationTargetType.EXPLORE_FEED -> {
-                NotificationAction.OpenExploreFeed
-            }
-
-            com.nazam.instaclone.feature.notifications.presentation.model.NotificationTargetType.PROFILE -> {
+            NotificationTargetType.HOME_FEED -> NotificationAction.OpenHomeFeed
+            NotificationTargetType.EXPLORE_FEED -> NotificationAction.OpenExploreFeed
+            NotificationTargetType.PROFILE -> {
                 val authorId = item.authorId ?: return null
                 NotificationAction.OpenProfile(authorId = authorId)
             }
-
-            com.nazam.instaclone.feature.notifications.presentation.model.NotificationTargetType.POST -> {
+            NotificationTargetType.POST -> {
                 val postId = item.postId ?: return null
                 NotificationAction.OpenPost(
                     postId = postId,

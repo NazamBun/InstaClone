@@ -1,7 +1,5 @@
 package com.nazam.instaclone.feature.notifications.domain.model
 
-import com.nazam.instaclone.core.navigation.Screen
-
 data class AppNotification(
     val id: String,
     val emoji: String,
@@ -13,7 +11,6 @@ data class AppNotification(
 )
 
 data class NotificationTarget(
-    val screen: Screen,
     val type: NotificationTargetType,
     val postId: String? = null,
     val authorId: String? = null,
