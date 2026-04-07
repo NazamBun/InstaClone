@@ -59,7 +59,7 @@ fun App() {
 
     val notificationsViewModel: NotificationsViewModel = koinInject()
     val notifications by notificationsViewModel.notifications.collectAsState()
-    val notificationsCount = notificationsViewModel.unreadCount()
+    val notificationsCount = notifications.count { it.isNew }
 
     val snackbarHostState = remember { SnackbarHostState() }
     SnackbarEffect(hostState = snackbarHostState)
