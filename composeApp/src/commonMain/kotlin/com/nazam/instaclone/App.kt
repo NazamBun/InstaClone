@@ -35,7 +35,7 @@ import com.nazam.instaclone.feature.home.presentation.ui.categories.CategoriesRo
 import com.nazam.instaclone.feature.home.presentation.ui.explore.ExplorePagerRoute
 import com.nazam.instaclone.feature.home.presentation.ui.explore.ExplorePagerStore
 import com.nazam.instaclone.feature.home.presentation.ui.explore.ExploreRoute
-import com.nazam.instaclone.feature.notifications.presentation.model.NotificationTargetType
+import com.nazam.instaclone.feature.notifications.presentation.model.NotificationAction
 import com.nazam.instaclone.feature.notifications.presentation.model.NotificationUi
 import com.nazam.instaclone.feature.notifications.presentation.viewmodel.NotificationsViewModel
 import com.nazam.instaclone.feature.notifications.presentation.ui.NotificationsRoute
@@ -91,32 +91,29 @@ fun App() {
     fun openNotificationTarget(item: NotificationUi) {
         markNotificationRead(item)
 
-        when (item.targetType) {
-            NotificationTargetType.PROFILE -> {
-                val authorId = item.authorId ?: return
+        when (val action = notificationsViewModel.getAction(item) ?: return) {
+            is NotificationAction.OpenProfile -> {
                 ProfileTargetStore.open(
-                    userId = authorId,
-                    emailFallback = authorId,
+                    userId = action.authorId,
+                    emailFallback = action.authorId,
                     returnScreen = Screen.Notifications
                 )
                 navigateTo(Screen.UserProfile)
             }
 
-            NotificationTargetType.HOME_FEED -> navigateTo(Screen.Home)
+            NotificationAction.OpenHomeFeed -> navigateTo(Screen.Home)
 
-            NotificationTargetType.EXPLORE_FEED -> navigateTo(Screen.Explore)
+            NotificationAction.OpenExploreFeed -> navigateTo(Screen.Explore)
 
-            NotificationTargetType.POST -> {
-                val postId = item.postId ?: return
-
+            is NotificationAction.OpenPost -> {
                 scope.launch {
-                    getPostByIdUseCase.execute(postId)
+                    getPostByIdUseCase.execute(action.postId)
                         .onSuccess { post ->
                             ExplorePagerStore.open(
                                 postIds = listOf(post.id),
                                 startPostId = post.id,
                                 fallbackPosts = listOf(post),
-                                pendingCommentsPostId = post.id.takeIf { item.openCommentsOnOpen }
+                                pendingCommentsPostId = post.id.takeIf { action.openCommentsOnOpen }
                             )
                             navigateTo(Screen.ExplorePager)
                         }
