@@ -37,7 +37,8 @@ import com.nazam.instaclone.feature.home.presentation.ui.explore.ExplorePagerSto
 import com.nazam.instaclone.feature.home.presentation.ui.explore.ExploreRoute
 import com.nazam.instaclone.feature.home.presentation.ui.notifications.NotificationTargetType
 import com.nazam.instaclone.feature.home.presentation.ui.notifications.NotificationUi
-import com.nazam.instaclone.feature.home.presentation.ui.notifications.NotificationsFakeData
+import com.nazam.instaclone.feature.notifications.domain.model.FakeNotifications
+import com.nazam.instaclone.feature.notifications.presentation.mapper.NotificationUiMapper
 import com.nazam.instaclone.feature.home.presentation.ui.notifications.NotificationsScreen
 import com.nazam.instaclone.feature.profile.presentation.navigation.ProfileTargetStore
 import com.nazam.instaclone.feature.profile.presentation.ui.ProfileRoute
@@ -57,7 +58,7 @@ fun App() {
     val isLoggedIn = currentUser != null
     val canCreatePost = CreatePostAccess.canCreate(currentUser)
 
-    var notifications by remember { mutableStateOf(NotificationsFakeData.items()) }
+    var notifications by remember { mutableStateOf(NotificationUiMapper.toUiList(FakeNotifications.items())) }
     val notificationsCount = notifications.count { it.isNew }
 
     val snackbarHostState = remember { SnackbarHostState() }
