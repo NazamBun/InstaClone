@@ -45,6 +45,7 @@ import com.nazam.instaclone.feature.profile.domain.usecase.UpdateAvatarUseCase
 import com.nazam.instaclone.feature.profile.domain.usecase.UpdateMyProfileUseCase
 import com.nazam.instaclone.feature.profile.presentation.ui.edit.EditProfileViewModel
 import com.nazam.instaclone.feature.profile.presentation.viewmodel.ProfileViewModel
+import com.nazam.instaclone.feature.notifications.presentation.viewmodel.NotificationsViewModel
 import kotlinx.serialization.json.Json
 import org.koin.dsl.module
 
@@ -140,6 +141,8 @@ val appModule = module {
             getExplorePostsUseCase = get()
         )
     }
+
+    factory { NotificationsViewModel() }
 
     factory {
         ProfileViewModel(

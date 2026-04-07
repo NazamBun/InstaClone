@@ -16,8 +16,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import com.nazam.instaclone.core.access.CreatePostAccess
 import com.nazam.instaclone.core.navigation.NavigationStore
@@ -37,8 +37,7 @@ import com.nazam.instaclone.feature.home.presentation.ui.explore.ExplorePagerSto
 import com.nazam.instaclone.feature.home.presentation.ui.explore.ExploreRoute
 import com.nazam.instaclone.feature.notifications.presentation.model.NotificationTargetType
 import com.nazam.instaclone.feature.notifications.presentation.model.NotificationUi
-import com.nazam.instaclone.feature.notifications.domain.model.FakeNotifications
-import com.nazam.instaclone.feature.notifications.presentation.mapper.NotificationUiMapper
+import com.nazam.instaclone.feature.notifications.presentation.viewmodel.NotificationsViewModel
 import com.nazam.instaclone.feature.notifications.presentation.ui.NotificationsRoute
 import com.nazam.instaclone.feature.profile.presentation.navigation.ProfileTargetStore
 import com.nazam.instaclone.feature.profile.presentation.ui.ProfileRoute
@@ -58,8 +57,9 @@ fun App() {
     val isLoggedIn = currentUser != null
     val canCreatePost = CreatePostAccess.canCreate(currentUser)
 
-    var notifications by remember { mutableStateOf(NotificationUiMapper.toUiList(FakeNotifications.items())) }
-    val notificationsCount = notifications.count { it.isNew }
+    val notificationsViewModel: NotificationsViewModel = koinInject()
+    val notifications by notificationsViewModel.notifications.collectAsState()
+    val notificationsCount = notificationsViewModel.unreadCount()
 
     val snackbarHostState = remember { SnackbarHostState() }
     SnackbarEffect(hostState = snackbarHostState)
@@ -85,9 +85,7 @@ fun App() {
     }
 
     fun markNotificationRead(item: NotificationUi) {
-        notifications = notifications.map { current ->
-            if (current.id == item.id) current.copy(isNew = false) else current
-        }
+        notificationsViewModel.markAsRead(item.id)
     }
 
     fun openNotificationTarget(item: NotificationUi) {
