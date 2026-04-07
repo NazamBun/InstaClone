@@ -1,7 +1,8 @@
 package com.nazam.instaclone.feature.notifications.presentation.mapper
 
-import com.nazam.instaclone.feature.home.presentation.ui.notifications.NotificationUi
 import com.nazam.instaclone.feature.notifications.domain.model.AppNotification
+import com.nazam.instaclone.feature.notifications.presentation.model.NotificationTargetType
+import com.nazam.instaclone.feature.notifications.presentation.model.NotificationUi
 
 object NotificationUiMapper {
 
@@ -27,18 +28,18 @@ object NotificationUiMapper {
 }
 
 private fun com.nazam.instaclone.feature.notifications.domain.model.NotificationTargetType.toUiTargetType():
-    com.nazam.instaclone.feature.home.presentation.ui.notifications.NotificationTargetType {
+    NotificationTargetType {
     return when (this) {
         com.nazam.instaclone.feature.notifications.domain.model.NotificationTargetType.HOME_FEED ->
-            com.nazam.instaclone.feature.home.presentation.ui.notifications.NotificationTargetType.HOME_FEED
+            NotificationTargetType.HOME_FEED
 
         com.nazam.instaclone.feature.notifications.domain.model.NotificationTargetType.EXPLORE_FEED ->
-            com.nazam.instaclone.feature.home.presentation.ui.notifications.NotificationTargetType.EXPLORE_FEED
+            NotificationTargetType.EXPLORE_FEED
 
         com.nazam.instaclone.feature.notifications.domain.model.NotificationTargetType.POST ->
-            com.nazam.instaclone.feature.home.presentation.ui.notifications.NotificationTargetType.POST
+            NotificationTargetType.POST
 
         com.nazam.instaclone.feature.notifications.domain.model.NotificationTargetType.PROFILE ->
-            com.nazam.instaclone.feature.home.presentation.ui.notifications.NotificationTargetType.PROFILE
+            NotificationTargetType.PROFILE
     }
 }

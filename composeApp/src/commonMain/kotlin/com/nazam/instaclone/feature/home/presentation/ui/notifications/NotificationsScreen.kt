@@ -1,5 +1,7 @@
 package com.nazam.instaclone.feature.home.presentation.ui.notifications
 
+import com.nazam.instaclone.feature.notifications.presentation.model.NotificationUi
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box

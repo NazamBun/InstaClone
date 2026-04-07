@@ -35,8 +35,8 @@ import com.nazam.instaclone.feature.home.presentation.ui.categories.CategoriesRo
 import com.nazam.instaclone.feature.home.presentation.ui.explore.ExplorePagerRoute
 import com.nazam.instaclone.feature.home.presentation.ui.explore.ExplorePagerStore
 import com.nazam.instaclone.feature.home.presentation.ui.explore.ExploreRoute
-import com.nazam.instaclone.feature.home.presentation.ui.notifications.NotificationTargetType
-import com.nazam.instaclone.feature.home.presentation.ui.notifications.NotificationUi
+import com.nazam.instaclone.feature.notifications.presentation.model.NotificationTargetType
+import com.nazam.instaclone.feature.notifications.presentation.model.NotificationUi
 import com.nazam.instaclone.feature.notifications.domain.model.FakeNotifications
 import com.nazam.instaclone.feature.notifications.presentation.mapper.NotificationUiMapper
 import com.nazam.instaclone.feature.home.presentation.ui.notifications.NotificationsScreen

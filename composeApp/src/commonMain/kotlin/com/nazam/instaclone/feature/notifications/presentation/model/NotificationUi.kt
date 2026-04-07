@@ -1,4 +1,4 @@
-package com.nazam.instaclone.feature.home.presentation.ui.notifications
+package com.nazam.instaclone.feature.notifications.presentation.model
 
 import com.nazam.instaclone.core.navigation.Screen
 
