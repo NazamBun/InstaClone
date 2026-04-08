@@ -27,7 +27,6 @@ import com.nazam.instaclone.core.ui.SnackbarEffect
 import com.nazam.instaclone.feature.auth.presentation.ui.LoginRoute
 import com.nazam.instaclone.feature.auth.presentation.ui.SignupRoute
 import com.nazam.instaclone.feature.home.domain.model.VsPost
-import com.nazam.instaclone.feature.home.domain.usecase.GetPostByIdUseCase
 import com.nazam.instaclone.feature.home.presentation.ui.CreatePostRoute
 import com.nazam.instaclone.feature.home.presentation.ui.HomeBottomBar
 import com.nazam.instaclone.feature.home.presentation.ui.HomeRoute
@@ -35,6 +34,7 @@ import com.nazam.instaclone.feature.home.presentation.ui.categories.CategoriesRo
 import com.nazam.instaclone.feature.home.presentation.ui.explore.ExplorePagerRoute
 import com.nazam.instaclone.feature.home.presentation.ui.explore.ExplorePagerStore
 import com.nazam.instaclone.feature.home.presentation.ui.explore.ExploreRoute
+import com.nazam.instaclone.feature.notifications.presentation.handler.NotificationsActionHandler
 import com.nazam.instaclone.feature.notifications.presentation.model.NotificationAction
 import com.nazam.instaclone.feature.notifications.presentation.model.NotificationUi
 import com.nazam.instaclone.feature.notifications.presentation.viewmodel.NotificationsViewModel
@@ -50,7 +50,7 @@ fun App() {
     var currentScreen by remember { mutableStateOf(Screen.Home) }
 
     val sessionManager: SessionManager = koinInject()
-    val getPostByIdUseCase: GetPostByIdUseCase = koinInject()
+    val notificationsActionHandler: NotificationsActionHandler = koinInject()
     val scope = rememberCoroutineScope()
 
     val currentUser by sessionManager.user.collectAsState()
@@ -107,19 +107,10 @@ fun App() {
 
             is NotificationAction.OpenPost -> {
                 scope.launch {
-                    getPostByIdUseCase.execute(action.postId)
-                        .onSuccess { post ->
-                            ExplorePagerStore.open(
-                                postIds = listOf(post.id),
-                                startPostId = post.id,
-                                fallbackPosts = listOf(post),
-                                pendingCommentsPostId = post.id.takeIf { action.openCommentsOnOpen }
-                            )
-                            navigateTo(Screen.ExplorePager)
-                        }
-                        .onFailure {
-                            navigateTo(Screen.Home)
-                        }
+                    notificationsActionHandler.handle(
+                        action = action,
+                        onNavigate = ::navigateTo
+                    )
                 }
             }
         }

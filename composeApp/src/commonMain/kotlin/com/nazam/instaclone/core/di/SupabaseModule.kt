@@ -46,6 +46,7 @@ import com.nazam.instaclone.feature.profile.domain.usecase.UpdateMyProfileUseCas
 import com.nazam.instaclone.feature.profile.presentation.ui.edit.EditProfileViewModel
 import com.nazam.instaclone.feature.profile.presentation.viewmodel.ProfileViewModel
 import com.nazam.instaclone.feature.notifications.presentation.viewmodel.NotificationsViewModel
+import com.nazam.instaclone.feature.notifications.presentation.handler.NotificationsActionHandler
 import kotlinx.serialization.json.Json
 import org.koin.dsl.module
 
@@ -143,6 +144,7 @@ val appModule = module {
     }
 
     factory { NotificationsViewModel() }
+    factory { NotificationsActionHandler(get()) }
 
     factory {
         ProfileViewModel(
