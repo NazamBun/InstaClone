@@ -32,10 +32,8 @@ import com.nazam.instaclone.feature.home.presentation.ui.HomeBottomBar
 import com.nazam.instaclone.feature.home.presentation.ui.HomeRoute
 import com.nazam.instaclone.feature.home.presentation.ui.categories.CategoriesRoute
 import com.nazam.instaclone.feature.home.presentation.ui.explore.ExplorePagerRoute
-import com.nazam.instaclone.feature.home.presentation.ui.explore.ExplorePagerStore
 import com.nazam.instaclone.feature.home.presentation.ui.explore.ExploreRoute
 import com.nazam.instaclone.feature.notifications.presentation.handler.NotificationsActionHandler
-import com.nazam.instaclone.feature.notifications.presentation.model.NotificationAction
 import com.nazam.instaclone.feature.notifications.presentation.model.NotificationUi
 import com.nazam.instaclone.feature.notifications.presentation.viewmodel.NotificationsViewModel
 import com.nazam.instaclone.feature.notifications.presentation.ui.NotificationsRoute
@@ -91,28 +89,13 @@ fun App() {
     fun openNotificationTarget(item: NotificationUi) {
         markNotificationRead(item)
 
-        when (val action = notificationsViewModel.getAction(item) ?: return) {
-            is NotificationAction.OpenProfile -> {
-                ProfileTargetStore.open(
-                    userId = action.authorId,
-                    emailFallback = action.authorId,
-                    returnScreen = Screen.Notifications
-                )
-                navigateTo(Screen.UserProfile)
-            }
+        val action = notificationsViewModel.getAction(item) ?: return
 
-            NotificationAction.OpenHomeFeed -> navigateTo(Screen.Home)
-
-            NotificationAction.OpenExploreFeed -> navigateTo(Screen.Explore)
-
-            is NotificationAction.OpenPost -> {
-                scope.launch {
-                    notificationsActionHandler.handle(
-                        action = action,
-                        onNavigate = ::navigateTo
-                    )
-                }
-            }
+        scope.launch {
+            notificationsActionHandler.handle(
+                action = action,
+                onNavigate = ::navigateTo
+            )
         }
     }
 
