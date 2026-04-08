@@ -10,8 +10,10 @@ import com.nazam.instaclone.feature.notifications.presentation.model.Notificatio
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -23,10 +25,25 @@ class NotificationsViewModel(
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
-    val notifications: StateFlow<List<NotificationUi>> =
+    private val isLoading = MutableStateFlow(false)
+    private val errorMessage = MutableStateFlow<String?>(null)
+
+    private val notificationsFlow =
         observeNotificationsUseCase.execute()
             .map(NotificationUiMapper::toUiList)
-            .stateIn(scope, SharingStarted.Eagerly, emptyList())
+
+    val uiState: StateFlow<NotificationsUiState> =
+        combine(notificationsFlow, isLoading, errorMessage) { items, loading, error ->
+            NotificationsUiState(
+                items = items,
+                isLoading = loading,
+                errorMessage = error
+            )
+        }.stateIn(
+            scope = scope,
+            started = SharingStarted.Eagerly,
+            initialValue = NotificationsUiState(isLoading = true)
+        )
 
     init {
         refresh()
@@ -34,7 +51,14 @@ class NotificationsViewModel(
 
     fun refresh() {
         scope.launch {
-            refreshNotificationsUseCase.execute()
+            isLoading.value = true
+            errorMessage.value = null
+            runCatching {
+                refreshNotificationsUseCase.execute()
+            }.onFailure {
+                errorMessage.value = "Impossible de charger les notifications"
+            }
+            isLoading.value = false
         }
     }
 

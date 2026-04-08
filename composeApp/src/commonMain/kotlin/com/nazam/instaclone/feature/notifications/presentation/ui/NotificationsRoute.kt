@@ -4,11 +4,12 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import com.nazam.instaclone.feature.notifications.presentation.model.NotificationUi
+import com.nazam.instaclone.feature.notifications.presentation.viewmodel.NotificationsUiState
 
 @Composable
 fun NotificationsRoute(
     contentPadding: PaddingValues,
-    items: List<NotificationUi>,
+    uiState: NotificationsUiState,
     onNotificationClick: (NotificationUi) -> Unit,
     onScreenShown: () -> Unit
 ) {
@@ -18,7 +19,7 @@ fun NotificationsRoute(
 
     NotificationsScreen(
         contentPadding = contentPadding,
-        items = items,
+        uiState = uiState,
         onNotificationClick = onNotificationClick
     )
 }

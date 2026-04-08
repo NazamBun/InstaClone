@@ -56,8 +56,8 @@ fun App() {
     val canCreatePost = CreatePostAccess.canCreate(currentUser)
 
     val notificationsViewModel: NotificationsViewModel = koinInject()
-    val notifications by notificationsViewModel.notifications.collectAsState()
-    val notificationsCount = notifications.count { it.isNew }
+    val notificationsUiState by notificationsViewModel.uiState.collectAsState()
+    val notificationsCount = notificationsUiState.items.count { it.isNew }
 
     val snackbarHostState = remember { SnackbarHostState() }
     SnackbarEffect(hostState = snackbarHostState)
@@ -161,7 +161,7 @@ fun App() {
 
                     Screen.Notifications -> NotificationsRoute(
                         contentPadding = padding,
-                        items = notifications,
+                        uiState = notificationsUiState,
                         onNotificationClick = ::openNotificationTarget,
                         onScreenShown = notificationsViewModel::refresh
                     )
