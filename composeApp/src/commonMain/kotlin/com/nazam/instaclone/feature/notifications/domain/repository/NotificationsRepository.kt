@@ -5,5 +5,6 @@ import kotlinx.coroutines.flow.StateFlow
 
 interface NotificationsRepository {
     fun observeNotifications(): StateFlow<List<AppNotification>>
-    fun markAsRead(notificationId: String)
+    suspend fun refresh()
+    suspend fun markAsRead(notificationId: String)
 }

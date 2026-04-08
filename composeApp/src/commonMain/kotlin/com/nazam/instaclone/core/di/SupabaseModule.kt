@@ -22,9 +22,9 @@ import com.nazam.instaclone.feature.home.domain.repository.PostMediaRepository
 import com.nazam.instaclone.feature.home.domain.usecase.AddCommentUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.CreatePostUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.GetCommentsUseCase
+import com.nazam.instaclone.feature.home.domain.usecase.GetExplorePostsUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.GetFeedUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.GetPostByIdUseCase
-import com.nazam.instaclone.feature.home.domain.usecase.GetExplorePostsUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.UploadPostImageUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.VoteLeftUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.VoteRightUseCase
@@ -32,6 +32,13 @@ import com.nazam.instaclone.feature.home.presentation.ui.categories.CategoriesVi
 import com.nazam.instaclone.feature.home.presentation.viewmodel.CreatePostViewModel
 import com.nazam.instaclone.feature.home.presentation.viewmodel.ExploreViewModel
 import com.nazam.instaclone.feature.home.presentation.viewmodel.HomeViewModel
+import com.nazam.instaclone.feature.notifications.data.repository.SupabaseNotificationsRepository
+import com.nazam.instaclone.feature.notifications.domain.repository.NotificationsRepository
+import com.nazam.instaclone.feature.notifications.domain.usecase.MarkNotificationReadUseCase
+import com.nazam.instaclone.feature.notifications.domain.usecase.ObserveNotificationsUseCase
+import com.nazam.instaclone.feature.notifications.domain.usecase.RefreshNotificationsUseCase
+import com.nazam.instaclone.feature.notifications.presentation.handler.NotificationsActionHandler
+import com.nazam.instaclone.feature.notifications.presentation.viewmodel.NotificationsViewModel
 import com.nazam.instaclone.feature.profile.data.repository.ProfileRepositoryImpl
 import com.nazam.instaclone.feature.profile.domain.repository.ProfileRepository
 import com.nazam.instaclone.feature.profile.domain.usecase.FollowUserUseCase
@@ -45,12 +52,6 @@ import com.nazam.instaclone.feature.profile.domain.usecase.UpdateAvatarUseCase
 import com.nazam.instaclone.feature.profile.domain.usecase.UpdateMyProfileUseCase
 import com.nazam.instaclone.feature.profile.presentation.ui.edit.EditProfileViewModel
 import com.nazam.instaclone.feature.profile.presentation.viewmodel.ProfileViewModel
-import com.nazam.instaclone.feature.notifications.data.repository.FakeNotificationsRepository
-import com.nazam.instaclone.feature.notifications.domain.repository.NotificationsRepository
-import com.nazam.instaclone.feature.notifications.domain.usecase.MarkNotificationReadUseCase
-import com.nazam.instaclone.feature.notifications.domain.usecase.ObserveNotificationsUseCase
-import com.nazam.instaclone.feature.notifications.presentation.viewmodel.NotificationsViewModel
-import com.nazam.instaclone.feature.notifications.presentation.handler.NotificationsActionHandler
 import kotlinx.serialization.json.Json
 import org.koin.dsl.module
 
@@ -60,9 +61,7 @@ val appModule = module {
     single<AppDispatchers> { DefaultAppDispatchers() }
     single<ImageBytesReader> { DefaultImageBytesReader() }
 
-    single<PostMediaRepository> {
-        PostMediaRepositoryImpl(client = get(), bytesReader = get())
-    }
+    single<PostMediaRepository> { PostMediaRepositoryImpl(client = get(), bytesReader = get()) }
     factory { UploadPostImageUseCase(get()) }
 
     single<AuthRepository> { AuthRepositoryImpl(get()) }
@@ -72,10 +71,7 @@ val appModule = module {
     factory { GetCurrentUserUseCase(get()) }
 
     single<SessionManager> {
-        DefaultSessionManager(
-            dispatchers = get(),
-            getCurrentUserUseCase = get()
-        )
+        DefaultSessionManager(dispatchers = get(), getCurrentUserUseCase = get())
     }
 
     single<HomeRepository> { HomeRepositoryImpl(client = get(), json = get()) }
@@ -87,6 +83,13 @@ val appModule = module {
     factory { CreatePostUseCase(get()) }
     factory { GetCommentsUseCase(get()) }
     factory { AddCommentUseCase(get()) }
+
+    single<NotificationsRepository> { SupabaseNotificationsRepository(client = get(), json = get()) }
+    factory { ObserveNotificationsUseCase(get()) }
+    factory { RefreshNotificationsUseCase(get()) }
+    factory { MarkNotificationReadUseCase(get()) }
+    factory { NotificationsViewModel(get(), get(), get()) }
+    factory { NotificationsActionHandler(get()) }
 
     single<ProfileRepository> { ProfileRepositoryImpl(client = get(), json = get()) }
     factory { GetMyProfileUseCase(get()) }
@@ -140,18 +143,7 @@ val appModule = module {
     }
 
     factory { CategoriesViewModel() }
-    factory {
-        ExploreViewModel(
-            dispatchers = get(),
-            getExplorePostsUseCase = get()
-        )
-    }
-
-    single<NotificationsRepository> { FakeNotificationsRepository() }
-    factory { ObserveNotificationsUseCase(get()) }
-    factory { MarkNotificationReadUseCase(get()) }
-    factory { NotificationsViewModel(get(), get()) }
-    factory { NotificationsActionHandler(get()) }
+    factory { ExploreViewModel(dispatchers = get(), getExplorePostsUseCase = get()) }
 
     factory {
         ProfileViewModel(
