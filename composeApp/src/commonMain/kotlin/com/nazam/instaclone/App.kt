@@ -162,7 +162,8 @@ fun App() {
                     Screen.Notifications -> NotificationsRoute(
                         contentPadding = padding,
                         items = notifications,
-                        onNotificationClick = ::openNotificationTarget
+                        onNotificationClick = ::openNotificationTarget,
+                        onScreenShown = notificationsViewModel::refresh
                     )
 
                     Screen.Profile -> ProfileRoute(
