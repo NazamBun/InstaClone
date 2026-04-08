@@ -1,31 +1,36 @@
 package com.nazam.instaclone.feature.notifications.presentation.viewmodel
 
-import com.nazam.instaclone.feature.notifications.data.fake.FakeNotifications
+import com.nazam.instaclone.feature.notifications.domain.usecase.MarkNotificationReadUseCase
+import com.nazam.instaclone.feature.notifications.domain.usecase.ObserveNotificationsUseCase
 import com.nazam.instaclone.feature.notifications.presentation.mapper.NotificationUiMapper
 import com.nazam.instaclone.feature.notifications.presentation.model.NotificationAction
 import com.nazam.instaclone.feature.notifications.presentation.model.NotificationTargetType
 import com.nazam.instaclone.feature.notifications.presentation.model.NotificationUi
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.Dispatchers
 
-class NotificationsViewModel {
+class NotificationsViewModel(
+    observeNotificationsUseCase: ObserveNotificationsUseCase,
+    private val markNotificationReadUseCase: MarkNotificationReadUseCase
+) {
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
-    private val _notifications = MutableStateFlow(
-        NotificationUiMapper.toUiList(FakeNotifications.items())
-    )
-    val notifications: StateFlow<List<NotificationUi>> = _notifications
+    val notifications: StateFlow<List<NotificationUi>> =
+        observeNotificationsUseCase.execute()
+            .map(NotificationUiMapper::toUiList)
+            .stateIn(
+                scope = scope,
+                started = SharingStarted.Eagerly,
+                initialValue = emptyList()
+            )
 
     fun markAsRead(notificationId: String) {
-        _notifications.update { items ->
-            items.map { notification ->
-                if (notification.id == notificationId) {
-                    notification.copy(isNew = false)
-                } else {
-                    notification
-                }
-            }
-        }
+        markNotificationReadUseCase.execute(notificationId)
     }
 
     fun getAction(item: NotificationUi): NotificationAction? {

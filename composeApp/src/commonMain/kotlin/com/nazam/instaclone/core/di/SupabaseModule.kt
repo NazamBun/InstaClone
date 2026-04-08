@@ -45,6 +45,10 @@ import com.nazam.instaclone.feature.profile.domain.usecase.UpdateAvatarUseCase
 import com.nazam.instaclone.feature.profile.domain.usecase.UpdateMyProfileUseCase
 import com.nazam.instaclone.feature.profile.presentation.ui.edit.EditProfileViewModel
 import com.nazam.instaclone.feature.profile.presentation.viewmodel.ProfileViewModel
+import com.nazam.instaclone.feature.notifications.data.repository.FakeNotificationsRepository
+import com.nazam.instaclone.feature.notifications.domain.repository.NotificationsRepository
+import com.nazam.instaclone.feature.notifications.domain.usecase.MarkNotificationReadUseCase
+import com.nazam.instaclone.feature.notifications.domain.usecase.ObserveNotificationsUseCase
 import com.nazam.instaclone.feature.notifications.presentation.viewmodel.NotificationsViewModel
 import com.nazam.instaclone.feature.notifications.presentation.handler.NotificationsActionHandler
 import kotlinx.serialization.json.Json
@@ -143,7 +147,10 @@ val appModule = module {
         )
     }
 
-    factory { NotificationsViewModel() }
+    single<NotificationsRepository> { FakeNotificationsRepository() }
+    factory { ObserveNotificationsUseCase(get()) }
+    factory { MarkNotificationReadUseCase(get()) }
+    factory { NotificationsViewModel(get(), get()) }
     factory { NotificationsActionHandler(get()) }
 
     factory {
