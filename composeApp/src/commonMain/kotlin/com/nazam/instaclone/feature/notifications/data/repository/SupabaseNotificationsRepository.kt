@@ -23,6 +23,7 @@ class SupabaseNotificationsRepository(
 
     private companion object {
         const val TABLE = "notifications"
+        const val MAX_ITEMS = 100L
     }
 
     private val notifications = MutableStateFlow<List<AppNotification>>(emptyList())
@@ -38,7 +39,11 @@ class SupabaseNotificationsRepository(
 
         runCatching {
             val response = client.postgrest[TABLE].select {
+                filter {
+                    eq("recipient_user_id", user.id)
+                }
                 order(column = "created_at", order = Order.DESCENDING)
+                limit(MAX_ITEMS)
             }
             decode(response.data).map(::toDomain)
         }.onSuccess { items ->
