@@ -25,6 +25,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.nazam.instaclone.feature.home.domain.model.VoteChoice
 import com.nazam.instaclone.feature.home.domain.model.VsPost
+import com.nazam.instaclone.feature.home.presentation.ui.components.comments.InlineCommentBar
+import com.nazam.instaclone.feature.home.presentation.ui.components.utils.formatTimeAgo
 import com.nazam.instaclone.feature.home.presentation.ui.components.vspost.VotePlusOneOverlay
 import com.nazam.instaclone.feature.home.presentation.ui.components.vspost.VsPostActionRail
 import com.nazam.instaclone.feature.home.presentation.ui.components.vspost.VsPostFlameOverlay
@@ -35,7 +37,6 @@ import com.nazam.instaclone.feature.home.presentation.ui.components.vspost.VsPos
 import com.nazam.instaclone.feature.home.presentation.ui.components.vspost.VsPostVoteImages
 import com.nazam.instaclone.feature.home.presentation.ui.components.vspost.VsPostVotingOverlay
 import com.nazam.instaclone.feature.home.presentation.ui.components.vspost.VsPostVsBadge
-import com.nazam.instaclone.feature.home.presentation.ui.components.utils.formatTimeAgo
 import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
@@ -168,14 +169,22 @@ fun VsPostItem(
         )
 
         VsPostQuestionCard(
-            
             question = post.question,
-            modifier = Modifier.align(Alignment.Center).alpha(alpha.value)
+            modifier = Modifier
+                .align(Alignment.Center)
+                .alpha(alpha.value)
         )
 
         VsPostVsBadge(
             badgeId = post.selectedVsBadgeId,
             modifier = Modifier.align(Alignment.Center)
+        )
+
+        InlineCommentBar(
+            onClick = onCommentsClick,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(start = 20.dp, end = 20.dp, bottom = 96.dp + extraBottomPadding)
         )
 
         VsPostResults(
