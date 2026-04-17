@@ -1,28 +1,15 @@
 package com.nazam.instaclone.feature.home.presentation.ui.components.vspost
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.Share
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import instaclone.composeapp.generated.resources.Res
-import instaclone.composeapp.generated.resources.cd_comments
-import instaclone.composeapp.generated.resources.cd_message
-import instaclone.composeapp.generated.resources.cd_share
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun VsPostActionRail(
@@ -33,40 +20,43 @@ fun VsPostActionRail(
     modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = modifier
-            .clip(RoundedCornerShape(18.dp))
-            .background(Color(0x66000000))
-            .padding(vertical = 8.dp, horizontal = 6.dp),
+        modifier = modifier.padding(end = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
         IconButton(onClick = onCommentsClick) {
             Icon(
                 imageVector = Icons.Outlined.ChatBubbleOutline,
-                contentDescription = stringResource(Res.string.cd_comments),
-                tint = Color.White
+                contentDescription = "comments",
+                tint = Color.White,
+                modifier = Modifier.size(28.dp)
             )
         }
 
         Text(
             text = commentsCount.toString(),
-            color = Color.White.copy(alpha = 0.92f),
-            style = MaterialTheme.typography.labelSmall,
-            modifier = Modifier.padding(bottom = 6.dp)
+            color = Color.White
         )
+
+        Spacer(Modifier.height(12.dp))
 
         IconButton(onClick = onMessageClick) {
             Icon(
                 imageVector = Icons.AutoMirrored.Outlined.Send,
-                contentDescription = stringResource(Res.string.cd_message),
-                tint = Color.White
+                contentDescription = "send",
+                tint = Color.White,
+                modifier = Modifier.size(28.dp)
             )
         }
+
+        Spacer(Modifier.height(12.dp))
 
         IconButton(onClick = onShareClick) {
             Icon(
                 imageVector = Icons.Outlined.Share,
-                contentDescription = stringResource(Res.string.cd_share),
-                tint = Color.White
+                contentDescription = "share",
+                tint = Color.White,
+                modifier = Modifier.size(28.dp)
             )
         }
     }

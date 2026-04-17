@@ -184,7 +184,7 @@ fun VsPostItem(
             onClick = onCommentsClick,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(start = 20.dp, end = 20.dp, bottom = 96.dp + extraBottomPadding)
+                .padding(start = 20.dp, end = 20.dp, bottom = 136.dp + extraBottomPadding)
         )
 
         VsPostResults(
