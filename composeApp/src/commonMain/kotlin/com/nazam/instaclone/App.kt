@@ -28,6 +28,7 @@ import com.nazam.instaclone.feature.auth.presentation.ui.LoginRoute
 import com.nazam.instaclone.feature.auth.presentation.ui.SignupRoute
 import com.nazam.instaclone.feature.home.domain.model.VsPost
 import com.nazam.instaclone.feature.home.presentation.ui.CreatePostRoute
+import com.nazam.instaclone.feature.home.presentation.ui.createposttype.CreatePostTypeRoute
 import com.nazam.instaclone.feature.home.presentation.ui.HomeBottomBar
 import com.nazam.instaclone.feature.home.presentation.ui.HomeRoute
 import com.nazam.instaclone.feature.home.presentation.ui.categories.CategoriesRoute
@@ -102,6 +103,7 @@ fun App() {
     fun isProtected(screen: Screen): Boolean {
         return screen == Screen.Profile ||
             screen == Screen.EditProfile ||
+            screen == Screen.CreatePostType ||
             screen == Screen.CreatePost ||
             screen == Screen.Notifications
     }
@@ -137,8 +139,8 @@ fun App() {
                         onHomeClick = { navigateTo(Screen.Home) },
                         onExploreClick = { navigateTo(Screen.Explore) },
                         onCreatePostClick = {
-                            if (isLoggedIn) navigateTo(Screen.CreatePost)
-                            else requireAuth(Screen.CreatePost, currentScreen)
+                            if (isLoggedIn) navigateTo(Screen.CreatePostType)
+                            else requireAuth(Screen.CreatePostType, currentScreen)
                         },
                         onNotificationsClick = { openNotifications() },
                         onProfileOrLoginClick = {
@@ -154,6 +156,7 @@ fun App() {
                     Screen.Home -> HomeRoute(onNavigate = ::navigateTo, contentPadding = padding)
                     Screen.Explore -> ExploreRoute(onNavigate = ::navigateTo, contentPadding = padding)
                     Screen.ExplorePager -> ExplorePagerRoute(onNavigate = ::navigateTo, contentPadding = padding)
+                    Screen.CreatePostType -> CreatePostTypeRoute(onNavigate = ::navigateTo)
                     Screen.CreatePost -> CreatePostRoute(onNavigate = ::navigateTo)
                     Screen.Categories -> CategoriesRoute(onNavigate = ::navigateTo)
                     Screen.Login -> LoginRoute(onNavigate = ::navigateTo)
