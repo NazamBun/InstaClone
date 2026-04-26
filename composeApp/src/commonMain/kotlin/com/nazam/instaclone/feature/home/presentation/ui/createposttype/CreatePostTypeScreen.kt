@@ -2,10 +2,12 @@ package com.nazam.instaclone.feature.home.presentation.ui.createposttype
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -54,12 +56,24 @@ fun CreatePostTypeScreen(
                     }
                 }
             )
+        },
+        bottomBar = {
+            Button(
+                onClick = { onContinueClick(selected) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(horizontal = 20.dp, vertical = 12.dp)
+            ) {
+                Text(stringResource(Res.string.create_post_type_continue))
+            }
         }
     ) { padding ->
         Column(
             modifier = modifier
                 .fillMaxSize()
                 .padding(padding)
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
@@ -86,15 +100,6 @@ fun CreatePostTypeScreen(
                 onClick = { selected = CreatePostType.YES_NO },
                 preview = { YesNoPreview() }
             )
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            Button(
-                onClick = { onContinueClick(selected) },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(stringResource(Res.string.create_post_type_continue))
-            }
         }
     }
 }

@@ -32,31 +32,35 @@ fun PollTypeChoiceCard(
             .selectable(selected = selected, onClick = onClick),
         border = BorderStroke(
             width = if (selected) 2.dp else 1.dp,
-            color = if (selected) {
-                MaterialTheme.colorScheme.primary
-            } else {
-                MaterialTheme.colorScheme.outlineVariant
-            }
+            color = if (selected) MaterialTheme.colorScheme.primary
+            else MaterialTheme.colorScheme.outlineVariant
         )
     ) {
-        Row(
+        Column(
             modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            RadioButton(selected = selected, onClick = onClick)
-
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(title, style = MaterialTheme.typography.headlineSmall)
-                Text(description, style = MaterialTheme.typography.bodyMedium)
-                AssistChip(onClick = onClick, label = { Text(tag) })
-            }
-
             preview()
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                RadioButton(selected = selected, onClick = onClick)
+
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(title, style = MaterialTheme.typography.titleLarge)
+                    Text(
+                        text = description,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    AssistChip(onClick = onClick, label = { Text(tag) })
+                }
+            }
         }
     }
 }
