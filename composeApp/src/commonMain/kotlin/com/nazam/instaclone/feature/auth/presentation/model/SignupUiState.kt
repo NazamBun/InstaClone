@@ -5,6 +5,7 @@ import com.nazam.instaclone.core.ui.UiText
 data class SignupUiState(
     val email: String = "",
     val password: String = "",
+    val confirmPassword: String = "",
     val displayName: String = "",
     val isLoading: Boolean = false,
     val isSignedUp: Boolean = false,

@@ -26,8 +26,14 @@ import instaclone.composeapp.generated.resources.login_button
 import instaclone.composeapp.generated.resources.login_email_placeholder
 import instaclone.composeapp.generated.resources.login_go_to_signup_button
 import instaclone.composeapp.generated.resources.login_password_placeholder
+import instaclone.composeapp.generated.resources.login_subtitle
 import instaclone.composeapp.generated.resources.login_title
 import org.jetbrains.compose.resources.stringResource
+
+private val FieldSpacing = 12.dp
+private val SectionSpacing = 18.dp
+private val ButtonSpacing = 10.dp
+private val BottomPadding = 24.dp
 
 @Composable
 fun LoginScreen(
@@ -40,54 +46,40 @@ fun LoginScreen(
 ) {
     AuthBackground {
         Column(modifier = Modifier.fillMaxSize().imePadding()) {
-
-            AuthTopBar(
-                title = stringResource(Res.string.login_title),
-                onBackClick = onBackClick
-            )
-
+            AuthTopBar(title = stringResource(Res.string.login_title), onBackClick = onBackClick)
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(bottom = 24.dp),
+                modifier = Modifier.fillMaxSize().padding(bottom = BottomPadding),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 AuthCard(
                     title = stringResource(Res.string.login_title),
-                    subtitle = "Reviens voter et poster tes VS."
+                    subtitle = stringResource(Res.string.login_subtitle)
                 ) {
                     AuthTextField(
                         value = ui.email,
                         onValueChange = onEmailChange,
                         placeholder = stringResource(Res.string.login_email_placeholder)
                     )
-
-                    Spacer(Modifier.height(12.dp))
-
+                    Spacer(Modifier.height(FieldSpacing))
                     AuthTextField(
                         value = ui.password,
                         onValueChange = onPasswordChange,
                         placeholder = stringResource(Res.string.login_password_placeholder),
                         visualTransformation = PasswordVisualTransformation()
                     )
-
-                    Spacer(Modifier.height(18.dp))
-
+                    Spacer(Modifier.height(SectionSpacing))
                     AuthPrimaryButton(
                         label = stringResource(Res.string.login_button),
                         loading = ui.isLoading,
                         onClick = onLoginClick
                     )
-
-                    Spacer(Modifier.height(10.dp))
-
+                    Spacer(Modifier.height(ButtonSpacing))
                     AuthSecondaryButton(
                         label = stringResource(Res.string.login_go_to_signup_button),
                         enabled = !ui.isLoading,
                         onClick = onSignupClick
                     )
-
                     ui.error?.let { AuthErrorText(it.asString()) }
                 }
             }

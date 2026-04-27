@@ -39,6 +39,9 @@ import com.nazam.instaclone.feature.notifications.domain.usecase.ObserveNotifica
 import com.nazam.instaclone.feature.notifications.domain.usecase.RefreshNotificationsUseCase
 import com.nazam.instaclone.feature.notifications.presentation.handler.NotificationsActionHandler
 import com.nazam.instaclone.feature.notifications.presentation.viewmodel.NotificationsViewModel
+import com.nazam.instaclone.feature.permissions.data.repository.PermissionsRepositoryImpl
+import com.nazam.instaclone.feature.permissions.domain.repository.PermissionsRepository
+import com.nazam.instaclone.feature.permissions.domain.usecase.GetPostPermissionUseCase
 import com.nazam.instaclone.feature.profile.data.repository.ProfileRepositoryImpl
 import com.nazam.instaclone.feature.profile.domain.repository.ProfileRepository
 import com.nazam.instaclone.feature.profile.domain.usecase.FollowUserUseCase
@@ -56,24 +59,37 @@ import kotlinx.serialization.json.Json
 import org.koin.dsl.module
 
 val appModule = module {
+    // ---------- Core ----------
     single { SupabaseClientProvider.client }
     single { Json { ignoreUnknownKeys = true } }
     single<AppDispatchers> { DefaultAppDispatchers() }
     single<ImageBytesReader> { DefaultImageBytesReader() }
 
-    single<PostMediaRepository> { PostMediaRepositoryImpl(client = get(), bytesReader = get()) }
-    factory { UploadPostImageUseCase(get()) }
+    // ---------- Permissions ----------
+    single<PermissionsRepository> { PermissionsRepositoryImpl(client = get(), json = get()) }
+    factory { GetPostPermissionUseCase(get()) }
 
+    // ---------- Auth ----------
     single<AuthRepository> { AuthRepositoryImpl(get()) }
     factory { LoginUseCase(get()) }
     factory { SignupUseCase(get()) }
     factory { LogoutUseCase(get()) }
     factory { GetCurrentUserUseCase(get()) }
 
+    // ---------- Session (dépend de Auth + Permissions) ----------
     single<SessionManager> {
-        DefaultSessionManager(dispatchers = get(), getCurrentUserUseCase = get())
+        DefaultSessionManager(
+            dispatchers = get(),
+            getCurrentUserUseCase = get(),
+            getPostPermissionUseCase = get()
+        )
     }
 
+    // ---------- Post media ----------
+    single<PostMediaRepository> { PostMediaRepositoryImpl(client = get(), bytesReader = get()) }
+    factory { UploadPostImageUseCase(get()) }
+
+    // ---------- Home ----------
     single<HomeRepository> { HomeRepositoryImpl(client = get(), json = get()) }
     factory { GetFeedUseCase(get()) }
     factory { GetPostByIdUseCase(get()) }
@@ -84,6 +100,7 @@ val appModule = module {
     factory { GetCommentsUseCase(get()) }
     factory { AddCommentUseCase(get()) }
 
+    // ---------- Notifications ----------
     single<NotificationsRepository> { SupabaseNotificationsRepository(client = get(), json = get()) }
     factory { ObserveNotificationsUseCase(get()) }
     factory { RefreshNotificationsUseCase(get()) }
@@ -91,6 +108,7 @@ val appModule = module {
     factory { NotificationsViewModel(get(), get(), get()) }
     factory { NotificationsActionHandler(get()) }
 
+    // ---------- Profile ----------
     single<ProfileRepository> { ProfileRepositoryImpl(client = get(), json = get()) }
     factory { GetMyProfileUseCase(get()) }
     factory { GetMyPostsUseCase(get()) }
@@ -102,6 +120,7 @@ val appModule = module {
     factory { UpdateMyProfileUseCase(get()) }
     factory { UpdateAvatarUseCase(get()) }
 
+    // ---------- ViewModels ----------
     factory {
         HomeViewModel(
             dispatchers = get(),
@@ -115,7 +134,6 @@ val appModule = module {
             sessionManager = get()
         )
     }
-
     factory {
         CreatePostViewModel(
             dispatchers = get(),
@@ -124,7 +142,6 @@ val appModule = module {
             getCurrentUserUseCase = get()
         )
     }
-
     factory {
         LoginViewModel(
             dispatchers = get(),
@@ -133,7 +150,6 @@ val appModule = module {
             sessionManager = get()
         )
     }
-
     factory {
         SignupViewModel(
             dispatchers = get(),
@@ -141,10 +157,8 @@ val appModule = module {
             sessionManager = get()
         )
     }
-
     factory { CategoriesViewModel() }
     factory { ExploreViewModel(dispatchers = get(), getExplorePostsUseCase = get()) }
-
     factory {
         ProfileViewModel(
             dispatchers = get(),
@@ -162,7 +176,6 @@ val appModule = module {
             updateAvatarUseCase = get()
         )
     }
-
     factory {
         EditProfileViewModel(
             dispatchers = get(),

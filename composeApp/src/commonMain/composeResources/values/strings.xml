@@ -252,4 +252,20 @@
 
     <string name="profile_unfollow">Se désabonner</string>
     <string name="profile_follow_loading">Patiente...</string>
+    <!-- Auth - Errors mapping -->
+    <string name="error_auth_invalid_credentials">Email ou mot de passe incorrect.</string>
+    <string name="error_auth_invalid_email">Adresse email invalide.</string>
+    <string name="error_auth_user_not_found">Aucun compte trouvé avec cet email.</string>
+    <string name="error_auth_email_already_used">Cet email est déjà utilisé.</string>
+    <string name="error_auth_password_too_short">Le mot de passe doit faire au moins 6 caractères.</string>
+    <string name="error_auth_network">Problème de connexion. Vérifie ton réseau.</string>
+    <!-- Auth - Validation -->
+    <string name="error_auth_email_invalid_format">Format d\'email invalide.</string>
+    <string name="error_auth_password_min_length">Mot de passe : 6 caractères minimum.</string>
+    <string name="error_auth_password_mismatch">Les mots de passe ne correspondent pas.</string>
+    <!-- Auth - Signup confirm password -->
+    <string name="signup_confirm_password_placeholder">Confirmer le mot de passe</string>
+    <!-- Auth - Subtitles -->
+    <string name="login_subtitle">Reviens voter et poster tes VS.</string>
+    <string name="signup_subtitle">Crée ton profil en 10 secondes.</string>
 </resources>
