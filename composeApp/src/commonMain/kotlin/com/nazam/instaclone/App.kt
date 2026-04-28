@@ -17,7 +17,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import com.nazam.instaclone.core.access.CreatePostAccess
 import com.nazam.instaclone.core.navigation.NavigationStore
@@ -28,20 +27,17 @@ import com.nazam.instaclone.feature.auth.presentation.ui.LoginRoute
 import com.nazam.instaclone.feature.auth.presentation.ui.SignupRoute
 import com.nazam.instaclone.feature.home.domain.model.VsPost
 import com.nazam.instaclone.feature.home.presentation.ui.CreatePostRoute
-import com.nazam.instaclone.feature.home.presentation.ui.createposttype.CreatePostTypeRoute
 import com.nazam.instaclone.feature.home.presentation.ui.HomeBottomBar
 import com.nazam.instaclone.feature.home.presentation.ui.HomeRoute
 import com.nazam.instaclone.feature.home.presentation.ui.categories.CategoriesRoute
+import com.nazam.instaclone.feature.home.presentation.ui.createposttype.CreatePostTypeRoute
 import com.nazam.instaclone.feature.home.presentation.ui.explore.ExplorePagerRoute
 import com.nazam.instaclone.feature.home.presentation.ui.explore.ExploreRoute
-import com.nazam.instaclone.feature.notifications.presentation.handler.NotificationsActionHandler
-import com.nazam.instaclone.feature.notifications.presentation.model.NotificationUi
-import com.nazam.instaclone.feature.notifications.presentation.viewmodel.NotificationsViewModel
+import com.nazam.instaclone.feature.notifications.presentation.badge.NotificationsBadgeStore
 import com.nazam.instaclone.feature.notifications.presentation.ui.NotificationsRoute
 import com.nazam.instaclone.feature.profile.presentation.navigation.ProfileTargetStore
 import com.nazam.instaclone.feature.profile.presentation.ui.ProfileRoute
 import com.nazam.instaclone.feature.profile.presentation.ui.edit.EditProfileRoute
-import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
 @Composable
@@ -49,23 +45,18 @@ fun App() {
     var currentScreen by remember { mutableStateOf(Screen.Home) }
 
     val sessionManager: SessionManager = koinInject()
-    val notificationsActionHandler: NotificationsActionHandler = koinInject()
-    val scope = rememberCoroutineScope()
+    val notificationsBadgeStore: NotificationsBadgeStore = koinInject()
 
     val currentUser by sessionManager.user.collectAsState()
+    val notificationsCount by notificationsBadgeStore.unreadCount.collectAsState()
+
     val isLoggedIn = currentUser != null
     val canCreatePost = CreatePostAccess.canCreate(currentUser)
-
-    val notificationsViewModel: NotificationsViewModel = koinInject()
-    val notificationsUiState by notificationsViewModel.uiState.collectAsState()
-    val notificationsCount = notificationsUiState.items.count { it.isNew }
 
     val snackbarHostState = remember { SnackbarHostState() }
     SnackbarEffect(hostState = snackbarHostState)
 
-    fun navigateTo(screen: Screen) {
-        currentScreen = screen
-    }
+    fun navigateTo(screen: Screen) { currentScreen = screen }
 
     fun requireAuth(target: Screen, returnScreen: Screen) {
         NavigationStore.setAuthReturnIfEmpty(returnScreen)
@@ -78,38 +69,14 @@ fun App() {
         navigateTo(Screen.Profile)
     }
 
-    fun openNotifications() {
-        if (isLoggedIn) navigateTo(Screen.Notifications)
-        else requireAuth(Screen.Notifications, currentScreen)
-    }
-
-    fun markNotificationRead(item: NotificationUi) {
-        notificationsViewModel.markAsRead(item.id)
-    }
-
-    fun openNotificationTarget(item: NotificationUi) {
-        markNotificationRead(item)
-
-        val action = notificationsViewModel.getAction(item) ?: return
-
-        scope.launch {
-            notificationsActionHandler.handle(
-                action = action,
-                onNavigate = ::navigateTo
-            )
-        }
-    }
-
-    fun isProtected(screen: Screen): Boolean {
-        return screen == Screen.Profile ||
-            screen == Screen.EditProfile ||
-            screen == Screen.CreatePostType ||
-            screen == Screen.CreatePost ||
-            screen == Screen.Notifications
-    }
+    fun isProtected(screen: Screen): Boolean = screen in setOf(
+        Screen.Profile, Screen.EditProfile, Screen.CreatePostType,
+        Screen.CreatePost, Screen.Notifications
+    )
 
     LaunchedEffect(Unit) {
         sessionManager.refresh()
+        notificationsBadgeStore.refresh()
     }
 
     LaunchedEffect(currentScreen, isLoggedIn) {
@@ -118,16 +85,13 @@ fun App() {
         }
     }
 
-    val shouldShowBottomBar =
-        currentScreen != Screen.Login &&
-            currentScreen != Screen.Signup &&
-            currentScreen != Screen.UserProfile
+    val shouldShowBottomBar = currentScreen !in setOf(
+        Screen.Login, Screen.Signup, Screen.UserProfile
+    )
 
     MaterialTheme {
         Scaffold(
-            modifier = Modifier
-                .fillMaxSize()
-                .windowInsetsPadding(WindowInsets.safeDrawing),
+            modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing),
             snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
             bottomBar = {
                 if (shouldShowBottomBar) {
@@ -142,7 +106,10 @@ fun App() {
                             if (isLoggedIn) navigateTo(Screen.CreatePostType)
                             else requireAuth(Screen.CreatePostType, currentScreen)
                         },
-                        onNotificationsClick = { openNotifications() },
+                        onNotificationsClick = {
+                            if (isLoggedIn) navigateTo(Screen.Notifications)
+                            else requireAuth(Screen.Notifications, currentScreen)
+                        },
                         onProfileOrLoginClick = {
                             if (isLoggedIn) openMyProfile()
                             else requireAuth(Screen.Profile, currentScreen)
@@ -152,59 +119,68 @@ fun App() {
             }
         ) { padding: PaddingValues ->
             Box(modifier = Modifier.fillMaxSize()) {
-                when (currentScreen) {
-                    Screen.Home -> HomeRoute(onNavigate = ::navigateTo, contentPadding = padding)
-                    Screen.Explore -> ExploreRoute(onNavigate = ::navigateTo, contentPadding = padding)
-                    Screen.ExplorePager -> ExplorePagerRoute(onNavigate = ::navigateTo, contentPadding = padding)
-                    Screen.CreatePostType -> CreatePostTypeRoute(onNavigate = ::navigateTo)
-                    Screen.CreatePost -> CreatePostRoute(onNavigate = ::navigateTo)
-                    Screen.Categories -> CategoriesRoute(onNavigate = ::navigateTo)
-                    Screen.Login -> LoginRoute(onNavigate = ::navigateTo)
-                    Screen.Signup -> SignupRoute(onNavigate = ::navigateTo)
-
-                    Screen.Notifications -> NotificationsRoute(
-                        contentPadding = padding,
-                        uiState = notificationsUiState,
-                        onNotificationClick = ::openNotificationTarget,
-                        onScreenShown = notificationsViewModel::refresh
-                    )
-
-                    Screen.Profile -> ProfileRoute(
-                        contentPadding = padding,
-                        onNavigate = ::navigateTo,
-                        onBackClick = {},
-                        isVisitedProfile = false,
-                        onFollowClick = {},
-                        onMessageClick = {},
-                        onMoreClick = {},
-                        onEditProfileClick = { navigateTo(Screen.EditProfile) },
-                        onEditCoverClick = {},
-                        onEditAvatarClick = {},
-                        onPostClick = { _: VsPost -> }
-                    )
-
-                    Screen.UserProfile -> ProfileRoute(
-                        contentPadding = padding,
-                        onNavigate = ::navigateTo,
-                        onBackClick = {
-                            navigateTo(ProfileTargetStore.getReturnScreen() ?: Screen.Home)
-                        },
-                        isVisitedProfile = true,
-                        onFollowClick = {},
-                        onMessageClick = {},
-                        onMoreClick = {},
-                        onEditProfileClick = {},
-                        onEditCoverClick = {},
-                        onEditAvatarClick = {},
-                        onPostClick = { _: VsPost -> }
-                    )
-
-                    Screen.EditProfile -> EditProfileRoute(
-                        contentPadding = padding,
-                        onNavigate = ::navigateTo
-                    )
-                }
+                AppNavHost(
+                    currentScreen = currentScreen,
+                    contentPadding = padding,
+                    onNavigate = ::navigateTo
+                )
             }
         }
+    }
+}
+
+/**
+ * Aiguille la navigation simple.
+ * Sera remplacé par Voyager / Navigation 3 plus tard.
+ */
+@Composable
+private fun AppNavHost(
+    currentScreen: Screen,
+    contentPadding: PaddingValues,
+    onNavigate: (Screen) -> Unit
+) {
+    when (currentScreen) {
+        Screen.Home -> HomeRoute(onNavigate = onNavigate, contentPadding = contentPadding)
+        Screen.Explore -> ExploreRoute(onNavigate = onNavigate, contentPadding = contentPadding)
+        Screen.ExplorePager -> ExplorePagerRoute(onNavigate = onNavigate, contentPadding = contentPadding)
+        Screen.CreatePostType -> CreatePostTypeRoute(onNavigate = onNavigate)
+        Screen.CreatePost -> CreatePostRoute(onNavigate = onNavigate)
+        Screen.Categories -> CategoriesRoute(onNavigate = onNavigate)
+        Screen.Login -> LoginRoute(onNavigate = onNavigate)
+        Screen.Signup -> SignupRoute(onNavigate = onNavigate)
+        Screen.Notifications -> NotificationsRoute(
+            contentPadding = contentPadding,
+            onNavigate = onNavigate
+        )
+        Screen.Profile -> ProfileRoute(
+            contentPadding = contentPadding,
+            onNavigate = onNavigate,
+            onBackClick = {},
+            isVisitedProfile = false,
+            onFollowClick = {},
+            onMessageClick = {},
+            onMoreClick = {},
+            onEditProfileClick = { onNavigate(Screen.EditProfile) },
+            onEditCoverClick = {},
+            onEditAvatarClick = {},
+            onPostClick = { _: VsPost -> }
+        )
+        Screen.UserProfile -> ProfileRoute(
+            contentPadding = contentPadding,
+            onNavigate = onNavigate,
+            onBackClick = { onNavigate(ProfileTargetStore.getReturnScreen() ?: Screen.Home) },
+            isVisitedProfile = true,
+            onFollowClick = {},
+            onMessageClick = {},
+            onMoreClick = {},
+            onEditProfileClick = {},
+            onEditCoverClick = {},
+            onEditAvatarClick = {},
+            onPostClick = { _: VsPost -> }
+        )
+        Screen.EditProfile -> EditProfileRoute(
+            contentPadding = contentPadding,
+            onNavigate = onNavigate
+        )
     }
 }

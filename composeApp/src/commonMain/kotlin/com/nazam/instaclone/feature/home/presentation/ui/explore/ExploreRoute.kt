@@ -6,14 +6,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import com.nazam.instaclone.core.navigation.Screen
 import com.nazam.instaclone.feature.home.presentation.viewmodel.ExploreViewModel
-import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun ExploreRoute(
     onNavigate: (Screen) -> Unit,
     contentPadding: PaddingValues
 ) {
-    val viewModel: ExploreViewModel = koinInject()
+    val viewModel: ExploreViewModel = koinViewModel()
     val ui by viewModel.uiState.collectAsState()
 
     val visiblePosts = filterPostsByHashtag(

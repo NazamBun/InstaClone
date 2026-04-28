@@ -1,5 +1,7 @@
 package com.nazam.instaclone.feature.home.presentation.viewmodel
 
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.nazam.instaclone.core.dispatchers.AppDispatchers
 import com.nazam.instaclone.core.ui.UiText
 import com.nazam.instaclone.feature.home.domain.usecase.GetExplorePostsUseCase
@@ -7,10 +9,9 @@ import com.nazam.instaclone.feature.home.presentation.model.ExploreUiState
 import com.nazam.instaclone.feature.home.presentation.ui.explore.ExploreSortMode
 import instaclone.composeapp.generated.resources.Res
 import instaclone.composeapp.generated.resources.explore_load_error
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -18,12 +19,15 @@ import kotlinx.coroutines.withContext
 class ExploreViewModel(
     private val dispatchers: AppDispatchers,
     private val getExplorePostsUseCase: GetExplorePostsUseCase
-) {
-    private companion object { const val PAGE_SIZE = 30 }
+) : ViewModel() {
 
-    private val scope = CoroutineScope(dispatchers.main + SupervisorJob())
+    private companion object {
+        const val PAGE_SIZE = 30
+        const val SEARCH_MAX_LENGTH = 40
+    }
+
     private val _uiState = MutableStateFlow(ExploreUiState())
-    val uiState: StateFlow<ExploreUiState> = _uiState
+    val uiState: StateFlow<ExploreUiState> = _uiState.asStateFlow()
 
     init { load() }
 
@@ -35,7 +39,7 @@ class ExploreViewModel(
     }
 
     fun onSearchQueryChanged(value: String) {
-        _uiState.update { it.copy(searchQuery = value.take(40)) }
+        _uiState.update { it.copy(searchQuery = value.take(SEARCH_MAX_LENGTH)) }
     }
 
     private fun loadInternal(reset: Boolean) {
@@ -45,37 +49,41 @@ class ExploreViewModel(
 
         val offset = if (reset) 0 else state.posts.size
 
-        scope.launch {
+        viewModelScope.launch {
             _uiState.update {
                 if (reset) it.copy(isLoading = true, isLoadingMore = false, endReached = false, error = null)
                 else it.copy(isLoadingMore = true, error = null)
             }
-
-            val result = withContext(dispatchers.default) {
+            val result = withContext(dispatchers.io) {
                 getExplorePostsUseCase.execute(offset = offset, limit = PAGE_SIZE)
             }
+            result
+                .onSuccess { page -> handleSuccess(page, reset) }
+                .onFailure { handleFailure(reset) }
+        }
+    }
 
-            result.onSuccess { page ->
-                _uiState.update { current ->
-                    val merged = if (reset) page else (current.posts + page).distinctBy { it.id }
-                    current.copy(
-                        isLoading = false,
-                        isLoadingMore = false,
-                        endReached = page.size < PAGE_SIZE,
-                        posts = merged,
-                        error = null
-                    )
-                }
-            }.onFailure {
-                _uiState.update { current ->
-                    current.copy(
-                        isLoading = false,
-                        isLoadingMore = false,
-                        posts = if (reset) emptyList() else current.posts,
-                        error = UiText.Resource(Res.string.explore_load_error)
-                    )
-                }
-            }
+    private fun handleSuccess(page: List<com.nazam.instaclone.feature.home.domain.model.VsPost>, reset: Boolean) {
+        _uiState.update { current ->
+            val merged = if (reset) page else (current.posts + page).distinctBy { it.id }
+            current.copy(
+                isLoading = false,
+                isLoadingMore = false,
+                endReached = page.size < PAGE_SIZE,
+                posts = merged,
+                error = null
+            )
+        }
+    }
+
+    private fun handleFailure(reset: Boolean) {
+        _uiState.update { current ->
+            current.copy(
+                isLoading = false,
+                isLoadingMore = false,
+                posts = if (reset) emptyList() else current.posts,
+                error = UiText.Resource(Res.string.explore_load_error)
+            )
         }
     }
 }

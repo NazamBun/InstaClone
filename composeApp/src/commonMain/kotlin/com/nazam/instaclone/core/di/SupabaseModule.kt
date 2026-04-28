@@ -38,6 +38,7 @@ import com.nazam.instaclone.feature.notifications.domain.usecase.MarkNotificatio
 import com.nazam.instaclone.feature.notifications.domain.usecase.ObserveNotificationsUseCase
 import com.nazam.instaclone.feature.notifications.domain.usecase.RefreshNotificationsUseCase
 import com.nazam.instaclone.feature.notifications.presentation.handler.NotificationsActionHandler
+import com.nazam.instaclone.feature.notifications.presentation.badge.NotificationsBadgeStore
 import com.nazam.instaclone.feature.notifications.presentation.viewmodel.NotificationsViewModel
 import com.nazam.instaclone.feature.permissions.data.repository.PermissionsRepositoryImpl
 import com.nazam.instaclone.feature.permissions.domain.repository.PermissionsRepository
@@ -106,6 +107,7 @@ val appModule = module {
     factory { RefreshNotificationsUseCase(get()) }
     factory { MarkNotificationReadUseCase(get()) }
     factory { NotificationsViewModel(get(), get(), get()) }
+    single { NotificationsBadgeStore(dispatchers = get(), observeNotificationsUseCase = get(), refreshNotificationsUseCase = get()) }
     factory { NotificationsActionHandler(get()) }
 
     // ---------- Profile ----------
