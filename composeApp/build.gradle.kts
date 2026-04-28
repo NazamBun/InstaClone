@@ -1,5 +1,6 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -9,6 +10,15 @@ plugins {
     alias(libs.plugins.kotlinSerialization)
 }
 
+// Lecture des secrets depuis local.properties (NON versionné).
+// Permet d'éviter d'avoir des clés en dur dans le code source.
+val secrets: Properties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) file.inputStream().use { load(it) }
+}
+val supabaseUrl: String = secrets.getProperty("SUPABASE_URL", "")
+val supabaseAnonKey: String = secrets.getProperty("SUPABASE_ANON_KEY", "")
+
 kotlin {
     androidTarget {
         compilerOptions {
@@ -16,14 +26,9 @@ kotlin {
         }
     }
 
-    // Cibles iOS
     val iosArm64Target = iosArm64()
     val iosSimulatorArm64Target = iosSimulatorArm64()
-
-    listOf(
-        iosArm64Target,
-        iosSimulatorArm64Target
-    ).forEach { iosTarget ->
+    listOf(iosArm64Target, iosSimulatorArm64Target).forEach { iosTarget ->
         iosTarget.binaries.framework {
             baseName = "ComposeApp"
             isStatic = true
@@ -31,7 +36,6 @@ kotlin {
     }
 
     sourceSets {
-        // ⭐ commun (Android + iOS)
         val commonMain by getting {
             dependencies {
                 implementation(compose.runtime)
@@ -48,23 +52,18 @@ kotlin {
                 implementation("io.github.jan-tennert.supabase:postgrest-kt:${libs.versions.supabase.get()}")
                 implementation("io.github.jan-tennert.supabase:storage-kt:${libs.versions.supabase.get()}")
 
-                // Ktor core (partagé)
                 implementation(libs.ktor.client.core)
 
-                // Koin
                 implementation(libs.koin.core)
                 implementation(libs.koin.compose)
                 implementation(libs.koin.compose.viewmodel)
                 implementation(libs.koin.compose.viewmodel.navigation)
                 implementation(libs.kotlinx.serialization.json)
 
-                // Kamel
                 implementation(libs.kamel.image)
                 implementation(libs.kamel.image.default)
 
-                // Coil
                 implementation(libs.coil.compose)
-
                 implementation(compose.materialIconsExtended)
             }
         }
@@ -75,7 +74,6 @@ kotlin {
             }
         }
 
-        // ⭐ Android
         val androidMain by getting {
             dependencies {
                 implementation("com.github.yalantis:ucrop:2.2.8")
@@ -86,20 +84,11 @@ kotlin {
             }
         }
 
-        // ⭐ iOS Arm64
         val iosArm64Main by getting {
-            dependencies {
-                // moteur HTTP pour iOS (Darwin)
-                implementation(libs.ktor.client.darwin)
-            }
+            dependencies { implementation(libs.ktor.client.darwin) }
         }
-
-        // ⭐ iOS Simulator (Arm64)
         val iosSimulatorArm64Main by getting {
-            dependencies {
-                // même moteur HTTP
-                implementation(libs.ktor.client.darwin)
-            }
+            dependencies { implementation(libs.ktor.client.darwin) }
         }
     }
 }
@@ -118,8 +107,9 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
-        buildConfigField("String", "SUPABASE_URL", "\"https://ushaekvefuarbqsesaut.supabase.co\"")
-        buildConfigField("String", "SUPABASE_ANON_KEY", "\"***SUPABASE_KEY_REMOVED***\"")
+        // ✅ Lu depuis local.properties (jamais committé)
+        buildConfigField("String", "SUPABASE_URL", "\"$supabaseUrl\"")
+        buildConfigField("String", "SUPABASE_ANON_KEY", "\"$supabaseAnonKey\"")
     }
     packaging {
         resources {
