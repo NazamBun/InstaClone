@@ -268,4 +268,19 @@
     <!-- Auth - Subtitles -->
     <string name="login_subtitle">Reviens voter et poster tes VS.</string>
     <string name="signup_subtitle">Crée ton profil en 10 secondes.</string>
+    <!-- Edit profile -->
+    <string name="edit_profile_back">Retour</string>
+    <string name="edit_profile_save">Sauvegarder</string>
+    <string name="edit_profile_saving">Sauvegarde...</string>
+    <string name="edit_profile_display_name">Nom affiché</string>
+    <string name="edit_profile_username">Pseudo</string>
+    <string name="edit_profile_bio">Bio</string>
+    <string name="edit_profile_location">Ville</string>
+    <string name="edit_profile_website">Site</string>
+    <string name="edit_profile_save_error">Erreur lors de la sauvegarde du profil</string>
+    <!-- Profile - Errors specific -->
+    <string name="profile_follow_error">Impossible de mettre à jour l\'abonnement.</string>
+    <string name="profile_avatar_upload_error">Impossible de mettre à jour la photo de profil.</string>
+    <string name="profile_logout_error">Impossible de se déconnecter.</string>
+    <string name="home_following_empty">Aucun post suivi pour l'instant.</string>
 </resources>

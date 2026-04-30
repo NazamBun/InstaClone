@@ -5,7 +5,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -20,13 +19,13 @@ import com.nazam.instaclone.core.ui.asString
 import com.nazam.instaclone.feature.home.presentation.viewmodel.CreatePostUiEvent
 import com.nazam.instaclone.feature.home.presentation.viewmodel.CreatePostViewModel
 import kotlinx.coroutines.flow.collectLatest
-import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun CreatePostRoute(
     onNavigate: (Screen) -> Unit
 ) {
-    val viewModel: CreatePostViewModel = koinInject()
+    val viewModel: CreatePostViewModel = koinViewModel()
     val ui by viewModel.uiState.collectAsState()
 
     val snackbarHostState = remember { SnackbarHostState() }
@@ -34,17 +33,11 @@ fun CreatePostRoute(
 
     val pickLeftImage = rememberImagePicker(onImagePicked = viewModel::onLeftImageSelected)
     val pickRightImage = rememberImagePicker(onImagePicked = viewModel::onRightImageSelected)
-
     val pendingMessageText = pendingMessage?.asString()
-
-    DisposableEffect(Unit) {
-        onDispose { viewModel.clear() }
-    }
 
     LaunchedEffect(Unit) {
         viewModel.checkAccess()
         viewModel.refreshFromDraft()
-
         viewModel.events.collectLatest { event ->
             when (event) {
                 CreatePostUiEvent.PostCreated -> onNavigate(Screen.Home)

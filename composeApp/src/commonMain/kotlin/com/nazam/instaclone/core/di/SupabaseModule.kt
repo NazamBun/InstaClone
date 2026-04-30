@@ -57,6 +57,7 @@ import com.nazam.instaclone.feature.profile.domain.usecase.UpdateMyProfileUseCas
 import com.nazam.instaclone.feature.profile.presentation.ui.edit.EditProfileViewModel
 import com.nazam.instaclone.feature.profile.presentation.viewmodel.ProfileViewModel
 import kotlinx.serialization.json.Json
+import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 val appModule = module {
@@ -123,7 +124,7 @@ val appModule = module {
     factory { UpdateAvatarUseCase(get()) }
 
     // ---------- ViewModels ----------
-    factory {
+    viewModel {
         HomeViewModel(
             dispatchers = get(),
             getFeedUseCase = get(),
@@ -136,7 +137,7 @@ val appModule = module {
             sessionManager = get()
         )
     }
-    factory {
+    viewModel {
         CreatePostViewModel(
             dispatchers = get(),
             uploadPostImageUseCase = get(),
@@ -161,7 +162,7 @@ val appModule = module {
     }
     factory { CategoriesViewModel() }
     factory { ExploreViewModel(dispatchers = get(), getExplorePostsUseCase = get()) }
-    factory {
+    viewModel {
         ProfileViewModel(
             dispatchers = get(),
             getCurrentUserUseCase = get(),
@@ -178,7 +179,7 @@ val appModule = module {
             updateAvatarUseCase = get()
         )
     }
-    factory {
+    viewModel {
         EditProfileViewModel(
             dispatchers = get(),
             getCurrentUserUseCase = get(),

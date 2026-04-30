@@ -26,14 +26,14 @@ import instaclone.composeapp.generated.resources.Res
 import instaclone.composeapp.generated.resources.share_copied
 import kotlinx.coroutines.flow.collectLatest
 import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun HomeRoute(
     onNavigate: (Screen) -> Unit,
     contentPadding: PaddingValues
 ) {
-    val viewModel: HomeViewModel = koinInject()
+    val viewModel: HomeViewModel = koinViewModel()
     val ui by viewModel.uiState.collectAsState()
 
     val snackbarHostState = remember { SnackbarHostState() }

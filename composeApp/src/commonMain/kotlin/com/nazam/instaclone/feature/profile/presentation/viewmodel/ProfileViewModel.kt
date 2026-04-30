@@ -1,10 +1,13 @@
 package com.nazam.instaclone.feature.profile.presentation.viewmodel
 
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.nazam.instaclone.core.dispatchers.AppDispatchers
 import com.nazam.instaclone.core.navigation.NavigationStore
 import com.nazam.instaclone.core.navigation.Screen
 import com.nazam.instaclone.core.session.SessionManager
 import com.nazam.instaclone.core.ui.UiText
+import com.nazam.instaclone.feature.auth.domain.model.AuthUser
 import com.nazam.instaclone.feature.auth.domain.usecase.GetCurrentUserUseCase
 import com.nazam.instaclone.feature.auth.domain.usecase.LogoutUseCase
 import com.nazam.instaclone.feature.home.domain.model.UploadProgress
@@ -21,14 +24,16 @@ import com.nazam.instaclone.feature.profile.presentation.model.ProfileUiState
 import com.nazam.instaclone.feature.profile.presentation.navigation.ProfileTargetStore
 import com.nazam.instaclone.feature.profile.presentation.ui.ProfileUi
 import instaclone.composeapp.generated.resources.Res
+import instaclone.composeapp.generated.resources.profile_avatar_upload_error
+import instaclone.composeapp.generated.resources.profile_follow_error
 import instaclone.composeapp.generated.resources.profile_load_error
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
+import instaclone.composeapp.generated.resources.profile_logout_error
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -47,67 +52,35 @@ class ProfileViewModel(
     private val sessionManager: SessionManager,
     private val uploadPostImageUseCase: UploadPostImageUseCase,
     private val updateAvatarUseCase: UpdateAvatarUseCase
-) {
-    private val job = SupervisorJob()
-    private val scope = CoroutineScope(dispatchers.main + job)
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProfileUiState(isLoading = true))
-    val uiState: StateFlow<ProfileUiState> = _uiState
+    val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
 
     private val _events = MutableSharedFlow<ProfileUiEvent>(extraBufferCapacity = 1)
-    val events: SharedFlow<ProfileUiEvent> = _events
+    val events: SharedFlow<ProfileUiEvent> = _events.asSharedFlow()
 
     init { load() }
 
     fun load() {
-        scope.launch {
+        viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
-            val currentUser = withContext(dispatchers.io) { getCurrentUserUseCase.execute() }
-            val targetUserId = ProfileTargetStore.getUserId() ?: currentUser?.id
-            val targetEmail = ProfileTargetStore.getEmailFallback() ?: currentUser?.email
+            val current = withContext(dispatchers.io) { getCurrentUserUseCase.execute() }
+            val targetUserId = ProfileTargetStore.getUserId() ?: current?.id
+            val targetEmail = ProfileTargetStore.getEmailFallback() ?: current?.email
 
             if (targetUserId.isNullOrBlank() || targetEmail.isNullOrBlank()) {
-                _uiState.update { it.copy(isLoading = false, ui = null, error = UiText.Resource(Res.string.profile_load_error)) }
-                return@launch
+                return@launch failLoad()
             }
 
             val profile = withContext(dispatchers.io) {
                 getMyProfileUseCase.execute(targetUserId, targetEmail).getOrNull()
-            } ?: run {
-                _uiState.update { it.copy(isLoading = false, ui = null, error = UiText.Resource(Res.string.profile_load_error)) }
-                return@launch
-            }
-
-            val posts = withContext(dispatchers.io) { getMyPostsUseCase.execute(targetUserId).getOrDefault(emptyList()) }
-            val followers = withContext(dispatchers.io) { getFollowersCountUseCase.execute(targetUserId).getOrDefault(0) }
-            val following = withContext(dispatchers.io) { getFollowingCountUseCase.execute(targetUserId).getOrDefault(0) }
-            val isSelf = currentUser?.id == targetUserId
-            val isFollowing = if (isSelf || currentUser == null) false else {
-                withContext(dispatchers.io) {
-                    isFollowingUseCase.execute(currentUser.id, targetUserId).getOrDefault(false)
-                }
-            }
+            } ?: return@launch failLoad()
 
             _uiState.update {
                 it.copy(
                     isLoading = false,
-                    ui = ProfileUi(
-                        userId = targetUserId,
-                        displayName = profile.displayName,
-                        username = profile.username,
-                        bio = profile.bio,
-                        location = profile.location,
-                        website = profile.website,
-                        joinedLabel = profile.joinedLabel,
-                        postsCount = posts.size,
-                        followersCount = followers,
-                        followingCount = following,
-                        avatarUrl = profile.avatarUrl,
-                        coverUrl = profile.coverUrl,
-                        posts = posts,
-                        isSelfProfile = isSelf,
-                        isFollowing = isFollowing
-                    ),
+                    ui = buildProfileUi(targetUserId, profile, current),
                     error = null
                 )
             }
@@ -118,65 +91,101 @@ class ProfileViewModel(
         val ui = _uiState.value.ui ?: return
         if (ui.isSelfProfile) return
 
-        scope.launch {
-            val currentUser = withContext(dispatchers.io) { getCurrentUserUseCase.execute() }
-            if (currentUser == null) {
+        viewModelScope.launch {
+            val current = withContext(dispatchers.io) { getCurrentUserUseCase.execute() }
+            if (current == null) {
                 NavigationStore.setAfterLogin(Screen.UserProfile)
                 _events.tryEmit(ProfileUiEvent.Navigate(Screen.Login))
                 return@launch
             }
 
-            _uiState.update { state ->
-                state.copy(ui = state.ui?.copy(isFollowLoading = true))
-            }
+            _uiState.update { it.copy(ui = it.ui?.copy(isFollowLoading = true)) }
 
             val result = withContext(dispatchers.io) {
-                if (ui.isFollowing) unfollowUserUseCase.execute(currentUser.id, ui.userId)
-                else followUserUseCase.execute(currentUser.id, ui.userId)
+                if (ui.isFollowing) unfollowUserUseCase.execute(current.id, ui.userId)
+                else followUserUseCase.execute(current.id, ui.userId)
             }
 
-            result.onSuccess {
-                _uiState.update { state ->
-                    val current = state.ui ?: return@update state
-                    val nowFollowing = !current.isFollowing
-                    val followers = if (nowFollowing) current.followersCount + 1 else (current.followersCount - 1).coerceAtLeast(0)
-                    state.copy(ui = current.copy(isFollowing = nowFollowing, followersCount = followers, isFollowLoading = false))
-                }
-            }.onFailure {
-                _uiState.update { state ->
-                    state.copy(ui = state.ui?.copy(isFollowLoading = false), error = UiText.Resource(Res.string.profile_load_error))
-                }
-            }
+            result
+                .onSuccess { applyFollowToggle() }
+                .onFailure { setError(UiText.Resource(Res.string.profile_follow_error)) }
         }
     }
 
     fun onAvatarSelected(localUri: String) {
-        scope.launch {
+        viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
-            val user = withContext(dispatchers.io) { getCurrentUserUseCase.execute() } ?: return@launch
+            val user = withContext(dispatchers.io) { getCurrentUserUseCase.execute() }
+                ?: return@launch failAvatar()
+
             var publicUrl: String? = null
             withContext(dispatchers.io) {
-                uploadPostImageUseCase.execute(localUri).collect { if (it is UploadProgress.Success) publicUrl = it.publicUrl }
+                uploadPostImageUseCase.execute(localUri).collect { progress ->
+                    if (progress is UploadProgress.Success) publicUrl = progress.publicUrl
+                }
             }
-            val url = publicUrl ?: return@launch
+            val url = publicUrl ?: return@launch failAvatar()
+
             withContext(dispatchers.io) { updateAvatarUseCase.execute(user.id, url) }
                 .onSuccess { load() }
-                .onFailure { _uiState.update { it.copy(isLoading = false, error = UiText.Resource(Res.string.profile_load_error)) } }
+                .onFailure { failAvatar() }
         }
     }
 
     fun logout() {
-        scope.launch {
-            val result = withContext(dispatchers.io) { logoutUseCase.execute() }
-            result.onSuccess {
-                NavigationStore.clear()
-                sessionManager.setUser(null)
-                ProfileTargetStore.openSelf()
-                _uiState.update { ProfileUiState(isLoading = false) }
-                _events.tryEmit(ProfileUiEvent.Navigate(Screen.Login))
-            }
+        viewModelScope.launch {
+            withContext(dispatchers.io) { logoutUseCase.execute() }
+                .onSuccess {
+                    NavigationStore.clear()
+                    sessionManager.setUser(null)
+                    ProfileTargetStore.openSelf()
+                    _uiState.update { ProfileUiState(isLoading = false) }
+                    _events.tryEmit(ProfileUiEvent.Navigate(Screen.Login))
+                }
+                .onFailure { setError(UiText.Resource(Res.string.profile_logout_error)) }
         }
     }
 
-    fun clear() = job.cancel()
+    private suspend fun buildProfileUi(
+        targetUserId: String,
+        profile: com.nazam.instaclone.feature.profile.domain.model.Profile,
+        current: AuthUser?
+    ): ProfileUi {
+        val posts = withContext(dispatchers.io) { getMyPostsUseCase.execute(targetUserId).getOrDefault(emptyList()) }
+        val followers = withContext(dispatchers.io) { getFollowersCountUseCase.execute(targetUserId).getOrDefault(0) }
+        val following = withContext(dispatchers.io) { getFollowingCountUseCase.execute(targetUserId).getOrDefault(0) }
+        val isSelf = current?.id == targetUserId
+        val isFollowing = if (isSelf || current == null) false else withContext(dispatchers.io) {
+            isFollowingUseCase.execute(current.id, targetUserId).getOrDefault(false)
+        }
+        return ProfileUi(
+            userId = targetUserId,
+            displayName = profile.displayName, username = profile.username,
+            bio = profile.bio, location = profile.location, website = profile.website,
+            joinedLabel = profile.joinedLabel,
+            postsCount = posts.size, followersCount = followers, followingCount = following,
+            avatarUrl = profile.avatarUrl, coverUrl = profile.coverUrl, posts = posts,
+            isSelfProfile = isSelf, isFollowing = isFollowing
+        )
+    }
+
+    private fun applyFollowToggle() = _uiState.update { state ->
+        val current = state.ui ?: return@update state
+        val nowFollowing = !current.isFollowing
+        val followers = if (nowFollowing) current.followersCount + 1
+        else (current.followersCount - 1).coerceAtLeast(0)
+        state.copy(ui = current.copy(isFollowing = nowFollowing, followersCount = followers, isFollowLoading = false))
+    }
+
+    private fun failLoad() = _uiState.update {
+        it.copy(isLoading = false, ui = null, error = UiText.Resource(Res.string.profile_load_error))
+    }
+
+    private fun failAvatar() = _uiState.update {
+        it.copy(isLoading = false, error = UiText.Resource(Res.string.profile_avatar_upload_error))
+    }
+
+    private fun setError(error: UiText) = _uiState.update { state ->
+        state.copy(ui = state.ui?.copy(isFollowLoading = false), error = error)
+    }
 }

@@ -1,5 +1,7 @@
 package com.nazam.instaclone.feature.home.presentation.viewmodel
 
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.nazam.instaclone.core.dispatchers.AppDispatchers
 import com.nazam.instaclone.core.navigation.NavigationStore
 import com.nazam.instaclone.core.navigation.Screen
@@ -19,35 +21,35 @@ import com.nazam.instaclone.feature.home.presentation.vote.VoteIntentStore
 import instaclone.composeapp.generated.resources.Res
 import instaclone.composeapp.generated.resources.home_auth_required_comment
 import instaclone.composeapp.generated.resources.home_auth_required_create
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+private const val MAX_COMMENT_LENGTH = 500
+
 class HomeViewModel(
-    private val dispatchers: AppDispatchers,
-    private val getFeedUseCase: GetFeedUseCase,
-    private val voteLeftUseCase: VoteLeftUseCase,
-    private val voteRightUseCase: VoteRightUseCase,
-    private val getCommentsUseCase: GetCommentsUseCase,
-    private val addCommentUseCase: AddCommentUseCase,
-    private val getCurrentUserUseCase: GetCurrentUserUseCase,
-    private val logoutUseCase: LogoutUseCase,
-    private val sessionManager: SessionManager
-) {
-    internal val job = SupervisorJob()
-    internal val scope = CoroutineScope(job + dispatchers.main)
+    internal val dispatchers: AppDispatchers,
+    internal val getFeedUseCase: GetFeedUseCase,
+    internal val voteLeftUseCase: VoteLeftUseCase,
+    internal val voteRightUseCase: VoteRightUseCase,
+    internal val getCommentsUseCase: GetCommentsUseCase,
+    internal val addCommentUseCase: AddCommentUseCase,
+    internal val getCurrentUserUseCase: GetCurrentUserUseCase,
+    internal val logoutUseCase: LogoutUseCase,
+    internal val sessionManager: SessionManager
+) : ViewModel() {
 
     internal val _uiState = MutableStateFlow(HomeUiState())
-    val uiState: StateFlow<HomeUiState> = _uiState
+    val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     private val _events = MutableSharedFlow<HomeUiEvent>(extraBufferCapacity = 1)
-    val events: SharedFlow<HomeUiEvent> = _events
+    val events: SharedFlow<HomeUiEvent> = _events.asSharedFlow()
 
     internal var pendingVoteAfterLogin: VoteIntentStore.VoteIntent? = null
 
@@ -57,8 +59,8 @@ class HomeViewModel(
     }
 
     fun refreshSession() {
-        scope.launch {
-            val user = withContext(dispatchers.default) { getCurrentUserUseCase.execute() }
+        viewModelScope.launch {
+            val user = withContext(dispatchers.io) { getCurrentUserUseCase.execute() }
             sessionManager.setUser(user)
 
             _uiState.update {
@@ -73,13 +75,12 @@ class HomeViewModel(
             if (user != null && pendingVoteAfterLogin == null) {
                 pendingVoteAfterLogin = VoteIntentStore.consume()
             }
-
             runPendingVoteIfPossible()
         }
     }
 
-    fun loadFeed() = loadFeedInternal(dispatchers, getFeedUseCase, reset = true)
-    fun loadMore() = loadFeedInternal(dispatchers, getFeedUseCase, reset = false)
+    fun loadFeed() = loadFeedInternal(reset = true)
+    fun loadMore() = loadFeedInternal(reset = false)
 
     fun onFeedModeSelected(mode: FeedMode) {
         if (_uiState.value.selectedFeedMode == mode) return
@@ -87,28 +88,26 @@ class HomeViewModel(
         loadFeed()
     }
 
-    fun voteLeft(postId: String) =
-        voteInternal(dispatchers, postId, true, voteLeftUseCase, voteRightUseCase)
-
-    fun voteRight(postId: String) =
-        voteInternal(dispatchers, postId, false, voteLeftUseCase, voteRightUseCase)
+    fun voteLeft(postId: String) = voteInternal(postId, isLeft = true)
+    fun voteRight(postId: String) = voteInternal(postId, isLeft = false)
 
     fun onCreatePostClicked() {
-        if (uiState.value.isLoggedIn) navigateTo(Screen.CreatePost)
-        else {
+        if (uiState.value.isLoggedIn) {
+            navigateTo(Screen.CreatePost)
+        } else {
             NavigationStore.setAfterLogin(Screen.CreatePost)
             showAuthRequiredDialogInternal(UiText.Resource(Res.string.home_auth_required_create))
         }
     }
 
-    fun openComments(postId: String) = openCommentsInternal(dispatchers, postId, getCommentsUseCase)
+    fun openComments(postId: String) = openCommentsInternal(postId)
     fun closeComments() = closeCommentsInternal()
 
     fun onNewCommentChange(value: String) {
-        _uiState.update { it.copy(newCommentText = value.take(500)) }
+        _uiState.update { it.copy(newCommentText = value.take(MAX_COMMENT_LENGTH)) }
     }
 
-    fun onSendCommentClicked() = sendCommentInternal(dispatchers, addCommentUseCase)
+    fun onSendCommentClicked() = sendCommentInternal()
 
     fun onCommentInputRequested() {
         if (!uiState.value.isLoggedIn) {
@@ -120,7 +119,7 @@ class HomeViewModel(
         _events.tryEmit(HomeUiEvent.Share(post))
     }
 
-    fun logout() = logoutInternal(dispatchers, logoutUseCase, sessionManager)
+    fun logout() = logoutInternal()
 
     fun onDialogConfirmClicked() {
         val goLogin = uiState.value.dialogShouldOpenLogin
@@ -148,5 +147,4 @@ class HomeViewModel(
 
     internal fun emitMessage(message: UiText) { _events.tryEmit(HomeUiEvent.ShowMessage(message)) }
     internal fun navigateTo(screen: Screen) { _events.tryEmit(HomeUiEvent.Navigate(screen)) }
-    fun clear() { job.cancel() }
 }
