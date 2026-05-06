@@ -7,6 +7,7 @@ import instaclone.composeapp.generated.resources.error_auth_invalid_credentials
 import instaclone.composeapp.generated.resources.error_auth_invalid_email
 import instaclone.composeapp.generated.resources.error_auth_network
 import instaclone.composeapp.generated.resources.error_auth_password_too_short
+import instaclone.composeapp.generated.resources.error_auth_rate_limit
 import instaclone.composeapp.generated.resources.error_auth_user_not_found
 import instaclone.composeapp.generated.resources.error_invite_required
 import instaclone.composeapp.generated.resources.error_unknown
@@ -32,6 +33,10 @@ object AuthErrorMapper {
             "network" in msg ||
                 "timeout" in msg ||
                 "unable to resolve" in msg -> ui(Res.string.error_auth_network)
+            "rate limit" in msg ||
+                "rate_limit" in msg ||
+                "over_email_send_rate_limit" in msg ||
+                "too many requests" in msg -> ui(Res.string.error_auth_rate_limit)
             else -> ui(Res.string.error_unknown)
         }
     }

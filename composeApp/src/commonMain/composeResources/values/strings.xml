@@ -123,6 +123,7 @@
 
     <!-- Errors -->
     <string name="error_email_password_required">Email et mot de passe requis</string>
+    <string name="error_auth_rate_limit">Trop de tentatives. Réessayez dans quelques minutes.</string>
     <string name="error_unknown">Erreur inconnue</string>
 
     <!-- Create post - validation / messages -->
