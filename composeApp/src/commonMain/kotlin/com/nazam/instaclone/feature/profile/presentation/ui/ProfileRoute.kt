@@ -61,6 +61,11 @@ fun ProfileRoute(
     var pendingSnack by remember { mutableStateOf<String?>(null) }
     val pickAvatar = rememberImagePicker(onImagePicked = vm::onAvatarSelected)
 
+    // Refresh profile every time the user enters/returns to this screen.
+    // Necessary because koinViewModel() caches the VM (unlike koinInject() previously),
+    // so init { load() } doesn't re-run when we come back from EditProfile.
+    LaunchedEffect(Unit) { vm.load() }
+
     LaunchedEffect(Unit) {
         vm.events.collectLatest { if (it is ProfileUiEvent.Navigate) onNavigate(it.screen) }
     }
