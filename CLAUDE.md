@@ -107,6 +107,7 @@ When adding cross-platform behavior that needs platform APIs, mirror the existin
 - Tous les fichiers ≤ 150 lignes (objectif strict).
 - Toujours fournir des fichiers complets, jamais de snippets partiels (sauf petite édition ciblée).
 - Format de commits : Conventional Commits (`feat` / `fix` / `refactor` / `chore` / `docs`).
+- **Commits git** : ne JAMAIS ajouter de signature `Co-Authored-By: Claude` ni de marqueur `🤖 Generated with Claude Code`. Les commits doivent ressembler à des commits humains classiques, format Conventional Commits uniquement.
 - Ne JAMAIS modifier `local.properties` ni `iosApp/Secrets.xcconfig`.
 - Pour toute modification de policies RLS Supabase ou de schéma DB : demander confirmation avant exécution.
 
