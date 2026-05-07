@@ -5,6 +5,8 @@ import com.nazam.instaclone.feature.auth.domain.model.AuthUser
 import com.nazam.instaclone.feature.auth.domain.repository.AuthRepository
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.auth.exception.AuthErrorCode
+import io.github.jan.supabase.auth.exception.AuthRestException
 import io.github.jan.supabase.auth.providers.builtin.Email
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -67,6 +69,34 @@ class AuthRepositoryImpl(
 
     override suspend fun getCurrentUser(): AuthUser? {
         if (auth.currentUserOrNull() == null) return null
-        return runCatching { buildUser(emailFallback = "") }.getOrNull()
+        return try {
+            // Roundtrip serveur : si le user a été supprimé/banni ou que le JWT
+            // est révoqué, le SDK lève une AuthRestException avec un code clair.
+            auth.retrieveUserForCurrentSession()
+            buildUser(emailFallback = "")
+        } catch (e: AuthRestException) {
+            if (e.errorCode in INVALID_SESSION_CODES) {
+                // Session morte côté serveur : on purge le JWT local.
+                runCatching { auth.signOut() }
+                null
+            } else {
+                runCatching { buildUser(emailFallback = "") }.getOrNull()
+            }
+        } catch (_: Throwable) {
+            // Réseau / 5xx : on garde la session locale pour ne pas casser l'offline.
+            runCatching { buildUser(emailFallback = "") }.getOrNull()
+        }
+    }
+
+    private companion object {
+        val INVALID_SESSION_CODES = setOf(
+            AuthErrorCode.UserNotFound,
+            AuthErrorCode.UserBanned,
+            AuthErrorCode.SessionNotFound,
+            AuthErrorCode.SessionExpired,
+            AuthErrorCode.BadJwt,
+            AuthErrorCode.RefreshTokenNotFound,
+            AuthErrorCode.RefreshTokenAlreadyUsed
+        )
     }
 }
