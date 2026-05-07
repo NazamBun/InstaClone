@@ -2,6 +2,28 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Règles de cadrage strictes
+
+**Cette section est prioritaire sur tout le reste de ce fichier.**
+
+1. **SCOPE RIGIDE** : tu ne fais QUE ce que je demande explicitement. Si tu identifies d'autres problèmes pendant que tu travailles, tu les LISTES dans la réponse mais tu n'agis pas dessus sans validation explicite.
+
+2. **PLAN AVANT ACTION** : pour toute tâche qui touche plus d'un fichier, qui modifie la DB, qui fait un `git push`, ou qui dure plus de 2 minutes, tu présentes un PLAN NUMÉROTÉ d'abord. Tu attends mon « OK applique » avant d'exécuter quoi que ce soit.
+
+3. **INTERDIT SANS DEMANDE EXPLICITE** : ne jamais
+   - exécuter `apply_migration` ou `execute_sql` (write) sur Supabase
+   - faire `git push` sans demande explicite
+   - supprimer/modifier des données dans la DB (`DELETE`, `UPDATE`)
+   - créer ou modifier des policies RLS
+   - modifier la config Supabase
+   - lancer un audit de sécurité étendu
+
+4. **MCP SUPABASE READ-ONLY STRICT** : même si tu as accès à des tools d'écriture, tu ne les utilises QUE si je l'ai explicitement demandé pour cette tâche précise. « Read-only » = lecture uniquement, pas d'`apply_migration`, pas de `DELETE`, pas de `UPDATE`.
+
+5. **COMMUNICATION HONNÊTE** : si tu fais quelque chose en dehors du scope demandé, tu le signales en début de réponse en gras avec « ⚠️ HORS SCOPE ».
+
+6. **PAS DE SCOPE CREEP** : si je demande « vérifie X », tu vérifies X et tu t'arrêtes. Tu ne fais pas « vérifie X et tant qu'on y est j'ai aussi fait Y et Z ».
+
 ## Project
 
 Kotlin Multiplatform app (Android + iOS) using Compose Multiplatform, backed by Supabase. Single Gradle module: `:composeApp`. Application id `com.nazam.instaclone`. Min SDK 24, target/compile SDK 36, JVM target 11.
