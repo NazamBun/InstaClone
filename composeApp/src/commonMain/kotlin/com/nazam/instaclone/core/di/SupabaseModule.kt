@@ -7,6 +7,11 @@ import com.nazam.instaclone.core.media.ImageBytesReader
 import com.nazam.instaclone.core.session.DefaultSessionManager
 import com.nazam.instaclone.core.session.SessionManager
 import com.nazam.instaclone.core.supabase.SupabaseClientProvider
+import com.nazam.instaclone.feature.admin.data.repository.AdminRepositoryImpl
+import com.nazam.instaclone.feature.admin.domain.repository.AdminRepository
+import com.nazam.instaclone.feature.admin.domain.usecase.GrantPostPermissionUseCase
+import com.nazam.instaclone.feature.admin.domain.usecase.ListUsersUseCase
+import com.nazam.instaclone.feature.admin.domain.usecase.RevokePostPermissionUseCase
 import com.nazam.instaclone.feature.auth.data.repository.AuthRepositoryImpl
 import com.nazam.instaclone.feature.auth.domain.repository.AuthRepository
 import com.nazam.instaclone.feature.auth.domain.usecase.GetCurrentUserUseCase
@@ -125,6 +130,12 @@ val appModule = module {
     factory { UnfollowUserUseCase(get()) }
     factory { UpdateMyProfileUseCase(get()) }
     factory { UpdateAvatarUseCase(get()) }
+
+    // ---------- Admin ----------
+    single<AdminRepository> { AdminRepositoryImpl(client = get(), json = get()) }
+    factory { ListUsersUseCase(get()) }
+    factory { GrantPostPermissionUseCase(get()) }
+    factory { RevokePostPermissionUseCase(get()) }
 
     // ---------- ViewModels ----------
     viewModel {
