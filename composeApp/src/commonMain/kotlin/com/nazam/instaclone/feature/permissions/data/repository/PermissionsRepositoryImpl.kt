@@ -18,6 +18,7 @@ class PermissionsRepositoryImpl(
 
     private companion object {
         const val TABLE = "post_permissions"
+        const val TABLE_ADMINS = "admins"
         const val COL_USER_ID = "user_id"
         const val COL_CAN_CREATE_POST = "can_create_post"
     }
@@ -41,4 +42,16 @@ class PermissionsRepositoryImpl(
 
         PostPermission(canCreatePost = canCreate)
     }
+
+    override suspend fun isAdmin(userId: String): Result<Boolean> = safeCall {
+        val response = client.postgrest[TABLE_ADMINS]
+            .select {
+                filter { eq(COL_USER_ID, userId) }
+                limit(1)
+            }
+
+        json.parseToJsonElement(response.data)
+            .jsonArray
+            .firstOrNull() != null
+    }.recover { false }
 }

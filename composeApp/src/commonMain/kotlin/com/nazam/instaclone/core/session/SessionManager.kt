@@ -4,6 +4,7 @@ import com.nazam.instaclone.core.dispatchers.AppDispatchers
 import com.nazam.instaclone.feature.auth.domain.model.AuthUser
 import com.nazam.instaclone.feature.auth.domain.usecase.GetCurrentUserUseCase
 import com.nazam.instaclone.feature.permissions.domain.usecase.GetPostPermissionUseCase
+import com.nazam.instaclone.feature.permissions.domain.usecase.IsAdminUseCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,7 +27,8 @@ interface SessionManager {
 class DefaultSessionManager(
     private val dispatchers: AppDispatchers,
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
-    private val getPostPermissionUseCase: GetPostPermissionUseCase
+    private val getPostPermissionUseCase: GetPostPermissionUseCase,
+    private val isAdminUseCase: IsAdminUseCase,
 ) : SessionManager {
 
     private val job = SupervisorJob()
@@ -59,6 +61,13 @@ class DefaultSessionManager(
             getPostPermissionUseCase.execute(user.id)
         }.getOrNull()
 
-        return user.copy(canCreatePost = permission?.canCreatePost == true)
+        val isAdmin = withContext(dispatchers.io) {
+            isAdminUseCase.execute(user.id)
+        }.getOrNull() == true
+
+        return user.copy(
+            canCreatePost = permission?.canCreatePost == true,
+            isAdmin = isAdmin,
+        )
     }
 }

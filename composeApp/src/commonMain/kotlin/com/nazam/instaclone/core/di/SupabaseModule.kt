@@ -43,6 +43,7 @@ import com.nazam.instaclone.feature.notifications.presentation.viewmodel.Notific
 import com.nazam.instaclone.feature.permissions.data.repository.PermissionsRepositoryImpl
 import com.nazam.instaclone.feature.permissions.domain.repository.PermissionsRepository
 import com.nazam.instaclone.feature.permissions.domain.usecase.GetPostPermissionUseCase
+import com.nazam.instaclone.feature.permissions.domain.usecase.IsAdminUseCase
 import com.nazam.instaclone.feature.profile.data.repository.ProfileRepositoryImpl
 import com.nazam.instaclone.feature.profile.domain.repository.ProfileRepository
 import com.nazam.instaclone.feature.profile.domain.usecase.FollowUserUseCase
@@ -70,6 +71,7 @@ val appModule = module {
     // ---------- Permissions ----------
     single<PermissionsRepository> { PermissionsRepositoryImpl(client = get(), json = get()) }
     factory { GetPostPermissionUseCase(get()) }
+    factory { IsAdminUseCase(get()) }
 
     // ---------- Auth ----------
     single<AuthRepository> { AuthRepositoryImpl(get()) }
@@ -83,7 +85,8 @@ val appModule = module {
         DefaultSessionManager(
             dispatchers = get(),
             getCurrentUserUseCase = get(),
-            getPostPermissionUseCase = get()
+            getPostPermissionUseCase = get(),
+            isAdminUseCase = get()
         )
     }
 

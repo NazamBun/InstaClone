@@ -7,4 +7,5 @@ import com.nazam.instaclone.feature.permissions.domain.model.PostPermission
  */
 interface PermissionsRepository {
     suspend fun getPostPermission(userId: String): Result<PostPermission>
+    suspend fun isAdmin(userId: String): Result<Boolean>
 }
