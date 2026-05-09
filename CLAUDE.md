@@ -81,7 +81,7 @@ Existing features: `auth`, `home` (feed, vote, create post, explore, categories,
 
 - `core/di/InitKoin.kt` — `initKoin(vararg extraModules)` is idempotent (catches `KoinApplicationAlreadyStartedException`).
 - `core/di/SupabaseModule.kt` — the single `appModule` binding everything (repositories `single`, use cases `factory`, view models `viewModel { }`).
-- Android entry: `MainActivity.onCreate` calls `initKoin(androidPlatformModule(this))` to inject the `Context`-bound `AndroidImageBytesReader`. iOS bootstraps via `MainViewController` (Koin started lazily on first injection — verify `doInitKoin()` is called from the iOS side before adding new platform-specific bindings).
+- Android entry: `MainActivity.onCreate` calls `initKoin(androidPlatformModule(this))` to inject the `Context`-bound `AndroidImageBytesReader`. iOS entry: `iOSApp.init()` (Swift) calls `InitKoinIosKt.doInitKoinIos()`, which is defined in `iosMain/.../core/di/InitKoinIos.kt` and calls `initKoin(iosPlatformModule())` to bind `IosImageBytesReader`. Both platforms initialize Koin eagerly at app startup with their platform module merged into `appModule`.
 - New ViewModels must be registered in `appModule` and resolved with `koinInject()` / `koinViewModel()` from Compose. `factory` is used for short-lived VMs (auth flows); `viewModel { }` for long-lived screen VMs.
 
 ### Navigation
@@ -135,7 +135,7 @@ When adding cross-platform behavior that needs platform APIs, mirror the existin
 
 ## Bugs connus / TODO
 
-- **iOS** : `MainViewController.kt` n'appelle pas `initKoin()` → **CRITIQUE** à fixer (l'app crash au démarrage iOS dès qu'un `koinInject()` se déclenche).
+- **iOS** : initialisation Koin via `doInitKoinIos()` depuis `iOSApp.init()` (Swift) — symétrique d'`androidPlatformModule(this)` passé depuis `MainActivity` sur Android. `IosImageBytesReader` est bindé mais `readBytes()` est encore un placeholder qui throw — l'upload d'image plantera clairement à l'usage. Test runtime iOS à faire dans une session avec Xcode/simulateur.
 - Build `release` non minifié (`isMinifyEnabled = false`, R8 désactivé).
 - Stores `object` globaux (`NavigationStore`, `ProfileTargetStore`, `NotificationsBadgeStore`) → migrer en singletons Koin.
 - Coil + Kamel sont tous les deux dans les deps → en choisir un seul.
