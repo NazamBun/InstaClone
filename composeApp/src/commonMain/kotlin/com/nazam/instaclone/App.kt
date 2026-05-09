@@ -23,6 +23,7 @@ import com.nazam.instaclone.core.navigation.NavigationStore
 import com.nazam.instaclone.core.navigation.Screen
 import com.nazam.instaclone.core.session.SessionManager
 import com.nazam.instaclone.core.ui.SnackbarEffect
+import com.nazam.instaclone.feature.admin.presentation.ui.AdminRoute
 import com.nazam.instaclone.feature.auth.presentation.ui.LoginRoute
 import com.nazam.instaclone.feature.auth.presentation.ui.SignupRoute
 import com.nazam.instaclone.feature.home.domain.model.VsPost
@@ -71,7 +72,7 @@ fun App() {
 
     fun isProtected(screen: Screen): Boolean = screen in setOf(
         Screen.Profile, Screen.EditProfile, Screen.CreatePostType,
-        Screen.CreatePost, Screen.Notifications
+        Screen.CreatePost, Screen.Notifications, Screen.Admin
     )
 
     LaunchedEffect(Unit) {
@@ -163,6 +164,7 @@ private fun AppNavHost(
             onEditProfileClick = { onNavigate(Screen.EditProfile) },
             onEditCoverClick = {},
             onEditAvatarClick = {},
+            onNavigateToAdmin = { onNavigate(Screen.Admin) },
             onPostClick = { _: VsPost -> }
         )
         Screen.UserProfile -> ProfileRoute(
@@ -176,11 +178,13 @@ private fun AppNavHost(
             onEditProfileClick = {},
             onEditCoverClick = {},
             onEditAvatarClick = {},
+            onNavigateToAdmin = { onNavigate(Screen.Admin) },
             onPostClick = { _: VsPost -> }
         )
         Screen.EditProfile -> EditProfileRoute(
             contentPadding = contentPadding,
             onNavigate = onNavigate
         )
+        Screen.Admin -> AdminRoute(onBack = { onNavigate(Screen.Profile) })
     }
 }

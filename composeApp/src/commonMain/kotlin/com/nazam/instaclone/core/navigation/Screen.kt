@@ -12,5 +12,6 @@ enum class Screen {
     Notifications,
     Profile,
     UserProfile,
-    EditProfile
+    EditProfile,
+    Admin,
 }

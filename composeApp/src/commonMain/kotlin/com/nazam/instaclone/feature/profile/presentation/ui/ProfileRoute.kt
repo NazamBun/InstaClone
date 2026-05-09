@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import com.nazam.instaclone.core.clipboard.rememberClipboardManager
 import com.nazam.instaclone.core.media.rememberImagePicker
 import com.nazam.instaclone.core.navigation.Screen
+import com.nazam.instaclone.core.session.SessionManager
 import com.nazam.instaclone.core.ui.asString
 import com.nazam.instaclone.feature.home.domain.model.VsPost
 import com.nazam.instaclone.feature.profile.presentation.ui.components.ProfileVisitedTopBar
@@ -33,6 +34,7 @@ import instaclone.composeapp.generated.resources.profile_action_soon
 import instaclone.composeapp.generated.resources.share_copied
 import kotlinx.coroutines.flow.collectLatest
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
 private const val DEEPLINK_PROFILE_PREFIX = "instaclone://profile/"
@@ -50,10 +52,14 @@ fun ProfileRoute(
     onEditProfileClick: () -> Unit,
     onEditCoverClick: () -> Unit,
     onEditAvatarClick: () -> Unit,
+    onNavigateToAdmin: () -> Unit,
     onPostClick: (VsPost) -> Unit
 ) {
     val vm: ProfileViewModel = koinViewModel()
     val state by vm.uiState.collectAsState()
+    val sessionManager: SessionManager = koinInject()
+    val currentUser by sessionManager.user.collectAsState()
+    val showAdminButton = !isVisitedProfile && (currentUser?.isAdmin == true)
     val clipboard = rememberClipboardManager()
     val snackbarHostState = remember { SnackbarHostState() }
     val copiedLabel = stringResource(Res.string.share_copied)
@@ -95,6 +101,8 @@ fun ProfileRoute(
                     onEditCoverClick = onEditCoverClick,
                     onEditAvatarClick = pickAvatar,
                     onPostClick = onPostClick,
+                    isAdmin = showAdminButton,
+                    onNavigateToAdmin = onNavigateToAdmin,
                     modifier = Modifier.fillMaxSize().padding(
                         top = if (isVisitedProfile) VisitedProfileTopPadding else 0.dp
                     )
