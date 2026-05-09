@@ -12,6 +12,7 @@ import com.nazam.instaclone.feature.admin.domain.repository.AdminRepository
 import com.nazam.instaclone.feature.admin.domain.usecase.GrantPostPermissionUseCase
 import com.nazam.instaclone.feature.admin.domain.usecase.ListUsersUseCase
 import com.nazam.instaclone.feature.admin.domain.usecase.RevokePostPermissionUseCase
+import com.nazam.instaclone.feature.admin.presentation.viewmodel.AdminViewModel
 import com.nazam.instaclone.feature.auth.data.repository.AuthRepositoryImpl
 import com.nazam.instaclone.feature.auth.domain.repository.AuthRepository
 import com.nazam.instaclone.feature.auth.domain.usecase.GetCurrentUserUseCase
@@ -201,4 +202,5 @@ val appModule = module {
             updateMyProfileUseCase = get()
         )
     }
+    viewModel { AdminViewModel(get(), get(), get(), get()) }
 }

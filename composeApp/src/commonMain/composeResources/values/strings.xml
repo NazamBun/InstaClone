@@ -284,4 +284,14 @@
     <string name="profile_avatar_upload_error">Impossible de mettre à jour la photo de profil.</string>
     <string name="profile_logout_error">Impossible de se déconnecter.</string>
     <string name="home_following_empty">Aucun post suivi pour l'instant.</string>
+
+    <!-- Admin -->
+    <string name="admin_screen_title">Administration</string>
+    <string name="admin_search_hint">Chercher par nom</string>
+    <string name="admin_no_users">Aucun utilisateur</string>
+    <string name="admin_grant_permission">Autoriser à publier</string>
+    <string name="admin_error_not_admin">Action réservée aux administrateurs</string>
+    <string name="admin_error_generic">Une erreur est survenue</string>
+    <string name="admin_toggle_success_grant">Autorisation accordée</string>
+    <string name="admin_toggle_success_revoke">Autorisation révoquée</string>
 </resources>
