@@ -4,5 +4,6 @@ data class AuthUser(
     val id: String,
     val email: String,
     val displayName: String?,
-    val canCreatePost: Boolean = false
+    val canCreatePost: Boolean = false,
+    val isAdmin: Boolean = false,
 )
