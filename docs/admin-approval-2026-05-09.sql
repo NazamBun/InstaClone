@@ -2,10 +2,9 @@
 -- admin-approval-2026-05-09.sql
 -- ============================================================================
 -- Feature : approval admin pour autoriser un user à créer un post.
--- Migration NON APPLIQUÉE — à exécuter dans une session future après test
--- complet sur un branch Supabase et validation runtime côté client.
+-- Migration APPLIQUÉE EN PROD le 2026-05-10 via mcp__supabase__apply_migration (name: admin_approval_2026_05_09).
 --
--- Avant d'appliquer :
+-- PROCÉDURE D'APPLY (HISTORIQUE) :
 --   1. Créer un branch Supabase (mcp__supabase__create_branch ou via dashboard)
 --   2. Appliquer ce SQL sur le branch
 --   3. Tester le flow : login admin → grant_post_permission(target, true) →
