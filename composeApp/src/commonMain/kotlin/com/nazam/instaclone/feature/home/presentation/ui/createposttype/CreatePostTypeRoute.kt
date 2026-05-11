@@ -11,9 +11,12 @@ fun CreatePostTypeRoute(
 ) {
     CreatePostTypeScreen(
         onBackClick = { onNavigate(Screen.Home) },
-        onContinueClick = { type: CreatePostType ->
+        onTypeSelected = { type: CreatePostType ->
             CreatePostTypeStore.set(type)
-            onNavigate(Screen.CreatePost)
+            when (type) {
+                CreatePostType.DUEL -> onNavigate(Screen.CreatePost)
+                CreatePostType.YES_NO -> onNavigate(Screen.CreatePostYesNo)
+            }
         }
     )
 }

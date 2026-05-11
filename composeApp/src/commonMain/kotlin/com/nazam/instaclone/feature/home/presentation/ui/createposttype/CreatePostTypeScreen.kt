@@ -3,12 +3,9 @@ package com.nazam.instaclone.feature.home.presentation.ui.createposttype
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -16,10 +13,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.nazam.instaclone.feature.home.presentation.model.CreatePostType
@@ -27,7 +20,6 @@ import com.nazam.instaclone.feature.home.presentation.ui.createposttype.componen
 import com.nazam.instaclone.feature.home.presentation.ui.createposttype.components.PollTypeChoiceCard
 import com.nazam.instaclone.feature.home.presentation.ui.createposttype.components.YesNoPreview
 import instaclone.composeapp.generated.resources.Res
-import instaclone.composeapp.generated.resources.create_post_type_continue
 import instaclone.composeapp.generated.resources.create_post_type_duel_desc
 import instaclone.composeapp.generated.resources.create_post_type_duel_title
 import instaclone.composeapp.generated.resources.create_post_type_subtitle
@@ -41,11 +33,9 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun CreatePostTypeScreen(
     onBackClick: () -> Unit,
-    onContinueClick: (CreatePostType) -> Unit,
+    onTypeSelected: (CreatePostType) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var selected by remember { mutableStateOf(CreatePostType.DUEL) }
-
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -56,17 +46,6 @@ fun CreatePostTypeScreen(
                     }
                 }
             )
-        },
-        bottomBar = {
-            Button(
-                onClick = { onContinueClick(selected) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .navigationBarsPadding()
-                    .padding(horizontal = 20.dp, vertical = 12.dp)
-            ) {
-                Text(stringResource(Res.string.create_post_type_continue))
-            }
         }
     ) { padding ->
         Column(
@@ -87,8 +66,8 @@ fun CreatePostTypeScreen(
                 title = stringResource(Res.string.create_post_type_duel_title),
                 description = stringResource(Res.string.create_post_type_duel_desc),
                 tag = "A vs B",
-                selected = selected == CreatePostType.DUEL,
-                onClick = { selected = CreatePostType.DUEL },
+                selected = false,
+                onClick = { onTypeSelected(CreatePostType.DUEL) },
                 preview = { DuelPreview() }
             )
 
@@ -96,8 +75,8 @@ fun CreatePostTypeScreen(
                 title = stringResource(Res.string.create_post_type_yes_no_title),
                 description = stringResource(Res.string.create_post_type_yes_no_desc),
                 tag = "Oui / Non",
-                selected = selected == CreatePostType.YES_NO,
-                onClick = { selected = CreatePostType.YES_NO },
+                selected = false,
+                onClick = { onTypeSelected(CreatePostType.YES_NO) },
                 preview = { YesNoPreview() }
             )
         }
