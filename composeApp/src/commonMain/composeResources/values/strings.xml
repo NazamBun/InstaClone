@@ -40,7 +40,6 @@
     <string name="create_post_type_duel_desc">Deux choix s’affrontent. L’utilisateur choisit A ou B.</string>
     <string name="create_post_type_yes_no_title">Question Oui / Non</string>
     <string name="create_post_type_yes_no_desc">Une question simple avec seulement deux réponses : Oui ou Non.</string>
-    <string name="create_post_type_continue">Continuer</string>
     <string name="create_post_yes_no_title">Sondage Oui/Non</string>
     <string name="create_post_yes_no_wip">Bientôt disponible</string>
     <string name="create_post_question_label">Question</string>
