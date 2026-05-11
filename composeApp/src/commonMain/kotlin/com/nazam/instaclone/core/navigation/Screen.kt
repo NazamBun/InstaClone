@@ -8,6 +8,7 @@ enum class Screen {
     ExplorePager,
     CreatePostType,
     CreatePost,
+    CreatePostYesNo,
     Categories,
     Notifications,
     Profile,

@@ -32,6 +32,7 @@ import com.nazam.instaclone.feature.home.presentation.ui.HomeBottomBar
 import com.nazam.instaclone.feature.home.presentation.ui.HomeRoute
 import com.nazam.instaclone.feature.home.presentation.ui.categories.CategoriesRoute
 import com.nazam.instaclone.feature.home.presentation.ui.createposttype.CreatePostTypeRoute
+import com.nazam.instaclone.feature.home.presentation.ui.createpostyesno.CreatePostYesNoRoute
 import com.nazam.instaclone.feature.home.presentation.ui.explore.ExplorePagerRoute
 import com.nazam.instaclone.feature.home.presentation.ui.explore.ExploreRoute
 import com.nazam.instaclone.feature.notifications.presentation.badge.NotificationsBadgeStore
@@ -72,7 +73,7 @@ fun App() {
 
     fun isProtected(screen: Screen): Boolean = screen in setOf(
         Screen.Profile, Screen.EditProfile, Screen.CreatePostType,
-        Screen.CreatePost, Screen.Notifications, Screen.Admin
+        Screen.CreatePost, Screen.CreatePostYesNo, Screen.Notifications, Screen.Admin
     )
 
     LaunchedEffect(Unit) {
@@ -146,6 +147,7 @@ private fun AppNavHost(
         Screen.ExplorePager -> ExplorePagerRoute(onNavigate = onNavigate, contentPadding = contentPadding)
         Screen.CreatePostType -> CreatePostTypeRoute(onNavigate = onNavigate)
         Screen.CreatePost -> CreatePostRoute(onNavigate = onNavigate)
+        Screen.CreatePostYesNo -> CreatePostYesNoRoute(onBack = { onNavigate(Screen.CreatePostType) })
         Screen.Categories -> CategoriesRoute(onNavigate = onNavigate)
         Screen.Login -> LoginRoute(onNavigate = onNavigate)
         Screen.Signup -> SignupRoute(onNavigate = onNavigate)
