@@ -37,6 +37,7 @@ import com.nazam.instaclone.feature.home.domain.usecase.VoteLeftUseCase
 import com.nazam.instaclone.feature.home.domain.usecase.VoteRightUseCase
 import com.nazam.instaclone.feature.home.presentation.ui.categories.CategoriesViewModel
 import com.nazam.instaclone.feature.home.presentation.viewmodel.CreatePostViewModel
+import com.nazam.instaclone.feature.home.presentation.viewmodel.CreatePostYesNoViewModel
 import com.nazam.instaclone.feature.home.presentation.viewmodel.ExploreViewModel
 import com.nazam.instaclone.feature.home.presentation.viewmodel.HomeViewModel
 import com.nazam.instaclone.feature.notifications.data.repository.SupabaseNotificationsRepository
@@ -160,6 +161,14 @@ val appModule = module {
             uploadPostImageUseCase = get(),
             createPostUseCase = get(),
             getCurrentUserUseCase = get()
+        )
+    }
+    viewModel {
+        CreatePostYesNoViewModel(
+            dispatchers = get(),
+            getCurrentUserUseCase = get(),
+            uploadPostImageUseCase = get(),
+            createYesNoPostUseCase = get()
         )
     }
     factory {
