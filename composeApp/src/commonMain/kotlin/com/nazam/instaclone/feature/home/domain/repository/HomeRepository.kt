@@ -23,6 +23,11 @@ interface HomeRepository {
         selectedVsBadgeId: String
     ): Result<VsPost>
 
+    suspend fun createYesNoPost(
+        question: String,
+        imageUrl: String
+    ): Result<VsPost>
+
     suspend fun voteLeft(postId: String): Result<VsPost>
     suspend fun voteRight(postId: String): Result<VsPost>
 

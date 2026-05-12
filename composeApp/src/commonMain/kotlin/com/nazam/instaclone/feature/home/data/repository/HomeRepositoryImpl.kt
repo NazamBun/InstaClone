@@ -79,6 +79,24 @@ class HomeRepositoryImpl(
         PostMapper.toDomain(decodePosts(response.data).first(), VoteChoice.NONE)
     }
 
+    override suspend fun createYesNoPost(
+        question: String,
+        imageUrl: String
+    ) = runCatching {
+        val user = client.auth.currentUserOrNull()
+            ?: throw IllegalStateException("AUTH_REQUIRED")
+
+        val payload = CreateYesNoPostDto(
+            postType = "YES_NO",
+            question = question,
+            leftImage = imageUrl,
+            authorName = user.email
+        )
+
+        val response = client.postgrest[POSTS_TABLE].insert(payload) { select() }
+        PostMapper.toDomain(decodePosts(response.data).first(), VoteChoice.NONE)
+    }
+
     override suspend fun voteLeft(postId: String) = vote(postId, "left")
 
     override suspend fun voteRight(postId: String) = vote(postId, "right")
@@ -165,6 +183,14 @@ class HomeRepositoryImpl(
         @SerialName("vs_badge_id") val selectedVsBadgeId: String,
         @SerialName("author_name") val authorName: String? = null,
         @SerialName("author_avatar") val authorAvatar: String? = null
+    )
+
+    @Serializable
+    private data class CreateYesNoPostDto(
+        @SerialName("post_type") val postType: String,
+        val question: String,
+        @SerialName("left_image") val leftImage: String,
+        @SerialName("author_name") val authorName: String? = null
     )
 
     @Serializable
