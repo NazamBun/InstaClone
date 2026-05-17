@@ -147,7 +147,7 @@ private fun AppNavHost(
         Screen.ExplorePager -> ExplorePagerRoute(onNavigate = onNavigate, contentPadding = contentPadding)
         Screen.CreatePostType -> CreatePostTypeRoute(onNavigate = onNavigate)
         Screen.CreatePost -> CreatePostRoute(onNavigate = onNavigate)
-        Screen.CreatePostYesNo -> CreatePostYesNoRoute(onBack = { onNavigate(Screen.CreatePostType) })
+        Screen.CreatePostYesNo -> CreatePostYesNoRoute(onNavigate = onNavigate)
         Screen.Categories -> CategoriesRoute(onNavigate = onNavigate)
         Screen.Login -> LoginRoute(onNavigate = onNavigate)
         Screen.Signup -> SignupRoute(onNavigate = onNavigate)

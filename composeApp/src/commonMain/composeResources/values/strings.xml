@@ -45,6 +45,11 @@
     <string name="create_post_yes_no_error_image">Choisis une image de fond</string>
     <string name="create_post_yes_no_error_wait_upload">Attends la fin de l\'upload de l\'image</string>
     <string name="create_post_yes_no_error_upload_failed">Échec de l\'upload de l\'image</string>
+    <string name="create_post_yes_no_image_label">Image de fond</string>
+    <string name="create_post_yes_no_pick_image_cta">Choisir une image</string>
+    <string name="create_post_yes_no_change_image_cta">Changer l\'image</string>
+    <string name="create_post_yes_no_publish_cta">Publier</string>
+    <string name="create_post_yes_no_uploading_label">Envoi de l\'image…</string>
     <string name="create_post_question_label">Question</string>
     <string name="create_post_hashtag_hint">Ajoute des hashtags dans la question, par exemple : #cr7 #mbappe</string>
     <string name="create_post_left_label">Label gauche</string>
