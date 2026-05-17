@@ -23,3 +23,6 @@ iosApp/Secrets.xcconfig
 
 # Claude Code / Claude Desktop worktrees
 .claude/
+
+# Continue plugin cache
+.continue/
