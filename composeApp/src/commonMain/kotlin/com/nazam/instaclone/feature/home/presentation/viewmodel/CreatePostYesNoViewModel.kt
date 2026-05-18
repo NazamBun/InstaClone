@@ -52,12 +52,10 @@ class CreatePostYesNoViewModel(
             when {
                 user == null -> {
                     NavigationStore.setAfterLogin(Screen.CreatePostYesNo)
-                    updateState { it.copy(authBlocked = true) }
                     _events.tryEmit(CreatePostYesNoUiEvent.ShowMessage(UiText.Resource(Res.string.create_post_auth_required)))
                     _events.tryEmit(CreatePostYesNoUiEvent.NavigateToLogin)
                 }
                 !CreatePostAccess.canCreate(user) -> {
-                    updateState { it.copy(authBlocked = true) }
                     _events.tryEmit(CreatePostYesNoUiEvent.ShowMessage(UiText.Resource(Res.string.create_post_not_allowed)))
                     _events.tryEmit(CreatePostYesNoUiEvent.NavigateBack)
                 }

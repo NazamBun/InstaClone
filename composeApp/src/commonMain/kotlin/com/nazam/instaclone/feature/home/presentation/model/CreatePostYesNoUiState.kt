@@ -10,6 +10,5 @@ data class CreatePostYesNoUiState(
     val imageUploadPercent: Int? = null,
     val isLoading: Boolean = false,
     val error: UiText? = null,
-    val submitBlockedReason: UiText? = null,
-    val authBlocked: Boolean = false
+    val submitBlockedReason: UiText? = null
 )

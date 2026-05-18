@@ -64,18 +64,12 @@ fun CreatePostYesNoScreen(
                 }
             }
         )
-        if (ui.authBlocked) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-        } else {
-            CreateYesNoForm(
-                ui = ui,
-                onQuestionChange = onQuestionChange,
-                onPickImageClick = onPickImageClick,
-                onSubmitClick = onSubmitClick
-            )
-        }
+        CreateYesNoForm(
+            ui = ui,
+            onQuestionChange = onQuestionChange,
+            onPickImageClick = onPickImageClick,
+            onSubmitClick = onSubmitClick
+        )
     }
 }
 
